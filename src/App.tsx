@@ -1,10 +1,11 @@
 import { ReactFlowProvider } from '@xyflow/react';
-import { X } from 'lucide-react';
+import { Network, Table2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './store/autosave';
-import { useProject } from './store/useProject';
+import { NO_SELECTION, useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
 import { Inspector } from './ui/inspector/Inspector';
+import { Inventory } from './ui/Inventory';
 import { FilterBar } from './ui/FilterBar';
 import { Palette } from './ui/Palette';
 import { SearchDialog } from './ui/SearchDialog';
@@ -22,6 +23,9 @@ export function App() {
   const load = useProject((s) => s.load);
   const [searching, setSearching] = useState(false);
   const [choosingTemplate, setChoosingTemplate] = useState(false);
+  const [view, setView] = useState<'diagram' | 'inventory'>('diagram');
+  const focusDevice = useProject((s) => s.focusDevice);
+  const select = useProject((s) => s.select);
   const openSearch = useCallback(() => setSearching(true), []);
   useShortcuts(openSearch);
 
@@ -30,7 +34,7 @@ export function App() {
   return (
     <ReactFlowProvider>
       <div className="app">
-        <Toolbar onErrors={setErrors} onSearch={openSearch} onNew={() => setChoosingTemplate(true)} />
+        <Toolbar onErrors={setErrors} onSearch={openSearch} onNew={() => setChoosingTemplate(true)} diagramVisible={view === 'diagram'} />
         {pending && (
           <div className="notice notice--info" role="status">
             <p>
@@ -73,12 +77,36 @@ export function App() {
         )}
         <main className="workspace">
           <Palette />
-          <section className="canvas-column" aria-label="Diagram">
+          <section className="canvas-column" aria-label={view === 'diagram' ? 'Diagram' : 'Inventory'}>
             <div className="canvas-bar">
-              <SiteTabs />
-              <FilterBar />
+              <div className="segmented view-switch" role="tablist" aria-label="View">
+                <button type="button" role="tab" aria-selected={view === 'diagram'} className={view === 'diagram' ? 'is-active' : ''} onClick={() => setView('diagram')}>
+                  <Network size={15} /> Diagram
+                </button>
+                <button type="button" role="tab" aria-selected={view === 'inventory'} className={view === 'inventory' ? 'is-active' : ''} onClick={() => setView('inventory')}>
+                  <Table2 size={15} /> Inventory
+                </button>
+              </div>
+              {view === 'diagram' && <SiteTabs />}
+              {view === 'diagram' && <FilterBar />}
             </div>
-            <Canvas />
+            {view === 'diagram' ? (
+              <Canvas />
+            ) : (
+              <Inventory
+                onShowDevice={(id) => {
+                  setView('diagram');
+                  focusDevice(id);
+                }}
+                onShowFlow={(id) => {
+                  const flow = useProject.getState().project.flows.find((f) => f.id === id);
+                  if (!flow) return;
+                  setView('diagram');
+                  focusDevice(flow.source);
+                  select({ ...NO_SELECTION, flows: [id] });
+                }}
+              />
+            )}
           </section>
           <Inspector />
         </main>

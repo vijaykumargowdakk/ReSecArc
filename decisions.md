@@ -94,3 +94,8 @@
 **Decision:** "New" now opens a gallery: a blank canvas or one of five fictional templates (water treatment, substation, manufacturing line, office building, multi-site pipeline). Together the templates use every protocol, sites and areas. The separate Demo button is gone. Multi-device selections can be saved as named blocks (per browser) and inserted from the palette. Added protection relay (IED), merging unit and circuit breaker variants for the substation template.
 **Why:** Starting from a realistic reference architecture is faster than a blank page, and blocks make repeated cells quick to build.
 **User input:** Approved in the v0.2 plan.
+
+## 2026-10-25 — Inventory view, CSV import/export and diagram/document export
+**Decision:** Added a Diagram/Inventory switch. The inventory has sortable, inline-editable device, flow and firewall-rule tables; edits go through the same undoable operations. Devices import from CSV (types and kinds by id or label, zones and sites by name) with a preview that lists each rejected row and its reason. The Export menu downloads the diagram as SVG/PNG (html-to-image, pinned to 1.11.11 as React Flow recommends), prints it to PDF through a print stylesheet, and writes a Markdown architecture record and CSV tables.
+**Why:** Most plants already keep an asset list in a spreadsheet. Importing it, and exporting documentation, makes the tool fit existing workflows.
+**User input:** Approved in the v0.2 plan.

@@ -758,6 +758,323 @@ button:focus-visible {
   padding: 0 18px 16px;
 }
 
+/* View switch, inventory table, export menu, import dialog */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.segmented button.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.view-switch {
+  align-self: center;
+  margin-bottom: 6px;
+}
+
+.inventory {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel);
+}
+
+.inventory__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.inventory__bar .button {
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+}
+
+.inventory__search {
+  width: 220px !important;
+}
+
+.inventory__spacer {
+  flex: 1;
+}
+
+.inventory__table-wrap {
+  flex: 1;
+  overflow: auto;
+}
+
+.inventory__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.inventory__table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  background: var(--panel-alt);
+  border-bottom: 1px solid var(--line-strong);
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.inventory__table th button,
+.inventory__table th:not(:has(button)) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.inventory__table td {
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.inventory__table tr:hover td,
+.inventory__table tr.is-checked td {
+  background: var(--panel-alt);
+}
+
+.inventory__table select,
+.cell-input {
+  min-width: 90px;
+  padding: 4px 6px !important;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.inventory__table select:hover,
+.inventory__table select:focus,
+.cell-input:hover,
+.cell-input:focus {
+  border-color: var(--line-strong) !important;
+  background: var(--panel) !important;
+}
+
+.col-check {
+  width: 34px;
+  text-align: center;
+}
+
+.col-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 220px;
+  color: var(--icon-ink);
+}
+
+.col-name .cell-input {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.inventory__empty {
+  margin: 16px;
+}
+
+.protocol-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+
+.action {
+  padding: 1px 7px;
+  border-radius: 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.action--allow {
+  background: #dcfce7;
+  color: var(--allow);
+}
+
+.action--deny {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu summary {
+  list-style: none;
+}
+
+.menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu__items {
+  position: absolute;
+  right: 0;
+  z-index: 40;
+  min-width: 240px;
+  margin-top: 6px;
+  padding: 5px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(15, 28, 42, 0.22);
+}
+
+.menu__items button {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu__items button:hover:not(:disabled),
+.menu__items button:focus-visible {
+  background: var(--panel-alt);
+}
+
+.menu__items button:disabled {
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+.menu__items hr {
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid var(--line);
+}
+
+.import-dialog {
+  width: min(640px, calc(100vw - 32px));
+}
+
+.import-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+}
+
+.import-dialog__body code {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.file-button {
+  align-self: flex-start;
+  padding: 8px 12px;
+  border: 1px dashed var(--line-strong);
+  background: var(--panel-alt);
+}
+
+.file-button input {
+  display: none;
+}
+
+.import-errors {
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 8px 8px 8px 26px;
+  border-radius: 6px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 12.5px;
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+.import-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.import-dialog__footer .button {
+  padding: 7px 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+}
+
+.button--primary {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff;
+}
+
+.button--primary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Search dialog */
 .search-trigger kbd,
 .search__box kbd {
@@ -1496,5 +1813,42 @@ textarea {
   .brand__project,
   .toolbar__label {
     display: none;
+  }
+}
+
+/* Print / save as PDF: only the diagram of the current site. */
+@media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+
+  .toolbar,
+  .palette,
+  .inspector,
+  .canvas-bar,
+  .notice,
+  .react-flow__controls,
+  .react-flow__minimap,
+  .react-flow__handle {
+    display: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  .app {
+    height: auto;
+    background: #fff;
+  }
+
+  .workspace {
+    display: block;
+    height: 180mm;
+  }
+
+  .canvas-column,
+  .canvas {
+    height: 100%;
   }
 }
