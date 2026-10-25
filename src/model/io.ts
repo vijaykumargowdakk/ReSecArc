@@ -35,6 +35,7 @@ function designErrors(project: Design): string[] {
     ...project.areas.map((a) => a.id),
     ...project.notes.map((n) => n.id),
     ...project.networks.map((n) => n.id),
+    ...project.fieldDefs.map((f) => f.id),
     ...project.devices.flatMap((d) => d.firewall?.rules.map((r) => r.id) ?? []),
   ];
   for (const id of all) {
@@ -56,6 +57,18 @@ function designErrors(project: Design): string[] {
   for (const n of project.networks) {
     if (n.siteId !== null && !siteIds.has(n.siteId)) errors.push(`Network "${n.id}" refers to unknown site "${n.siteId}"`);
     if (n.zoneId !== null && !zoneIds.has(n.zoneId)) errors.push(`Network "${n.id}" refers to unknown zone "${n.zoneId}"`);
+  }
+  const networkIds = new Set(project.networks.map((n) => n.id));
+  for (const l of project.links) {
+    if (l.networkId !== null && !networkIds.has(l.networkId)) errors.push(`Link "${l.id}" refers to unknown network "${l.networkId}"`);
+  }
+  // A select value that is no longer one of its options is kept and shown as such, not rejected,
+  // so renaming an option never makes a file unopenable.
+  const fieldIds = new Set(project.fieldDefs.map((f) => f.id));
+  for (const d of project.devices) {
+    for (const key of Object.keys(d.fields)) {
+      if (!fieldIds.has(key)) errors.push(`Device "${d.id}" has a value for unknown custom field "${key}"`);
+    }
   }
 
   for (const d of project.devices) {

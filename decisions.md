@@ -170,3 +170,15 @@
 **Other fixes found by the new tests:** buttons in information banners had too little contrast in the dark theme. Replacing an unedited design (New, Open, shared link) no longer asks for confirmation; only edited work does.
 **Why:** Later v0.4 milestones change the file format and the canvas heavily, so they need an automated safety net first.
 **User input:** Approved in the v0.4 plan.
+
+## 2026-10-25 — Schema v4
+**Decision:** Format 4 adds the following:
+- on links: `sourcePort`, `targetPort`, `vlans` and `networkId`;
+- on links and flows: `waypoints`;
+- on devices, notes and areas: `locked`;
+- on devices: `tags` and `fields`;
+- on the project: `fieldDefs`.
+
+The v3 → v4 step also upgrades the designs stored in revisions, so old revisions stay comparable. The diff reports port, VLAN, network, tag and custom-field changes; a change to bend points alone is shown as "re-routed" and hidden with moves. A select value that is no longer an option is kept rather than rejected. Copy and paste copies tags, fields and VLANs, and shifts bend points with the paste. The substation and manufacturing templates now carry fictional interface names, VLANs and link networks.
+**Why:** One format bump for every v0.4 data change means one migration.
+**User input:** Approved in the v0.4 plan.

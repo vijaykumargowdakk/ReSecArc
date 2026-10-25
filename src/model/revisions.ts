@@ -8,8 +8,8 @@ import type { Design, Device, FirewallRule, Flow, Link, Project, Revision } from
 
 export function designOf(project: Project): Design {
   // Listing the fields keeps schemaVersion and revisions out even if more top-level fields appear later.
-  const { name, sites, devices, links, flows, zones, areas, notes, networks } = project;
-  return structuredClone({ name, sites, devices, links, flows, zones, areas, notes, networks });
+  const { name, sites, devices, links, flows, zones, areas, notes, networks, fieldDefs } = project;
+  return structuredClone({ name, sites, devices, links, flows, zones, areas, notes, networks, fieldDefs });
 }
 
 export function saveRevision(project: Project, name: string, now = new Date(), id = newId('rev')): Project {
@@ -33,7 +33,7 @@ export function restoreRevision(project: Project, id: string): Project {
 }
 
 export type ChangeKind = 'added' | 'removed' | 'changed';
-export type ItemKind = 'project' | 'site' | 'zone' | 'network' | 'area' | 'device' | 'link' | 'flow' | 'rule' | 'note';
+export type ItemKind = 'project' | 'field' | 'site' | 'zone' | 'network' | 'area' | 'device' | 'link' | 'flow' | 'rule' | 'note';
 
 export interface Change {
   item: ItemKind;
@@ -109,6 +109,17 @@ export function diffDesigns(before: Design, after: Design): Change[] {
     changes.push({ item: 'project', id: '(project)', change: 'changed', label: 'Project name', details: [`name: ${before.name} → ${after.name}`] });
   }
 
+  changes.push(
+    ...compare('field', before.fieldDefs, after.fieldDefs, (f) => f.label, (a, b) =>
+      fieldChanges(a, b, [
+        ['label', (f) => f.label],
+        ['kind', (f) => f.kind],
+        ['options', (f) => f.options.join(', ')],
+      ]),
+    ),
+  );
+  const fieldLabel = (id: string) => after.fieldDefs.find((f) => f.id === id)?.label ?? before.fieldDefs.find((f) => f.id === id)?.label ?? id;
+
   changes.push(...compare('site', before.sites, after.sites, (s) => s.name, (a, b) => fieldChanges(a, b, [['name', (s) => s.name]])));
   changes.push(
     ...compare('zone', before.zones, after.zones, (z) => z.name, (a, b) =>
@@ -142,6 +153,7 @@ export function diffDesigns(before: Design, after: Design): Change[] {
           ['name', (x) => x.name],
           ['collapsed', (x) => (x.collapsed ? 'yes' : 'no')],
           ['colour', (x) => x.color],
+          ['locked', (x) => (x.locked ? 'yes' : 'no')],
         ]);
         return d.length || same(a.rect, b.rect) ? d : ['moved or resized'];
       },
@@ -163,7 +175,12 @@ export function diffDesigns(before: Design, after: Design): Change[] {
       ['notes', (x) => x.asset.notes],
       ['remote services', (x) => x.services.map((s) => `${s.protocol.toUpperCase()} ${s.port}`).join(', ')],
       ['default action', (x) => x.firewall?.defaultAction],
+      ['tags', (x) => x.tags.join(', ')],
+      ['locked', (x) => (x.locked ? 'yes' : 'no')],
     ]);
+    for (const key of new Set([...Object.keys(a.fields), ...Object.keys(b.fields)])) {
+      if ((a.fields[key] ?? '') !== (b.fields[key] ?? '')) d.push(`${fieldLabel(key)}: ${show(a.fields[key])} → ${show(b.fields[key])}`);
+    }
     if (siteIn(was)(a.siteId) !== siteIn(now)(b.siteId)) d.push(`site: ${siteIn(was)(a.siteId)} → ${siteIn(now)(b.siteId)}`);
     if (zoneIn(was)(a.zoneId) !== zoneIn(now)(b.zoneId)) d.push(`zone: ${show(zoneIn(was)(a.zoneId))} → ${show(zoneIn(now)(b.zoneId))}`);
     if (areaIn(was)(a.areaId) !== areaIn(now)(b.areaId)) d.push(`area: ${show(areaIn(was)(a.areaId))} → ${show(areaIn(now)(b.areaId))}`);
@@ -180,27 +197,49 @@ export function diffDesigns(before: Design, after: Design): Change[] {
     changes.push(c);
   }
 
+  const networkIn = (d: Design) => (id: string | null) => (id ? (d.networks.find((n) => n.id === id)?.name ?? id) : null);
   const linkLabel = (l: Link) => `${deviceName(l.source)} ↔ ${deviceName(l.target)}`;
   changes.push(
-    ...compare('link', before.links, after.links, linkLabel, (a, b) => fieldChanges(a, b, [['medium', (l) => l.medium]]), (l) => deviceSite.get(l.source)),
+    ...routed(
+      compare(
+        'link',
+        before.links,
+        after.links,
+        linkLabel,
+        (a, b) => [
+          ...fieldChanges(a, b, [
+            ['medium', (l) => l.medium],
+            ['port at ' + deviceName(a.source), (l) => l.sourcePort],
+            ['port at ' + deviceName(a.target), (l) => l.targetPort],
+            ['VLANs', (l) => l.vlans.join(', ')],
+          ]),
+          ...(networkIn(before)(a.networkId) === networkIn(after)(b.networkId)
+            ? []
+            : [`network: ${show(networkIn(before)(a.networkId))} → ${show(networkIn(after)(b.networkId))}`]),
+        ],
+        (l) => deviceSite.get(l.source),
+      ),
+    ),
   );
   const flowLabel = (f: Flow) => `${getProtocol(f.protocol)?.label ?? f.protocol}: ${deviceName(f.source)} → ${deviceName(f.target)}`;
   changes.push(
-    ...compare(
-      'flow',
-      before.flows,
-      after.flows,
-      flowLabel,
-      (a, b) => [
-        ...fieldChanges(a, b, [
-          ['protocol', (f) => getProtocol(f.protocol)?.label ?? f.protocol],
-          ['port', (f) => f.port],
-        ]),
-        ...[...new Set([...Object.keys(a.settings), ...Object.keys(b.settings)])]
-          .filter((k) => a.protocol === b.protocol && !same(a.settings[k], b.settings[k]))
-          .map((k) => `${k}: ${show(a.settings[k])} → ${show(b.settings[k])}`),
-      ],
-      (f) => deviceSite.get(f.source),
+    ...routed(
+      compare(
+        'flow',
+        before.flows,
+        after.flows,
+        flowLabel,
+        (a, b) => [
+          ...fieldChanges(a, b, [
+            ['protocol', (f) => getProtocol(f.protocol)?.label ?? f.protocol],
+            ['port', (f) => f.port],
+          ]),
+          ...[...new Set([...Object.keys(a.settings), ...Object.keys(b.settings)])]
+            .filter((k) => a.protocol === b.protocol && !same(a.settings[k], b.settings[k]))
+            .map((k) => `${k}: ${show(a.settings[k])} → ${show(b.settings[k])}`),
+        ],
+        (f) => deviceSite.get(f.source),
+      ),
     ),
   );
 
@@ -248,8 +287,14 @@ export function diffDesigns(before: Design, after: Design): Change[] {
   return changes;
 }
 
+/** A link or flow whose only difference is its bend points has been re-routed, not changed. */
+function routed(changes: Change[]): Change[] {
+  return changes.map((c) => (c.change === 'changed' && c.details.length === 0 ? { ...c, details: ['re-routed on the canvas'], moveOnly: true } : c));
+}
+
 const ITEM_TITLES: Record<ItemKind, string> = {
   project: 'Project',
+  field: 'Custom fields',
   site: 'Sites',
   zone: 'Zones',
   network: 'Networks',

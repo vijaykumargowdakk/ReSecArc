@@ -54,7 +54,7 @@ export function moveDevicesToSite(project: Project, ids: readonly string[], site
 }
 
 export function createArea(siteId: string, rect: Rect, name: string, color: string, id = newId('area')): Area {
-  return { id, siteId, name, color, rect, collapsed: false };
+  return { id, siteId, name, color, rect, collapsed: false, locked: false };
 }
 
 export function addArea(project: Project, area: Area): Project {

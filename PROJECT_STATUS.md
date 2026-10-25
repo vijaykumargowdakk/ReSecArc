@@ -46,7 +46,7 @@ Work is committed on feature branches and merged into `main` with merge commits,
 | M16 | Revisions and change diff | Named revisions saved in the project file, compare any revision with the current design, highlight changes on the canvas | Diff lists added/removed/changed items ✅ |
 | M17 | Share by link, more CSV import | Whole project compressed into the link's #fragment, open-shared-project banner, CSV import of flows and firewall rules | A shared link opens the same project ✅ |
 | M18 | Safety net and speed | Playwright end-to-end tests with axe checks in CI, code splitting, visible-only rendering, shared derived data, 1,000-device benchmark | e2e green in CI; startup bundle within budget ✅ (546 kB, was 617 kB) |
-| M19 | Schema v4 | Link ports/VLANs/network, waypoints, locking, device tags and custom fields | v3 files open; revisions diff the new fields |
+| M19 | Schema v4 | Link ports/VLANs/network, waypoints, locking, device tags and custom fields | v3 files open; revisions diff the new fields ✅ |
 | M20 | Ports, bend points, layers, locking | Link interface editing and Links tab, polyline edges, layer toggles, lock | Ports shown on canvas; layers persist per browser |
 | M21 | Custom fields and tags | Field definitions, editing, bulk edit, inventory columns, tag filter, search, CSV | Round-trips through CSV |
 | M22 | Command palette, tour, history panel | Action registry, first-run tour, named undo steps | Every toolbar action reachable from the palette |

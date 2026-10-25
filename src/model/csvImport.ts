@@ -90,7 +90,7 @@ export function parseFlowCsv(project: Project, text: string): RowResult<Flow>[] 
     if (def.defaultPort !== null && !def.portOptional && port === null) errors.push(`${def.label} needs a port`);
     if (source === target) errors.push('source and target are the same device');
 
-    const flow: Flow = { id: newId('flow'), source: source!, target: target!, protocol: def.id, port, settings };
+    const flow: Flow = { id: newId('flow'), source: source!, target: target!, protocol: def.id, port, settings, waypoints: [] };
     const clash = [...project.flows, ...planned].some((f) => f.source === flow.source && f.target === flow.target && f.protocol === flow.protocol);
     if (clash) errors.push(`a ${def.label} flow from ${get('source')} to ${get('target')} already exists`);
     if (errors.length) return { line, name, value: null, errors };

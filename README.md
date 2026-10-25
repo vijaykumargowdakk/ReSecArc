@@ -442,7 +442,7 @@ flowchart LR
 | Path | Responsibility |
 |------|----------------|
 | `src/model/schema.ts` | zod schema for the whole project file; exported TypeScript types |
-| `src/model/migrate.ts` | Upgrades older files step by step (v1 → v2 → v3) |
+| `src/model/migrate.ts` | Upgrades older files step by step (v1 → v2 → v3 → v4) |
 | `src/model/io.ts` | Parse, migrate, validate and cross-check a file; serialise a project |
 | `src/model/ops.ts` | Device, link, flow, zone and rule operations; copy and paste; align and distribute |
 | `src/model/structure.ts` | Sites and areas |
@@ -463,7 +463,7 @@ flowchart LR
 
 ## 8. Data model and file format
 
-A project is one JSON document, currently `schemaVersion: 3`. The full field reference is in [docs/data-model.md](docs/data-model.md).
+A project is one JSON document, currently `schemaVersion: 4`. The full field reference is in [docs/data-model.md](docs/data-model.md).
 
 ```mermaid
 erDiagram
@@ -471,6 +471,8 @@ erDiagram
     PROJECT ||--o{ ZONE : defines
     PROJECT ||--o{ NETWORK : plans
     PROJECT ||--o{ REVISION : keeps
+    PROJECT ||--o{ FIELD_DEF : "defines custom fields"
+    NETWORK |o--o{ LINK : carries
     SITE ||--o{ DEVICE : hosts
     SITE ||--o{ AREA : contains
     SITE ||--o{ NOTE : shows
@@ -503,12 +505,18 @@ erDiagram
         string criticality
         object position
         object asset
+        array tags
+        object fields
     }
     LINK {
         string id
         string source
         string target
         string medium
+        string sourcePort
+        string targetPort
+        array vlans
+        string networkId
     }
     FLOW {
         string id
@@ -563,6 +571,11 @@ erDiagram
         string name
         string createdAt
     }
+    FIELD_DEF {
+        string id
+        string label
+        string kind
+    }
     DESIGN {
         string name
         array sites
@@ -574,7 +587,7 @@ A shortened example:
 
 ```jsonc
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites":   [{ "id": "site-main", "name": "Main site" }],
   "devices": [{ "id": "plc-filter", "type": "plc", "variant": "modular", "label": "Filtration PLC",
@@ -686,7 +699,8 @@ flowchart TD
     B -- "yes" --> C["Migrate step by step"]
     C --> C1["v1 → v2<br/>add sites, kinds and asset fields;<br/>move protocol fields into settings"]
     C1 --> C2["v2 → v3<br/>add notes, networks, revisions"]
-    C2 --> D{"Format newer than<br/>this app?"}
+    C2 --> C3["v3 → v4<br/>add ports, VLANs, bend points, locks,<br/>tags and custom fields, also in revisions"]
+    C3 --> D{"Format newer than<br/>this app?"}
     D -- "yes" --> E2["One clear error:<br/>format not supported"]
     D -- "no" --> F{"Matches the zod schema?"}
     F -- "no" --> E3["Every schema problem listed<br/>with its path"]

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "name": "Northfield 132/33 kV Substation (fictional demo)",
   "sites": [
     {
@@ -30,7 +30,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "wan-router",
@@ -54,7 +57,10 @@
         "serial": "",
         "ip": "172.16.40.1",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "fw",
@@ -98,7 +104,10 @@
             "note": "Telecontrol from the control centre over TLS"
           }
         ]
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "hmi",
@@ -127,7 +136,10 @@
         "serial": "",
         "ip": "10.40.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ews",
@@ -151,7 +163,10 @@
         "serial": "",
         "ip": "10.40.0.50",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "gw",
@@ -175,7 +190,10 @@
         "serial": "",
         "ip": "10.40.0.20",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "sw",
@@ -199,7 +217,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ied-1",
@@ -223,7 +244,10 @@
         "serial": "",
         "ip": "10.40.1.11",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ied-2",
@@ -247,7 +271,10 @@
         "serial": "",
         "ip": "10.40.1.12",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ied-tx",
@@ -271,7 +298,10 @@
         "serial": "",
         "ip": "10.40.1.20",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "mu-1",
@@ -295,7 +325,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cb-1",
@@ -319,7 +352,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cb-tx",
@@ -343,7 +379,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     }
   ],
   "links": [
@@ -351,73 +390,148 @@
       "id": "link-wan-wan-router",
       "source": "wan",
       "target": "wan-router",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-wan-router-fw",
       "source": "wan-router",
       "target": "fw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi0/1",
+      "targetPort": "X1",
+      "vlans": [],
+      "networkId": "net-wan",
+      "waypoints": []
     },
     {
       "id": "link-fw-sw",
       "source": "fw",
       "target": "sw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "X2",
+      "targetPort": "Port 1",
+      "vlans": [
+        100,
+        101
+      ],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-sw-hmi",
       "source": "sw",
       "target": "hmi",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Port 2",
+      "targetPort": "eth0",
+      "vlans": [
+        100
+      ],
+      "networkId": "net-station",
+      "waypoints": []
     },
     {
       "id": "link-sw-ews",
       "source": "sw",
       "target": "ews",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Port 3",
+      "targetPort": "eth0",
+      "vlans": [
+        100
+      ],
+      "networkId": "net-station",
+      "waypoints": []
     },
     {
       "id": "link-sw-gw",
       "source": "sw",
       "target": "gw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Port 4",
+      "targetPort": "LAN1",
+      "vlans": [
+        100
+      ],
+      "networkId": "net-station",
+      "waypoints": []
     },
     {
       "id": "link-sw-ied-1",
       "source": "sw",
       "target": "ied-1",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Port 5",
+      "targetPort": "P1",
+      "vlans": [
+        101
+      ],
+      "networkId": "net-bay",
+      "waypoints": []
     },
     {
       "id": "link-sw-ied-2",
       "source": "sw",
       "target": "ied-2",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Port 6",
+      "targetPort": "P1",
+      "vlans": [
+        101
+      ],
+      "networkId": "net-bay",
+      "waypoints": []
     },
     {
       "id": "link-sw-ied-tx",
       "source": "sw",
       "target": "ied-tx",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Port 7",
+      "targetPort": "P1",
+      "vlans": [
+        101
+      ],
+      "networkId": "net-bay",
+      "waypoints": []
     },
     {
       "id": "link-ied-1-mu-1",
       "source": "ied-1",
       "target": "mu-1",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ied-2-cb-1",
       "source": "ied-2",
       "target": "cb-1",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ied-tx-cb-tx",
       "source": "ied-tx",
       "target": "cb-tx",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     }
   ],
   "flows": [
@@ -430,7 +544,8 @@
       "settings": {
         "tls": true,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hmi-ied-1-mms",
@@ -441,7 +556,8 @@
       "settings": {
         "tls": false,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-gw-ied-1-mms",
@@ -452,7 +568,8 @@
       "settings": {
         "tls": false,
         "controlCommands": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hmi-ied-2-mms",
@@ -463,7 +580,8 @@
       "settings": {
         "tls": false,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-gw-ied-2-mms",
@@ -474,7 +592,8 @@
       "settings": {
         "tls": false,
         "controlCommands": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hmi-ied-tx-mms",
@@ -485,7 +604,8 @@
       "settings": {
         "tls": false,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-gw-ied-tx-mms",
@@ -496,7 +616,8 @@
       "settings": {
         "tls": false,
         "controlCommands": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-ied-1-ied-tx-goose",
@@ -506,7 +627,8 @@
       "port": null,
       "settings": {
         "authenticated": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-ied-tx-ied-2-goose",
@@ -516,7 +638,8 @@
       "port": null,
       "settings": {
         "authenticated": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-ews-ied-tx-mms",
@@ -527,7 +650,8 @@
       "settings": {
         "tls": false,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     }
   ],
   "zones": [
@@ -581,5 +705,6 @@
       "siteId": "site-main"
     }
   ],
+  "fieldDefs": [],
   "revisions": []
 }
