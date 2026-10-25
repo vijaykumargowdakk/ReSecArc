@@ -1039,6 +1039,7 @@ flowchart TB
 | Storage | `localStorage` keys `conduitot:autosave`, `conduitot:blocks` and `conduitot:theme`, on your device only |
 | Untrusted input | Files, autosaves and share links all go through the same schema and reference validation before use |
 | Share link size | Decompression is capped at 8 MB |
+| Coordinates | Positions and sizes are limited to ±1,000,000, so layout code always finishes, even on crafted files |
 | Spreadsheets | CSV exports escape cells that would run as formulas |
 | Rendering | All text is rendered by React, which escapes it; no raw HTML is injected |
 
@@ -1096,7 +1097,7 @@ The build uses relative asset paths, so `dist/` can be served from any static ho
 ```mermaid
 flowchart LR
     PUSH["Push to main<br/>or pull request"] --> CI["npm ci<br/>on Node.js 22"]
-    CI --> CHK["Type check · Lint<br/>111 unit tests"]
+    CI --> CHK["Type check · Lint<br/>114 unit tests"]
     CHK --> BU["Production build"]
     BU --> OK(["Green"])
 ```
@@ -1143,12 +1144,12 @@ The model layer is pure TypeScript, so its rules are tested directly without a b
 
 ```mermaid
 pie showData
-    title Unit tests by file (111)
+    title Unit tests by file (114)
     "schema-v2" : 13
     "model" : 13
     "ipam" : 12
     "templates" : 12
-    "v3" : 12
+    "v3" : 15
     "scale" : 12
     "revisions" : 10
     "editing" : 9
@@ -1162,7 +1163,7 @@ pie showData
 |-----------|--------|
 | `model.test.ts` | Core operations, conduits, saving and opening files |
 | `schema-v2.test.ts` | v1 migration, device kinds, the protocol registry |
-| `v3.test.ts` | v2 migration, notes, tidy layout |
+| `v3.test.ts` | v2 migration, notes, tidy layout, hostile coordinates |
 | `editing.test.ts` | Undo history, copy and paste, align and distribute |
 | `scale.test.ts` | Sites, areas, search, filters, the canvas view and stubs |
 | `export.test.ts` | CSV and Markdown exports, formula escaping |

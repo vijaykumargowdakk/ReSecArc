@@ -41,8 +41,9 @@ export function tidyLayout(project: Project, siteId: string): Project {
     for (const d of devices) if (d.areaId === area.id) counts.set(d.purdueLevel, (counts.get(d.purdueLevel) ?? 0) + 1);
     const needed = rowWidth(Math.max(0, ...counts.values())) + 2 * AREA_PADDING;
     const rect = { ...area.rect, width: Math.max(area.rect.width, needed) };
-    // Shifting right past one area can land on another, so repeat until nothing overlaps.
-    for (let moved = true; moved; ) {
+    // Shifting right past one area can land on another, so repeat until nothing overlaps. Every pass
+    // moves past at least one placed area, so the pass count is bounded by the number of areas.
+    for (let moved = true, pass = 0; moved && pass <= rects.size; pass++) {
       moved = false;
       for (const placed of rects.values()) {
         const sharesRows = rect.y < placed.y + placed.height && rect.y + rect.height > placed.y;

@@ -33,7 +33,7 @@ Files saved by older versions (`schemaVersion` 1 or 2) are upgraded automaticall
 | `zoneId` | string or `null` | Must name an existing zone |
 | `areaId` | string or `null` | Must name an area on the same site |
 | `criticality` | `low` `medium` `high` | |
-| `position` | `{ x, y }` | Canvas coordinates |
+| `position` | `{ x, y }` | Canvas coordinates, each within ±1,000,000 |
 | `services` | `{ protocol: rdp/ssh/vnc/https, port }[]` | Listening remote-access services |
 | `asset` | `{ vendor, model, firmware, serial, ip, notes }` | Inventory details; all strings, may be empty |
 | `firewall` | `{ defaultAction, rules[] }` | Present only on `firewall` devices, and required there |

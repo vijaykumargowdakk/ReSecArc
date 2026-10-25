@@ -37,6 +37,11 @@ export const purdueLevelSchema = z.union([
 const idSchema = z.string().min(1);
 const portSchema = z.number().int().min(1).max(65535);
 const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+/** Canvas coordinates and sizes. The bound is far beyond any real diagram and keeps layout arithmetic exact. */
+export const MAX_COORDINATE = 1_000_000;
+const coordSchema = z.number().min(-MAX_COORDINATE).max(MAX_COORDINATE);
+const sizeSchema = z.number().positive().max(MAX_COORDINATE);
+const pointSchema = z.object({ x: coordSchema, y: coordSchema });
 
 export const remoteServiceSchema = z.object({
   protocol: z.enum(['rdp', 'ssh', 'vnc', 'https']),
@@ -85,7 +90,7 @@ export const deviceSchema = z.object({
   zoneId: idSchema.nullable(),
   areaId: idSchema.nullable(),
   criticality: z.enum(['low', 'medium', 'high']),
-  position: z.object({ x: z.number().finite(), y: z.number().finite() }),
+  position: pointSchema,
   services: z.array(remoteServiceSchema),
   asset: assetSchema,
   firewall: firewallConfigSchema.optional(),
@@ -128,10 +133,10 @@ export const areaSchema = z.object({
   name: z.string(),
   color: colorSchema,
   rect: z.object({
-    x: z.number().finite(),
-    y: z.number().finite(),
-    width: z.number().finite().positive(),
-    height: z.number().finite().positive(),
+    x: coordSchema,
+    y: coordSchema,
+    width: sizeSchema,
+    height: sizeSchema,
   }),
   collapsed: z.boolean(),
 });
@@ -140,8 +145,8 @@ export const noteSchema = z.object({
   id: idSchema,
   siteId: idSchema,
   text: z.string(),
-  position: z.object({ x: z.number().finite(), y: z.number().finite() }),
-  width: z.number().finite().positive(),
+  position: pointSchema,
+  width: sizeSchema,
   color: colorSchema,
 });
 

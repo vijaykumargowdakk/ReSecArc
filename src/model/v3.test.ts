@@ -5,9 +5,11 @@ import { projectToMarkdown } from './exportDoc';
 import { parseProject, serializeProject } from './io';
 import { overlapping, tidyLayout } from './layout';
 import { addNote, createNote, moveNote, removeNote, updateNote } from './notes';
-import { addZone, emptyProject, removeZone } from './ops';
-import { addSite, removeSite } from './structure';
-import { SCHEMA_VERSION, type Project } from './schema';
+import { addDevice, addLink, addZone, createDevice, emptyProject, removeZone } from './ops';
+import { buildView } from '../ui/canvas/view';
+import { NO_SELECTION } from '../store/useProject';
+import { addArea, addSite, createArea, removeSite } from './structure';
+import { MAX_COORDINATE, SCHEMA_VERSION, type Project } from './schema';
 
 function load(raw: unknown): Project {
   const result = parseProject(JSON.stringify(raw));
@@ -125,5 +127,37 @@ describe('tidy layout', () => {
   it('returns an empty site unchanged', () => {
     const p = emptyProject();
     expect(tidyLayout(p, 'site-main')).toBe(p);
+  });
+});
+
+describe('hostile coordinates', () => {
+  it('rejects positions and sizes beyond the canvas bound', () => {
+    const p = loadTemplate('water-treatment');
+    const far = { ...p, devices: p.devices.map((d, i) => (i === 0 ? { ...d, position: { x: 0, y: 1e300 } } : d)) };
+    const result = parseProject(serializeProject(far));
+    expect(result.ok).toBe(false);
+    const wide = { ...p, notes: p.notes.map((n) => ({ ...n, width: 1e12 })) };
+    expect(parseProject(serializeProject(wide)).ok).toBe(false);
+  });
+
+  it('places many stubs at the same height without hanging', () => {
+    let p = addSite(emptyProject(), 'Remote', 'site-2');
+    p = addDevice(p, { ...createDevice('scada', { x: 0, y: 450 }, { siteId: 'site-main', id: 'hub' }) });
+    for (let i = 0; i < 40; i++) {
+      p = addDevice(p, { ...createDevice('rtu', { x: i * 200, y: 750 }, { siteId: 'site-2', id: `rtu-${i}` }) });
+      p = addLink(p, 'hub', `rtu-${i}`, `link-${i}`);
+    }
+    const stubs = buildView(p, 'site-main', NO_SELECTION, new Set()).nodes.filter((n) => n.type === 'portal');
+    expect(stubs).toHaveLength(40);
+    expect(new Set(stubs.map((s) => s.position.y)).size).toBe(40);
+  });
+
+  it('tidies areas at the edge of the canvas without hanging', () => {
+    let p = emptyProject();
+    for (let i = 0; i < 5; i++) {
+      p = addArea(p, createArea('site-main', { x: MAX_COORDINATE - 100, y: 600, width: 300, height: 300 }, `A${i}`, '#0ea5e9', `a${i}`));
+      p = addDevice(p, createDevice('plc', { x: MAX_COORDINATE - 50, y: 787 }, { siteId: 'site-main', id: `d${i}` }));
+    }
+    expect(() => tidyLayout(p, 'site-main')).not.toThrow();
   });
 });
