@@ -104,8 +104,8 @@ export function buildOutline(project: Project, hidden: ReadonlySet<string> = new
       .filter((n) => n.siteId === site.id)
       .map((n): OutlineItem => ({ id: n.id, kind: 'note', label: firstLine(n.text), detail: '', ref: n.id, siteId: site.id, children: [] }));
     const groups: OutlineItem[] = [];
-    if (areas.length) groups.push({ id: `${site.id}/areas`, kind: 'areas', label: 'Areas', detail: String(areas.length), ref: '', siteId: site.id, children: areas });
-    if (notes.length) groups.push({ id: `${site.id}/notes`, kind: 'notes', label: 'Notes', detail: String(notes.length), ref: '', siteId: site.id, children: notes });
+    if (areas.length) groups.push({ id: `${site.id}/areas`, kind: 'areas', label: 'Areas', detail: plural(areas.length, 'area'), ref: '', siteId: site.id, children: areas });
+    if (notes.length) groups.push({ id: `${site.id}/notes`, kind: 'notes', label: 'Notes', detail: plural(notes.length, 'note'), ref: '', siteId: site.id, children: notes });
     return { id: site.id, kind: 'site', label: site.name, detail: plural(devices.length, 'device'), ref: site.id, siteId: site.id, children: [...levels, ...groups] };
   });
 
@@ -113,7 +113,7 @@ export function buildOutline(project: Project, hidden: ReadonlySet<string> = new
     const members = project.devices.filter((d) => d.zoneId === z.id).length;
     return { id: z.id, kind: 'zone', label: z.name, detail: `SL-T ${z.targetSL}, ${plural(members, 'device')}${z.trusted ? ', trusted' : ''}`, ref: z.id, siteId: null, children: [] };
   });
-  return zones.length ? [...sites, { id: 'outline/zones', kind: 'zones', label: 'Zones', detail: String(zones.length), ref: '', siteId: null, children: zones }] : sites;
+  return zones.length ? [...sites, { id: 'outline/zones', kind: 'zones', label: 'Zones', detail: plural(zones.length, 'zone'), ref: '', siteId: null, children: zones }] : sites;
 }
 
 /** The rows shown with the given items expanded, in reading order. */

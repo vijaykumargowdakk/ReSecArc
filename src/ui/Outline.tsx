@@ -174,28 +174,25 @@ export function Outline() {
       const open = hasChildren && expanded.has(item.id);
       const selected = isSelected(item);
       const device = item.kind === 'device' ? deviceById.get(item.ref) : undefined;
+      // The row is the treeitem and owns its group (as in the WAI-ARIA navigation treeview), so each
+      // item's accessible name is just its own text rather than everything nested inside it.
       return (
-        <li
-          key={item.id}
-          id={`outline-item-${i}`}
-          role="treeitem"
-          aria-level={row.level}
-          aria-setsize={row.setSize}
-          aria-posinset={row.posInSet}
-          aria-expanded={hasChildren ? open : undefined}
-          aria-selected={SELECTION_KEY[item.kind] ? selected : undefined}
-          aria-labelledby={`outline-label-${i}`}
-          tabIndex={item.id === currentId ? 0 : -1}
-          onFocus={(e) => {
-            if (e.target === e.currentTarget) setFocusedId(item.id);
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            setFocusedId(item.id);
-            activate(item, false);
-          }}
-        >
-          <div className={`outline__row outline__row--${item.kind}${selected ? ' is-selected' : ''}`} style={{ paddingLeft: 6 + (row.level - 1) * 18 }}>
+        <li key={item.id} role="none">
+          <div
+            id={`outline-item-${i}`}
+            role="treeitem"
+            className={`outline__row outline__row--${item.kind}${selected ? ' is-selected' : ''}`}
+            style={{ paddingLeft: 6 + (row.level - 1) * 18 }}
+            aria-level={row.level}
+            aria-setsize={row.setSize}
+            aria-posinset={row.posInSet}
+            aria-expanded={hasChildren ? open : undefined}
+            aria-owns={open ? `outline-group-${i}` : undefined}
+            aria-selected={SELECTION_KEY[item.kind] ? selected : undefined}
+            tabIndex={item.id === currentId ? 0 : -1}
+            onFocus={() => setFocusedId(item.id)}
+            onClick={() => activate(item, false)}
+          >
             <span
               className="outline__twisty"
               aria-hidden="true"
@@ -211,17 +208,19 @@ export function Outline() {
             <span className="outline__icon" aria-hidden="true">
               {device ? <DeviceIcon type={device.type} variant={device.variant} size={18} /> : ICONS[item.kind]}
             </span>
-            <span id={`outline-label-${i}`} className="outline__text">
-              <span className="outline__label">{item.label}</span>
-              {item.detail && (
-                <span className="outline__detail">
-                  <span className="sr-only">, </span>
-                  {item.detail}
-                </span>
-              )}
+            <span className="outline__text">
+              <span className="outline__label">
+                {item.label}
+                {item.detail && <span className="outline__comma">,</span>}
+              </span>
+              {item.detail && <span className="outline__detail">{item.detail}</span>}
             </span>
           </div>
-          {open && <ul role="group">{renderItems(item.children)}</ul>}
+          {open && (
+            <ul id={`outline-group-${i}`} role="group">
+              {renderItems(item.children)}
+            </ul>
+          )}
         </li>
       );
     });

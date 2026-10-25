@@ -47,6 +47,24 @@ for (const theme of THEMES) {
       await expectNoViolations(page, 'share dialog');
     });
 
+    test('outline and keyboard connections have no violations', async ({ page }) => {
+      await page.getByRole('tab', { name: 'Outline' }).click();
+      await page.getByRole('button', { name: 'Expand all' }).click();
+      const plc = page.getByRole('treeitem', { name: /^Filtration PLC/ });
+      await plc.click();
+      await expectNoViolations(page, 'outline');
+      await plc.focus();
+      await page.keyboard.press('l');
+      await expectNoViolations(page, 'outline device picker');
+      await page.keyboard.press('Escape');
+      await page.getByRole('tab', { name: 'Diagram' }).click();
+      await deviceNode(page, 'Filtration PLC').focus();
+      await page.keyboard.press('l');
+      await page.keyboard.press('ArrowRight');
+      await expect(page.locator('.is-connect-target')).toHaveCount(1);
+      await expectNoViolations(page, 'pending keyboard connection');
+    });
+
     test('comparison view has no violations', async ({ page }) => {
       await clearSelection(page);
       await page.getByLabel('Revision name').first().fill('Baseline');

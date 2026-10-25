@@ -1322,11 +1322,7 @@ button:focus-visible {
   list-style: none;
 }
 
-.outline__tree li:focus {
-  outline: none;
-}
-
-.outline__tree li:focus > .outline__row {
+.outline__row:focus {
   outline: var(--focus-ring);
   outline-offset: -2px;
 }
@@ -1384,6 +1380,11 @@ button:focus-visible {
 .outline__row--areas .outline__label,
 .outline__row--notes .outline__label {
   font-weight: 600;
+}
+
+/* Separates label and detail in the spoken name without showing; inline so no extra space is read. */
+.outline__comma {
+  font-size: 0;
 }
 
 .outline__detail {

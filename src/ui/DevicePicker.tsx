@@ -40,10 +40,10 @@ export function DevicePicker({
           if (e.key === 'Enter' && matches[0]) onPick(matches[0].id);
         }}
       />
-      <ul role="listbox" aria-label={label}>
+      <ul aria-label={label}>
         {matches.map((d) => (
           <li key={d.id}>
-            <button type="button" role="option" aria-selected="false" onClick={() => onPick(d.id)}>
+            <button type="button" onClick={() => onPick(d.id)}>
               <DeviceIcon type={d.type} variant={d.variant} size={20} />
               <span>{d.label}</span>
               <span className="muted">{d.siteId === siteId ? kindLabel(d.type, d.variant) : `${siteName.get(d.siteId)} site`}</span>
