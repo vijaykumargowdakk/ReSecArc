@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.claude/.pending-review
+/*.pdf
+claude-project-bootstrap.md
