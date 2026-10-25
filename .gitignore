@@ -8,3 +8,4 @@ test-results/
 /*.pdf
 claude-project-bootstrap.md
 .playwright-mcp/
+.vite/

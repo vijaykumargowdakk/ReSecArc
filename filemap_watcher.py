@@ -19,7 +19,7 @@ OUTPUT_NAME = "FILEMAP.md"
 OUTPUT = os.path.join(ROOT, OUTPUT_NAME)
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv", ".idea",
              ".vscode", ".mypy_cache", ".pytest_cache", "dist", "coverage",
-             ".playwright-mcp", "playwright-report", "test-results"}
+             ".playwright-mcp", "playwright-report", "test-results", ".vite"}
 SKIP_EXTS = {".pyc", ".pyo", ".pyd"}
 DEBOUNCE_SECONDS = 1.5
 
