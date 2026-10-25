@@ -8,7 +8,7 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M11 are complete. v0.2 work (M7–M13) is in progress; see the milestone table.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M12 are complete. v0.2 work (M7–M13) is in progress; see the milestone table.
 
 Next: the owner decides the scope of any further features. No analysis features have been built.
 
@@ -37,7 +37,7 @@ Next: the owner decides the scope of any further features. No analysis features 
 | M9 | More protocols | EtherNet/IP, PROFINET, OPC UA, IEC 104, IEC 61850, BACnet, S7, MQTT, custom | Every protocol editable from the registry ✅ |
 | M10 | Scale | Sites, areas, search, filter | Multi-site project navigable ✅ |
 | M11 | Templates | Five fictional starter plants, reusable blocks | New-from-template works ✅ |
-| M12 | Inventory and export | Asset table, CSV import/export, SVG/PNG/PDF, Markdown document | Round-trips through CSV |
+| M12 | Inventory and export | Asset table, CSV import/export, SVG/PNG/PDF, Markdown document | Round-trips through CSV ✅ |
 | M13 | Accessibility and themes | Keyboard-only use, screen-reader labels, dark/high-contrast, responsive | Lighthouse a11y ≥ 95 |
 
 ## Known issues

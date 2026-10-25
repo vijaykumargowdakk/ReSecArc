@@ -1,29 +1,32 @@
-import { Cable, Download, FilePlus2, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
+import { Cable, Download, FileOutput, FilePlus2, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
+import { useReactFlow } from '@xyflow/react';
+import { devicesToCsv, flowsToCsv, rulesToCsv } from '../model/csv';
+import { projectToMarkdown } from '../model/exportDoc';
 import { parseProject, serializeProject } from '../model/io';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
+import type { CanvasEdge } from './canvas/edges';
+import type { CanvasNode } from './canvas/nodes';
+import { downloadText, downloadUrl, slug } from './download';
+import { exportDiagram } from './exportDiagram';
 import { useProject, type ConnectMode } from '../store/useProject';
 
 const clock = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
-
-function fileName(projectName: string): string {
-  const slug = projectName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-  return `${slug || 'architecture'}.conduitot.json`;
-}
 
 export function Toolbar({
   onErrors,
   onSearch,
   onNew,
+  diagramVisible,
 }: {
   onErrors: (errors: string[]) => void;
   onSearch: () => void;
   onNew: () => void;
+  diagramVisible: boolean;
 }) {
+  const reactFlow = useReactFlow<CanvasNode, CanvasEdge>();
+  const exportMenu = useRef<HTMLDetailsElement>(null);
   const project = useProject((s) => s.project);
   const load = useProject((s) => s.load);
   const connectMode = useProject((s) => s.connectMode);
@@ -45,14 +48,20 @@ export function Toolbar({
     load(next);
   };
 
-  const save = () => {
-    const blob = new Blob([serializeProject(project)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName(project.name);
-    a.click();
-    URL.revokeObjectURL(url);
+  const save = () => downloadText(`${slug(project.name)}.conduitot.json`, serializeProject(project), 'application/json');
+
+  const closeMenu = () => exportMenu.current?.removeAttribute('open');
+  const exportAs = async (format: 'svg' | 'png') => {
+    closeMenu();
+    try {
+      downloadUrl(`${slug(project.name)}.${format}`, await exportDiagram(reactFlow, format));
+    } catch (err) {
+      onErrors([`Could not export the diagram: ${(err as Error).message}`]);
+    }
+  };
+  const exportFile = (suffix: string, text: string, mime: string) => {
+    closeMenu();
+    downloadText(`${slug(project.name)}${suffix}`, text, mime);
   };
 
   const open = async (file: File) => {
@@ -142,10 +151,48 @@ export function Toolbar({
           <FolderOpen size={16} />
           Open
         </button>
-        <button type="button" className="button" onClick={save}>
+        <button type="button" className="button" onClick={save} title="Download the project as a JSON file">
           <Download size={16} />
           Save
         </button>
+        <details className="menu" ref={exportMenu}>
+          <summary className="button">
+            <FileOutput size={16} />
+            Export
+          </summary>
+          <div className="menu__items" role="menu">
+            <button type="button" role="menuitem" disabled={!diagramVisible} onClick={() => exportAs('svg')} title={diagramVisible ? undefined : 'Switch to the diagram view first'}>
+              Diagram as SVG
+            </button>
+            <button type="button" role="menuitem" disabled={!diagramVisible} onClick={() => exportAs('png')} title={diagramVisible ? undefined : 'Switch to the diagram view first'}>
+              Diagram as PNG
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              disabled={!diagramVisible}
+              onClick={() => {
+                closeMenu();
+                window.print();
+              }}
+            >
+              Print / save as PDF…
+            </button>
+            <hr />
+            <button type="button" role="menuitem" onClick={() => exportFile('.md', projectToMarkdown(project), 'text/markdown')}>
+              Architecture document (Markdown)
+            </button>
+            <button type="button" role="menuitem" onClick={() => exportFile('-devices.csv', devicesToCsv(project), 'text/csv')}>
+              Devices (CSV)
+            </button>
+            <button type="button" role="menuitem" onClick={() => exportFile('-flows.csv', flowsToCsv(project), 'text/csv')}>
+              Protocol flows (CSV)
+            </button>
+            <button type="button" role="menuitem" onClick={() => exportFile('-firewall-rules.csv', rulesToCsv(project), 'text/csv')}>
+              Firewall rules (CSV)
+            </button>
+          </div>
+        </details>
         <span className={`autosave${autosave.failed ? ' is-failed' : ''}`} aria-live="polite">
           {autosave.failed ? 'Not saved in browser' : autosave.savedAt ? `Saved in browser ${clock.format(autosave.savedAt)}` : ''}
         </span>
