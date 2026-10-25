@@ -14,6 +14,12 @@ export interface Selection {
 }
 export const NO_SELECTION: Selection = { devices: [], links: [], flows: [], areas: [], notes: [] };
 export type ConnectMode = 'link' | 'flow';
+/** A connection being made from the keyboard: the source device and the currently highlighted target. */
+export interface PendingConnect {
+  mode: ConnectMode;
+  sourceId: string;
+  targetId: string | null;
+}
 
 const PASTE_OFFSET = { x: 40, y: 40 };
 
@@ -33,6 +39,7 @@ interface ProjectState {
   loadCount: number;
   /** A device the canvas should centre on once it is rendered. */
   focus: { deviceId: string; nonce: number } | null;
+  pendingConnect: PendingConnect | null;
   /** Applies a pure operation from model/ops. Edits sharing a `coalesceKey` in quick succession undo as one step. */
   apply: (op: (project: Project) => Project, coalesceKey?: string) => void;
   undo: () => void;
@@ -55,6 +62,7 @@ interface ProjectState {
   setFilter: (filter: Filter) => void;
   setConnectMode: (mode: ConnectMode) => void;
   setFlowProtocol: (protocol: string) => void;
+  setPendingConnect: (pending: PendingConnect | null) => void;
   toggleSnap: () => void;
 }
 
@@ -123,6 +131,7 @@ export const useProject = create<ProjectState>((set, get) => {
     filter: NO_FILTER,
     loadCount: 0,
     focus: null,
+    pendingConnect: null,
     apply: (op, coalesceKey) => {
       const { history } = get();
       const next = commit(history, op(history.present), coalesceKey);
@@ -139,6 +148,7 @@ export const useProject = create<ProjectState>((set, get) => {
         activeSiteId: project.sites[0].id,
         filter: NO_FILTER,
         loadCount: s.loadCount + 1,
+        pendingConnect: null,
       })),
     select: (selection) => {
       if (!sameSelection(selection, get().selection)) set({ selection });
@@ -146,7 +156,7 @@ export const useProject = create<ProjectState>((set, get) => {
     selectAll: () =>
       set((s) => ({ selection: { ...NO_SELECTION, devices: s.project.devices.filter((d) => d.siteId === s.activeSiteId).map((d) => d.id) } })),
     setActiveSite: (siteId) => {
-      if (siteId !== get().activeSiteId) set({ activeSiteId: validSite(get().project, siteId), selection: NO_SELECTION });
+      if (siteId !== get().activeSiteId) set({ activeSiteId: validSite(get().project, siteId), selection: NO_SELECTION, pendingConnect: null });
     },
     focusDevice: (deviceId) => {
       const device = get().project.devices.find((d) => d.id === deviceId);
@@ -170,6 +180,7 @@ export const useProject = create<ProjectState>((set, get) => {
     insertFragment: (fragment) => pasteInto(fragment),
     setConnectMode: (connectMode) => set({ connectMode }),
     setFlowProtocol: (flowProtocol) => set({ flowProtocol, connectMode: 'flow' }),
+    setPendingConnect: (pendingConnect) => set({ pendingConnect }),
     toggleSnap: () => set((s) => ({ snapToGrid: !s.snapToGrid })),
   };
 });

@@ -20,7 +20,7 @@ import { addNote, createNote, moveNote, removeNote } from '../../model/notes';
 import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink, replaceFlow, updateLink } from '../../model/ops';
 import { insertWaypoint } from '../../model/routing';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../../model/purdue';
-import { deviceTypeSchema, type DeviceType, type Project } from '../../model/schema';
+import { deviceTypeSchema, type Device, type DeviceType, type Project } from '../../model/schema';
 import { moveArea, removeArea } from '../../model/structure';
 import { announce } from '../../store/announcer';
 import { useComparison } from '../../store/compare';
@@ -32,6 +32,7 @@ import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { Legend } from './Legend';
 import { NodeMenu } from './NodeMenu';
 import { AreaNode, DeviceNode, LaneNode, NoteNode, PortalNode, type CanvasNode, type LaneFlowNode } from './nodes';
+import { useKeyboardConnect } from './useKeyboardConnect';
 import { buildView } from './view';
 
 export const DEVICE_DND_MIME = 'application/x-conduitot-device';
@@ -92,17 +93,22 @@ export function Canvas() {
   const connectMode = useProject((s) => s.connectMode);
   const snapToGrid = useProject((s) => s.snapToGrid);
   const flowProtocol = useProject((s) => s.flowProtocol);
+  const pendingConnect = useProject((s) => s.pendingConnect);
   const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
-  const { screenToFlowPosition, setCenter, fitView, fitBounds, getInternalNode } = useReactFlow();
+  const { screenToFlowPosition, setCenter, fitView, fitBounds, getInternalNode, getViewport } = useReactFlow();
   const theme = useTheme((s) => s.theme);
   const renderAll = useRenderAll((s) => s.all);
   const dragging = useRef(false);
+  const container = useRef<HTMLDivElement>(null);
 
   const dimmed = useMemo(() => dimmedIds(project, filter), [project, filter]);
   const comparison = useComparison();
   const marks = comparison?.marks;
   const layers = usePrefs((s) => s.layers);
-  const view = useMemo(() => buildView(project, siteId, selection, dimmed, marks, layers), [project, siteId, selection, dimmed, marks, layers]);
+  const view = useMemo(
+    () => buildView(project, siteId, selection, dimmed, marks, layers, pendingConnect),
+    [project, siteId, selection, dimmed, marks, layers, pendingConnect],
+  );
 
   const [nodes, setNodes] = useState<CanvasNode[]>(() => [...LANE_NODES, ...view.nodes]);
   const [edges, setEdges] = useState<CanvasEdge[]>(view.edges);
@@ -142,6 +148,21 @@ export function Canvas() {
     setCenter(node.position.x + NODE_WIDTH / 2, node.position.y + NODE_HEIGHT / 2, { zoom: 1.2, duration: reducedMotion() ? 0 : 400 });
     clearFocus();
   }, [focus, nodes, setCenter, clearFocus]);
+
+  // Pans just enough to show a device highlighted from the keyboard, keeping the zoom.
+  const reveal = useCallback(
+    (device: Device) => {
+      const box = container.current?.getBoundingClientRect();
+      if (!box) return;
+      const { x, y, zoom } = getViewport();
+      const left = device.position.x * zoom + x;
+      const top = device.position.y * zoom + y;
+      if (left >= 0 && top >= 0 && left + NODE_WIDTH * zoom <= box.width && top + NODE_HEIGHT * zoom <= box.height) return;
+      setCenter(device.position.x + NODE_WIDTH / 2, device.position.y + NODE_HEIGHT / 2, { zoom, duration: reducedMotion() ? 0 : 200 });
+    },
+    [getViewport, setCenter],
+  );
+  useKeyboardConnect(reveal);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CanvasNode>[]) => {
@@ -312,7 +333,7 @@ export function Canvas() {
   );
 
   return (
-    <div className={`canvas connect-${connectMode}`} onDragOver={onDragOver} onDrop={onDrop}>
+    <div ref={container} className={`canvas connect-${connectMode}${pendingConnect ? ' is-connecting' : ''}`} onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow<CanvasNode, CanvasEdge>
         nodes={nodes}
         edges={edges}
@@ -341,7 +362,8 @@ export function Canvas() {
         deleteKeyCode={['Delete', 'Backspace']}
         minZoom={0.05}
         colorMode={flowColorMode(theme)}
-        ariaLabelConfig={{ 'node.a11yDescription.default': 'Press Enter or Space to select. Use arrow keys to move the selection. Press Delete to remove it.' }}
+        ariaLabelConfig={{ 'node.a11yDescription.default':
+            'Press Enter or Space to select. Use arrow keys to move the selection. Press Delete to remove it. On a device, press L to link it or F to add a flow to another device.' }}
       >
         <Background gap={25} size={1} />
         <Controls showInteractive={false} />

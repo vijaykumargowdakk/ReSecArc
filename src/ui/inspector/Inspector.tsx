@@ -4,7 +4,6 @@ import { lazy, Suspense, useState } from 'react';
 import {
   addFlow,
   addLink,
-  countRuleReferences,
   defaultFlow,
   removeDevice,
   removeFlow,
@@ -18,6 +17,7 @@ import { laneTop, levelLabel, PURDUE_LANES } from '../../model/purdue';
 import type { Asset, Device, Flow, Link, PurdueLevel, RemoteService } from '../../model/schema';
 import { useComparison } from '../../store/compare';
 import { NO_SELECTION, useProject } from '../../store/useProject';
+import { deleteDeviceAfterConfirm } from '../actions';
 import { DevicePicker } from '../DevicePicker';
 import { FieldInput, TagEditor } from '../fields';
 import { setDeviceField, setTags, tagCounts } from '../../model/fields';
@@ -79,7 +79,6 @@ function DeleteButton({ label, onClick }: { label: string; onClick: () => void }
 function DeviceInspector({ device }: { device: Device }) {
   const project = useProject((s) => s.project);
   const apply = useProject((s) => s.apply);
-  const select = useProject((s) => s.select);
   const focusDevice = useProject((s) => s.focusDevice);
   const info = DEVICE_CATALOG[device.type];
   const patch = (p: Partial<Omit<Device, 'id' | 'type'>>) =>
@@ -88,13 +87,7 @@ function DeviceInspector({ device }: { device: Device }) {
   const setAsset = (p: Partial<Asset>) =>
     apply((q) => updateDevice(q, device.id, { asset: { ...device.asset, ...p } }), `device:${device.id}:asset:${Object.keys(p).join(',')}`);
 
-  const remove = () => {
-    const refs = countRuleReferences(project, 'device', device.id);
-    const warning = refs ? `\n\n${refs} firewall rule(s) refer to it and will also be removed.` : '';
-    if (!window.confirm(`Delete "${device.label}" and its connections?${warning}`)) return;
-    apply((q) => removeDevice(q, device.id));
-    select(NO_SELECTION);
-  };
+  const remove = () => deleteDeviceAfterConfirm(device.id);
 
   return (
     <>

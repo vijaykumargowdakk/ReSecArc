@@ -1260,6 +1260,144 @@ button:focus-visible {
   margin: 16px;
 }
 
+/* Outline view */
+.outline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel);
+}
+
+.outline__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.outline__help {
+  flex: 1 1 320px;
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.outline__filtered {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.outline__picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-alt);
+}
+
+.outline__picker p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.outline__picker .device-picker {
+  width: min(420px, 100%);
+}
+
+.outline__scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 6px 0;
+}
+
+.outline__tree,
+.outline__tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.outline__tree li:focus {
+  outline: none;
+}
+
+.outline__tree li:focus > .outline__row {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.outline__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding-right: 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.outline__row:hover {
+  background: var(--panel-alt);
+}
+
+.outline__row.is-selected {
+  background: var(--accent-soft);
+}
+
+.outline__twisty,
+.outline__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.outline__twisty {
+  width: 16px;
+  color: var(--ink-soft);
+}
+
+.outline__icon {
+  width: 20px;
+  color: var(--icon-ink);
+}
+
+.outline__text {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.outline__label {
+  white-space: nowrap;
+}
+
+.outline__row--site .outline__label,
+.outline__row--level .outline__label,
+.outline__row--device .outline__label,
+.outline__row--zones .outline__label,
+.outline__row--areas .outline__label,
+.outline__row--notes .outline__label {
+  font-weight: 600;
+}
+
+.outline__detail {
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.outline__empty {
+  margin: 16px;
+}
+
 .protocol-dot {
   display: inline-block;
   width: 9px;
@@ -1676,6 +1814,35 @@ button:focus-visible {
 
 .device-node.is-selected {
   box-shadow: 0 0 0 2px var(--accent), var(--shadow-md);
+}
+
+/* A connection being made from the keyboard: source dashed, target solid, each with a word badge. */
+.is-connect-source .device-node,
+.is-connect-target .device-node {
+  outline: 3px dashed var(--accent);
+  outline-offset: 3px;
+}
+
+.is-connect-target .device-node {
+  outline-style: solid;
+}
+
+.is-connect-source .device-node::after,
+.is-connect-target .device-node::after {
+  content: 'From';
+  position: absolute;
+  top: -22px;
+  left: -3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.is-connect-target .device-node::after {
+  content: 'To';
 }
 
 .device-node__icon {

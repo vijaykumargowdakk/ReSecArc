@@ -33,6 +33,8 @@ export function buildView(
   marks: ReadonlyMap<string, DiffMark> = new Map(),
   /** Which kinds of item are shown; hidden ones are left out entirely. */
   layers: Layers = ALL_LAYERS,
+  /** A connection being made from the keyboard; its source and target devices are highlighted. */
+  connect: { sourceId: string; targetId: string | null } | null = null,
 ): { nodes: CanvasNode[]; edges: CanvasEdge[] } {
   const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined;
   const diffClass = (id: string) => (marks.has(id) ? `diff-${marks.get(id)}` : undefined);
@@ -87,7 +89,13 @@ export function buildView(
       data: { device: d, zone: d.zoneId ? (zoneById.get(d.zoneId) ?? null) : null, dimmed: dimmed.has(d.id), diff: marks.get(d.id) },
       selected: sel.devices.has(d.id),
       draggable: !d.locked,
-      className: classes(dimmed.has(d.id) && 'is-dimmed', diffClass(d.id), d.locked && 'is-locked'),
+      className: classes(
+        dimmed.has(d.id) && 'is-dimmed',
+        diffClass(d.id),
+        d.locked && 'is-locked',
+        connect?.sourceId === d.id && 'is-connect-source',
+        connect?.targetId === d.id && 'is-connect-target',
+      ),
       ariaLabel: [
         `${d.label}, ${kindLabel(d.type, d.variant)}`,
         `level ${levelLabel(d.purdueLevel).slice(1)}`,
