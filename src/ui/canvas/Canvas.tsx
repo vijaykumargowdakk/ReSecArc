@@ -103,10 +103,12 @@ export function Canvas() {
     setEdges(view.edges);
   }, [view]);
 
-  // Frame the newly shown site, unless a search result is about to be centred instead.
+  // Frame the newly shown site (devices, areas, notes and stubs), unless a search result is about to be centred instead.
+  const latestView = useRef(view);
+  latestView.current = view;
   useEffect(() => {
     if (useProject.getState().focus) return;
-    const ids = useProject.getState().project.devices.filter((d) => d.siteId === siteId).map((d) => ({ id: d.id }));
+    const ids = latestView.current.nodes.map((n) => ({ id: n.id }));
     const frame = requestAnimationFrame(() => fitView({ padding: 0.1, nodes: ids.length ? ids : undefined, duration: reducedMotion() ? 0 : 250 }));
     return () => cancelAnimationFrame(frame);
   }, [siteId, fitView]);

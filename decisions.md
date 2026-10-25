@@ -144,3 +144,13 @@
 **Decision:** Flows and rules import from the same columns their exports write. Devices are matched by name; ambiguous names are rejected with a clear reason instead of guessing. Flow settings start from the protocol defaults, and an empty port takes the protocol's default port. Flows that already exist are rejected. Rule import replaces the named firewalls' rules by default (rules are an ordered list, so re-importing an edited export should not append duplicates), with an option to append instead.
 **Why:** Rule tables and flow lists are often maintained in spreadsheets. Exact round-trips make that workflow safe.
 **User input:** Approved in the v0.3 scope.
+
+## 2026-10-25 — Detailed README with Mermaid diagrams and screenshots
+**Decision:** The README is now a full guide with a table of contents. It covers why the tool exists, the core ideas, a feature guide, workflows, architecture, the code map, the data model, and how edits, rendering, validation, autosave, revisions, IP planning, share links, CSV and tidy layout work. It closes with catalogs, accessibility, privacy, the technology stack, the development guide, tests, history and limitations. It has 31 Mermaid diagrams (flowcharts, sequence, state, ER, class, mindmap, pie, gitGraph and timeline), all rendered with Mermaid 11 in the default and dark themes. Diagrams wider than GitHub's content column were redrawn or split. Real screenshots of the fictional templates are in `docs/images/`. Package version set to 0.3.0.
+**Why:** The owner asked for a very detailed README with pictorial diagrams that render on GitHub.
+**User input:** "make a super detailed read me file with actual visual pictorical diagrams… using mermaid… which render properly in github".
+
+## 2026-10-25 — Off-site stubs placed clear of devices
+**Decision:** Stubs for devices on other sites are drawn in a column to the right of everything on the open site, level with their local device and spaced so they never stack. Framing a site now includes stubs and notes. The water-treatment demo note moved to free space in the L4 lane.
+**Why:** The README screenshots showed stubs drawn on top of devices on the pipeline template's compressor station tab, because each stub sat a fixed distance to the right of its device.
+**User input:** None (found while preparing the README).
