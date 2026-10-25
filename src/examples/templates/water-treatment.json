@@ -747,8 +747,8 @@
       "siteId": "site-main",
       "text": "Fictional demo plant.\nAddresses follow the IP plan in the Networks section.",
       "position": {
-        "x": 1000,
-        "y": 20
+        "x": 240,
+        "y": 30
       },
       "width": 260,
       "color": "#64748b"

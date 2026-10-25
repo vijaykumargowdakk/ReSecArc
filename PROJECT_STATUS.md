@@ -43,7 +43,7 @@ Work is committed on feature branches and merged into `main` with merge commits,
 | M13 | Accessibility and themes | Keyboard-only use, screen-reader labels, dark/high-contrast, responsive | Lighthouse a11y ≥ 95 ✅ (100) |
 | M14 | Schema v3, notes, auto-layout | File format v3 (notes, networks, revisions), text notes on the canvas, one-click tidy layout per site | v2 files open; notes editable; layout is one undo step ✅ |
 | M15 | IP and VLAN planning | Networks (CIDR, VLAN, zone, site), IP plan table, duplicate/invalid/out-of-subnet address warnings | Warnings shown in inspector and inventory ✅ |
-| M16 | Revisions and change diff | Named revisions saved in the project file, compare any revision with the current design, highlight changes on the canvas | Diff lists added/removed/changed items |
+| M16 | Revisions and change diff | Named revisions saved in the project file, compare any revision with the current design, highlight changes on the canvas | Diff lists added/removed/changed items ✅ |
 | M17 | Share by link, more CSV import | Whole project compressed into the link's #fragment, open-shared-project banner, CSV import of flows and firewall rules | A shared link opens the same project |
 
 ## Known issues

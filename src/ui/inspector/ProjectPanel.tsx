@@ -6,6 +6,7 @@ import type { Zone } from '../../model/schema';
 import { useProject } from '../../store/useProject';
 import { Field, Section, Select, TextInput, Toggle } from '../form';
 import { NetworksSection } from './NetworksSection';
+import { RevisionsSection } from './RevisionsSection';
 
 const ZONE_COLORS = ['#0ea5e9', '#16a34a', '#8b5cf6', '#f59e0b', '#dc2626', '#64748b', '#db2777', '#0d9488'];
 const SECURITY_LEVELS = [
@@ -115,6 +116,8 @@ export function ProjectPanel() {
           ))}
         </ul>
       </Section>
+
+      <RevisionsSection />
     </>
   );
 }

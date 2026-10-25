@@ -22,6 +22,7 @@ import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES
 import { deviceTypeSchema, type DeviceType, type Project } from '../../model/schema';
 import { moveArea, removeArea } from '../../model/structure';
 import { announce } from '../../store/announcer';
+import { useComparison } from '../../store/compare';
 import { flowColorMode, useTheme } from '../../store/theme';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
@@ -90,7 +91,9 @@ export function Canvas() {
   const dragging = useRef(false);
 
   const dimmed = useMemo(() => dimmedIds(project, filter), [project, filter]);
-  const view = useMemo(() => buildView(project, siteId, selection, dimmed), [project, siteId, selection, dimmed]);
+  const comparison = useComparison();
+  const marks = comparison?.marks;
+  const view = useMemo(() => buildView(project, siteId, selection, dimmed, marks), [project, siteId, selection, dimmed, marks]);
 
   const [nodes, setNodes] = useState<CanvasNode[]>(() => [...LANE_NODES, ...view.nodes]);
   const [edges, setEdges] = useState<CanvasEdge[]>(view.edges);

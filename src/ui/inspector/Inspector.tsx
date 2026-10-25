@@ -16,12 +16,14 @@ import {
 import { defaultPortFor, getProtocol, PROTOCOLS, type FieldDef, type SettingValue } from '../../model/protocols';
 import { laneTop, levelLabel, PURDUE_LANES } from '../../model/purdue';
 import type { Asset, Device, Flow, Link, PurdueLevel, RemoteService } from '../../model/schema';
+import { useComparison } from '../../store/compare';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { DevicePicker } from '../DevicePicker';
 import { removeNote } from '../../model/notes';
 import { moveDevicesToSite } from '../../model/structure';
 import { AddressInfo } from './AddressInfo';
 import { AreaInspector } from './AreaInspector';
+import { ChangesPanel } from './ChangesPanel';
 import { BulkInspector } from './BulkInspector';
 import { Field, IntInput, Section, Select, TextInput, Toggle } from '../form';
 import { FirewallRules } from './FirewallRules';
@@ -346,7 +348,8 @@ export function Inspector() {
   const count =
     selection.devices.length + selection.links.length + selection.flows.length + selection.areas.length + selection.notes.length;
 
-  let body = <ProjectPanel />;
+  const comparison = useComparison();
+  let body = comparison ? <ChangesPanel comparison={comparison} /> : <ProjectPanel />;
   if (selection.devices.length > 1) {
     body = <BulkInspector ids={selection.devices} />;
   } else if (count === 1) {

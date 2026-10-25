@@ -42,6 +42,11 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
           {zone ? ` · ${zone.name}` : ''}
         </span>
       </span>
+      {data.diff && (
+        <span className={`diff-badge diff-badge--${data.diff}`} aria-hidden="true">
+          {data.diff === 'added' ? 'New' : 'Changed'}
+        </span>
+      )}
       <span className={`criticality criticality--${device.criticality}`} title={`${device.criticality} criticality`} aria-hidden="true">
         {device.criticality[0].toUpperCase()}
       </span>
