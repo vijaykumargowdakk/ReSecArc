@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites": [
     {
@@ -30,7 +30,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "office-ws",
@@ -54,7 +57,10 @@
         "serial": "",
         "ip": "10.10.4.21",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "corp-router",
@@ -78,7 +84,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "jump",
@@ -107,7 +116,10 @@
         "serial": "",
         "ip": "10.30.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "fw-itot",
@@ -181,7 +193,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "historian-dmz",
@@ -210,7 +225,10 @@
         "serial": "",
         "ip": "10.30.0.20",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "scada",
@@ -239,7 +257,10 @@
         "serial": "",
         "ip": "10.40.1.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ops-switch",
@@ -263,7 +284,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ews",
@@ -292,7 +316,10 @@
         "serial": "",
         "ip": "10.40.1.20",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "historian",
@@ -316,7 +343,10 @@
         "serial": "",
         "ip": "10.40.1.30",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "hmi",
@@ -340,7 +370,10 @@
         "serial": "",
         "ip": "10.50.2.11",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ctrl-switch",
@@ -364,7 +397,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "plc-filter",
@@ -388,7 +424,10 @@
         "serial": "",
         "ip": "10.50.2.21",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "plc-dosing",
@@ -412,7 +451,10 @@
         "serial": "",
         "ip": "10.50.2.22",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "sis",
@@ -436,7 +478,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "rtu-pump",
@@ -460,7 +505,10 @@
         "serial": "",
         "ip": "10.50.2.40",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "turbidity",
@@ -484,7 +532,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "dosing-pump",
@@ -508,7 +559,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "level",
@@ -532,7 +586,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     }
   ],
   "links": [
@@ -540,109 +597,199 @@
       "id": "link-vendor-corp-router",
       "source": "vendor",
       "target": "corp-router",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-office-ws-corp-router",
       "source": "office-ws",
       "target": "corp-router",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-corp-router-fw-itot",
       "source": "corp-router",
       "target": "fw-itot",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fw-itot-jump",
       "source": "fw-itot",
       "target": "jump",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fw-itot-historian-dmz",
       "source": "fw-itot",
       "target": "historian-dmz",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fw-itot-ops-switch",
       "source": "fw-itot",
       "target": "ops-switch",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ops-switch-scada",
       "source": "ops-switch",
       "target": "scada",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ops-switch-ews",
       "source": "ops-switch",
       "target": "ews",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ops-switch-historian",
       "source": "ops-switch",
       "target": "historian",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ops-switch-ctrl-switch",
       "source": "ops-switch",
       "target": "ctrl-switch",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ctrl-switch-hmi",
       "source": "ctrl-switch",
       "target": "hmi",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ctrl-switch-plc-filter",
       "source": "ctrl-switch",
       "target": "plc-filter",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ctrl-switch-plc-dosing",
       "source": "ctrl-switch",
       "target": "plc-dosing",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-plc-dosing-sis",
       "source": "plc-dosing",
       "target": "sis",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ctrl-switch-rtu-pump",
       "source": "ctrl-switch",
       "target": "rtu-pump",
-      "medium": "wireless"
+      "medium": "wireless",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-plc-filter-turbidity",
       "source": "plc-filter",
       "target": "turbidity",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-plc-dosing-dosing-pump",
       "source": "plc-dosing",
       "target": "dosing-pump",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-rtu-pump-level",
       "source": "rtu-pump",
       "target": "level",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     }
   ],
   "flows": [
@@ -656,7 +803,8 @@
         "variant": "tcp",
         "access": "read-write",
         "authentication": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hmi-dosing",
@@ -668,7 +816,8 @@
         "variant": "tcp",
         "access": "read-write",
         "authentication": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-scada-filter",
@@ -680,7 +829,8 @@
         "variant": "tcp",
         "access": "read",
         "authentication": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-scada-rtu",
@@ -693,7 +843,8 @@
         "secureAuthentication": true,
         "tls": false,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     }
   ],
   "zones": [
@@ -751,7 +902,8 @@
         "y": 180
       },
       "width": 260,
-      "color": "#64748b"
+      "color": "#64748b",
+      "locked": false
     }
   ],
   "networks": [
@@ -788,5 +940,6 @@
       "siteId": "site-main"
     }
   ],
+  "fieldDefs": [],
   "revisions": []
 }

@@ -38,6 +38,7 @@ describe('v1 → v2 migration', () => {
       protocol: 'dnp3',
       port: 20000,
       settings: { transport: 'tcp', secureAuthentication: true, tls: false, controlCommands: true },
+      waypoints: [],
     });
     const modbus = p.flows.find((f) => f.id === 'flow-hmi-filter');
     expect(modbus?.settings).toEqual({ variant: 'tcp', access: 'read-write', authentication: false });

@@ -131,7 +131,7 @@ describe('project files', () => {
     const broken: Project = {
       ...p,
       devices: [...p.devices, { ...p.devices[0] }, { ...p.devices[1], id: 'x', zoneId: 'nowhere' }],
-      links: [{ id: 'l', source: 'hmi', target: 'ghost', medium: 'ethernet' }],
+      links: [{ id: 'l', source: 'hmi', target: 'ghost', medium: 'ethernet', sourcePort: '', targetPort: '', vlans: [], networkId: null, waypoints: [] }],
     };
     const errors = referenceErrors(broken);
     expect(errors).toContain('Duplicate id "hmi"');

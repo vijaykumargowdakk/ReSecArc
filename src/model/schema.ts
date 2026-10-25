@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const deviceTypeSchema = z.enum([
   'plc',
@@ -42,6 +42,9 @@ export const MAX_COORDINATE = 1_000_000;
 const coordSchema = z.number().min(-MAX_COORDINATE).max(MAX_COORDINATE);
 const sizeSchema = z.number().positive().max(MAX_COORDINATE);
 const pointSchema = z.object({ x: coordSchema, y: coordSchema });
+/** Bend points of a link or flow, in drawing order. */
+const waypointsSchema = z.array(pointSchema).max(100);
+const vlanSchema = z.number().int().min(1).max(4094);
 
 export const remoteServiceSchema = z.object({
   protocol: z.enum(['rdp', 'ssh', 'vnc', 'https']),
@@ -93,6 +96,11 @@ export const deviceSchema = z.object({
   position: pointSchema,
   services: z.array(remoteServiceSchema),
   asset: assetSchema,
+  /** Free labels such as "patch-pending" or "line-3"; trimmed, without duplicates. */
+  tags: z.array(z.string().min(1).max(60)).max(50),
+  /** Values of the project's custom fields, keyed by field definition id. */
+  fields: z.record(z.string()),
+  locked: z.boolean(),
   firewall: firewallConfigSchema.optional(),
 });
 
@@ -101,6 +109,14 @@ export const linkSchema = z.object({
   source: idSchema,
   target: idSchema,
   medium: z.enum(['ethernet', 'serial', 'wireless']),
+  /** Interface or port names at each end, e.g. "Gi1/0/12" or "X1"; empty when unknown. */
+  sourcePort: z.string().max(60),
+  targetPort: z.string().max(60),
+  /** One VLAN for an access link, several for a trunk. */
+  vlans: z.array(vlanSchema).max(200),
+  /** The planned network this link carries, if any. */
+  networkId: idSchema.nullable(),
+  waypoints: waypointsSchema,
 });
 
 export const flowSchema = z.object({
@@ -112,6 +128,7 @@ export const flowSchema = z.object({
   /** `null` for layer-2 protocols. */
   port: portSchema.nullable(),
   settings: z.record(z.union([z.boolean(), z.string(), z.number()])),
+  waypoints: waypointsSchema,
 });
 
 export const zoneSchema = z.object({
@@ -139,6 +156,7 @@ export const areaSchema = z.object({
     height: sizeSchema,
   }),
   collapsed: z.boolean(),
+  locked: z.boolean(),
 });
 
 export const noteSchema = z.object({
@@ -148,6 +166,7 @@ export const noteSchema = z.object({
   position: pointSchema,
   width: sizeSchema,
   color: colorSchema,
+  locked: z.boolean(),
 });
 
 export const networkSchema = z.object({
@@ -161,6 +180,15 @@ export const networkSchema = z.object({
   siteId: idSchema.nullable(),
 });
 
+/** A project-specific device attribute, such as owner, cabinet or support end date. */
+export const fieldDefSchema = z.object({
+  id: idSchema,
+  label: z.string().min(1).max(60),
+  kind: z.enum(['text', 'date', 'select']),
+  /** Choices for a `select` field; empty for the other kinds. */
+  options: z.array(z.string().min(1).max(60)).max(100),
+});
+
 /** Everything that describes the design itself; a revision stores a copy of this. */
 export const designSchema = z.object({
   name: z.string(),
@@ -172,6 +200,7 @@ export const designSchema = z.object({
   areas: z.array(areaSchema),
   notes: z.array(noteSchema),
   networks: z.array(networkSchema),
+  fieldDefs: z.array(fieldDefSchema).max(50),
 });
 
 export const revisionSchema = z.object({
@@ -202,6 +231,7 @@ export type Site = z.infer<typeof siteSchema>;
 export type Area = z.infer<typeof areaSchema>;
 export type Note = z.infer<typeof noteSchema>;
 export type Network = z.infer<typeof networkSchema>;
+export type FieldDef = z.infer<typeof fieldDefSchema>;
 export type Design = z.infer<typeof designSchema>;
 export type Revision = z.infer<typeof revisionSchema>;
 export type Project = z.infer<typeof projectSchema>;

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "name": "Assembly Line 3 (fictional demo)",
   "sites": [
     {
@@ -30,7 +30,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "mes",
@@ -54,7 +57,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "fw",
@@ -113,7 +119,10 @@
             "note": "Planners read production reports"
           }
         ]
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "edge",
@@ -137,7 +146,10 @@
         "serial": "",
         "ip": "10.20.0.30",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "opc",
@@ -161,7 +173,10 @@
         "serial": "",
         "ip": "10.20.1.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "hist",
@@ -185,7 +200,10 @@
         "serial": "",
         "ip": "10.20.1.20",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ews",
@@ -209,7 +227,10 @@
         "serial": "",
         "ip": "10.20.1.50",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "core",
@@ -233,7 +254,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "hmi-a",
@@ -257,7 +281,10 @@
         "serial": "",
         "ip": "10.21.0.5",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "hmi-b",
@@ -281,7 +308,10 @@
         "serial": "",
         "ip": "10.22.0.5",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "plc-a",
@@ -305,7 +335,10 @@
         "serial": "",
         "ip": "10.21.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "rio-a",
@@ -329,7 +362,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "robot-1",
@@ -353,7 +389,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "robot-2",
@@ -377,7 +416,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "plc-b",
@@ -401,7 +443,10 @@
         "serial": "",
         "ip": "10.22.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "packer",
@@ -425,7 +470,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "conv",
@@ -449,7 +497,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "scale",
@@ -473,7 +524,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     }
   ],
   "links": [
@@ -481,103 +535,208 @@
       "id": "link-mes-fw",
       "source": "mes",
       "target": "fw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cloud-fw",
       "source": "cloud",
       "target": "fw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fw-core",
       "source": "fw",
       "target": "core",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "port3",
+      "targetPort": "Gi1/0/48",
+      "vlans": [
+        20,
+        21,
+        22
+      ],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fw-edge",
       "source": "fw",
       "target": "edge",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "port4",
+      "targetPort": "eth0",
+      "vlans": [
+        20
+      ],
+      "networkId": "net-ops",
+      "waypoints": []
     },
     {
       "id": "link-core-opc",
       "source": "core",
       "target": "opc",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi1/0/1",
+      "targetPort": "eth0",
+      "vlans": [
+        20
+      ],
+      "networkId": "net-ops",
+      "waypoints": []
     },
     {
       "id": "link-core-hist",
       "source": "core",
       "target": "hist",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi1/0/2",
+      "targetPort": "eth0",
+      "vlans": [
+        20
+      ],
+      "networkId": "net-ops",
+      "waypoints": []
     },
     {
       "id": "link-core-ews",
       "source": "core",
       "target": "ews",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi1/0/3",
+      "targetPort": "eth0",
+      "vlans": [
+        20
+      ],
+      "networkId": "net-ops",
+      "waypoints": []
     },
     {
       "id": "link-core-hmi-a",
       "source": "core",
       "target": "hmi-a",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi1/0/11",
+      "targetPort": "X1",
+      "vlans": [
+        21
+      ],
+      "networkId": "net-cell-a",
+      "waypoints": []
     },
     {
       "id": "link-core-hmi-b",
       "source": "core",
       "target": "hmi-b",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi1/0/21",
+      "targetPort": "X1",
+      "vlans": [
+        22
+      ],
+      "networkId": "net-cell-b",
+      "waypoints": []
     },
     {
       "id": "link-core-plc-a",
       "source": "core",
       "target": "plc-a",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi1/0/12",
+      "targetPort": "X1 P1",
+      "vlans": [
+        21
+      ],
+      "networkId": "net-cell-a",
+      "waypoints": []
     },
     {
       "id": "link-core-plc-b",
       "source": "core",
       "target": "plc-b",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "Gi1/0/22",
+      "targetPort": "X1 P1",
+      "vlans": [
+        22
+      ],
+      "networkId": "net-cell-b",
+      "waypoints": []
     },
     {
       "id": "link-plc-a-rio-a",
       "source": "plc-a",
       "target": "rio-a",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-plc-a-robot-1",
       "source": "plc-a",
       "target": "robot-1",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-rio-a-robot-2",
       "source": "rio-a",
       "target": "robot-2",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-plc-b-packer",
       "source": "plc-b",
       "target": "packer",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-plc-b-conv",
       "source": "plc-b",
       "target": "conv",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-packer-scale",
       "source": "packer",
       "target": "scale",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     }
   ],
   "flows": [
@@ -591,7 +750,8 @@
         "realtime": "rt",
         "conformance": "B",
         "security": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-plc-a-robot-1-profinet",
@@ -603,7 +763,8 @@
         "realtime": "irt",
         "conformance": "C",
         "security": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-plc-a-robot-2-profinet",
@@ -615,7 +776,8 @@
         "realtime": "irt",
         "conformance": "C",
         "security": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-plc-b-packer-enip",
@@ -626,7 +788,8 @@
       "settings": {
         "messaging": "implicit",
         "cipSecurity": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-plc-b-conv-enip",
@@ -637,7 +800,8 @@
       "settings": {
         "messaging": "implicit",
         "cipSecurity": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hmi-a-plc-a-s7",
@@ -648,7 +812,8 @@
       "settings": {
         "variant": "classic",
         "access": "read-write"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hmi-b-plc-b-enip",
@@ -659,7 +824,8 @@
       "settings": {
         "messaging": "explicit",
         "cipSecurity": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-opc-plc-a-opcua",
@@ -670,7 +836,8 @@
       "settings": {
         "securityMode": "signandencrypt",
         "userAuth": "certificate"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-opc-plc-b-opcua",
@@ -681,7 +848,8 @@
       "settings": {
         "securityMode": "signandencrypt",
         "userAuth": "certificate"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hist-opc-opcua",
@@ -692,7 +860,8 @@
       "settings": {
         "securityMode": "sign",
         "userAuth": "username"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-edge-cloud-mqtt",
@@ -703,7 +872,8 @@
       "settings": {
         "tls": true,
         "clientAuth": "certificate"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-edge-opc-opcua",
@@ -714,7 +884,8 @@
       "settings": {
         "securityMode": "signandencrypt",
         "userAuth": "certificate"
-      }
+      },
+      "waypoints": []
     }
   ],
   "zones": [
@@ -759,7 +930,8 @@
         "width": 540,
         "height": 470
       },
-      "collapsed": false
+      "collapsed": false,
+      "locked": false
     },
     {
       "id": "area-cell-b",
@@ -772,7 +944,8 @@
         "width": 520,
         "height": 470
       },
-      "collapsed": false
+      "collapsed": false,
+      "locked": false
     }
   ],
   "notes": [],
@@ -802,5 +975,6 @@
       "siteId": "site-main"
     }
   ],
+  "fieldDefs": [],
   "revisions": []
 }

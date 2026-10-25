@@ -33,6 +33,7 @@ export function emptyProject(name = 'Untitled architecture'): Project {
     areas: [],
     notes: [],
     networks: [],
+    fieldDefs: [],
     revisions: [],
   };
 }
@@ -64,6 +65,9 @@ export function createDevice(type: DeviceType, position: { x: number; y: number 
     position,
     services: [],
     asset: emptyAsset(),
+    tags: [],
+    fields: {},
+    locked: false,
   };
   if (type === 'firewall') device.firewall = { defaultAction: 'deny', rules: [] };
   return device;
@@ -74,7 +78,7 @@ export function defaultFlow(protocol: string, source: string, target: string, id
   const def = getProtocol(protocol);
   if (!def) throw new Error(`Unknown protocol "${protocol}"`);
   const settings = defaultSettings(def);
-  return { id, source, target, protocol, port: defaultPortFor(def, settings), settings };
+  return { id, source, target, protocol, port: defaultPortFor(def, settings), settings, waypoints: [] };
 }
 
 /** Adds a device; it joins whichever area on its site it was placed in. */
@@ -150,7 +154,7 @@ export function addLink(project: Project, source: string, target: string, id = n
     (l) => (l.source === source && l.target === target) || (l.source === target && l.target === source),
   );
   if (duplicate) return project;
-  const link: Link = { id, source, target, medium: 'ethernet' };
+  const link: Link = { id, source, target, medium: 'ethernet', sourcePort: '', targetPort: '', vlans: [], networkId: null, waypoints: [] };
   return { ...project, links: [...project.links, link] };
 }
 
@@ -298,6 +302,8 @@ export function pasteFragment(
       purdueLevel: levelAtY(position.y),
       services: d.services.map((s) => ({ ...s })),
       asset: { ...d.asset },
+      tags: [...d.tags],
+      fields: { ...d.fields },
     };
     if (d.firewall) {
       copy.firewall = {
@@ -312,13 +318,22 @@ export function pasteFragment(
     }
     return copy;
   });
-  const links = fragment.links.map((l) => ({ ...l, id: newId('link'), source: idMap.get(l.source)!, target: idMap.get(l.target)! }));
+  const shift = (p: { x: number; y: number }) => ({ x: p.x + offset.x, y: p.y + offset.y });
+  const links = fragment.links.map((l) => ({
+    ...l,
+    id: newId('link'),
+    source: idMap.get(l.source)!,
+    target: idMap.get(l.target)!,
+    vlans: [...l.vlans],
+    waypoints: l.waypoints.map(shift),
+  }));
   const flows = fragment.flows.map((f) => ({
     ...f,
     id: newId('flow'),
     source: idMap.get(f.source)!,
     target: idMap.get(f.target)!,
     settings: { ...f.settings },
+    waypoints: f.waypoints.map(shift),
   }));
   return {
     project: {

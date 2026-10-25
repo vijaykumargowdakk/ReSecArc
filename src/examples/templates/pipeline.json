@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "name": "Westridge Gas Pipeline (fictional demo)",
   "sites": [
     {
@@ -38,7 +38,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cc-fw",
@@ -97,7 +100,10 @@
             "note": "Business replica reads operations data"
           }
         ]
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cc-hist",
@@ -121,7 +127,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "scada",
@@ -145,7 +154,10 @@
         "serial": "",
         "ip": "10.1.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "hist",
@@ -169,7 +181,10 @@
         "serial": "",
         "ip": "10.1.0.20",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "console",
@@ -193,7 +208,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cc-router",
@@ -217,7 +235,10 @@
         "serial": "",
         "ip": "10.255.0.1",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cs-router",
@@ -241,7 +262,10 @@
         "serial": "",
         "ip": "10.255.1.1",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cs-fw",
@@ -285,7 +309,10 @@
             "note": "Only the control centre master"
           }
         ]
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cs-hmi",
@@ -309,7 +336,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cs-plc",
@@ -333,7 +363,10 @@
         "serial": "",
         "ip": "10.11.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cs-esd",
@@ -357,7 +390,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "comp",
@@ -381,7 +417,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cs-pt",
@@ -405,7 +444,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cs-sdv",
@@ -429,7 +471,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "bv-router",
@@ -453,7 +498,10 @@
         "serial": "",
         "ip": "10.255.7.1",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "bv-rtu",
@@ -477,7 +525,10 @@
         "serial": "",
         "ip": "10.17.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "bv-pt",
@@ -501,7 +552,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "bv-valve",
@@ -525,7 +579,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     }
   ],
   "links": [
@@ -533,109 +590,199 @@
       "id": "link-corp-cc-fw",
       "source": "corp",
       "target": "cc-fw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cc-fw-cc-hist",
       "source": "cc-fw",
       "target": "cc-hist",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cc-fw-scada",
       "source": "cc-fw",
       "target": "scada",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cc-fw-hist",
       "source": "cc-fw",
       "target": "hist",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-scada-console",
       "source": "scada",
       "target": "console",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cc-fw-cc-router",
       "source": "cc-fw",
       "target": "cc-router",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cs-router-cs-fw",
       "source": "cs-router",
       "target": "cs-fw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cs-fw-cs-hmi",
       "source": "cs-fw",
       "target": "cs-hmi",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cs-fw-cs-plc",
       "source": "cs-fw",
       "target": "cs-plc",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cs-plc-comp",
       "source": "cs-plc",
       "target": "comp",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cs-plc-cs-pt",
       "source": "cs-plc",
       "target": "cs-pt",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cs-esd-cs-sdv",
       "source": "cs-esd",
       "target": "cs-sdv",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cs-plc-cs-esd",
       "source": "cs-plc",
       "target": "cs-esd",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bv-router-bv-rtu",
       "source": "bv-router",
       "target": "bv-rtu",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bv-rtu-bv-pt",
       "source": "bv-rtu",
       "target": "bv-pt",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bv-rtu-bv-valve",
       "source": "bv-rtu",
       "target": "bv-valve",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cc-router-cs-router",
       "source": "cc-router",
       "target": "cs-router",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-cc-router-bv-router",
       "source": "cc-router",
       "target": "bv-router",
-      "medium": "wireless"
+      "medium": "wireless",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     }
   ],
   "flows": [
@@ -650,7 +797,8 @@
         "secureAuthentication": true,
         "tls": false,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-scada-bv-rtu-dnp3",
@@ -663,7 +811,8 @@
         "secureAuthentication": true,
         "tls": false,
         "controlCommands": true
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-cs-hmi-cs-plc-modbus",
@@ -675,7 +824,8 @@
         "variant": "tcp",
         "access": "read-write",
         "authentication": false
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-hist-scada-opcua",
@@ -686,7 +836,8 @@
       "settings": {
         "securityMode": "signandencrypt",
         "userAuth": "certificate"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-cc-hist-hist-opcua",
@@ -697,7 +848,8 @@
       "settings": {
         "securityMode": "sign",
         "userAuth": "username"
-      }
+      },
+      "waypoints": []
     }
   ],
   "zones": [
@@ -773,5 +925,6 @@
       "siteId": "site-bv7"
     }
   ],
+  "fieldDefs": [],
   "revisions": []
 }

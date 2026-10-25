@@ -4,7 +4,7 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
 
 ```jsonc
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites":   [ /* Site, at least one */ ],
   "devices": [ /* Device */ ],
@@ -14,11 +14,12 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
   "areas":   [ /* Area */ ],
   "notes":   [ /* Note */ ],
   "networks":  [ /* Network */ ],
+  "fieldDefs": [ /* Custom field definition */ ],
   "revisions": [ /* Revision */ ]
 }
 ```
 
-Files saved by older versions (`schemaVersion` 1 or 2) are upgraded automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
+Files saved by older versions (`schemaVersion` 1, 2 or 3) are upgraded, including the designs stored in their revisions, automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
 
 ## Device
 
@@ -36,6 +37,9 @@ Files saved by older versions (`schemaVersion` 1 or 2) are upgraded automaticall
 | `position` | `{ x, y }` | Canvas coordinates, each within ±1,000,000 |
 | `services` | `{ protocol: rdp/ssh/vnc/https, port }[]` | Listening remote-access services |
 | `asset` | `{ vendor, model, firmware, serial, ip, notes }` | Inventory details; all strings, may be empty |
+| `tags` | string[] | Free labels, up to 50 |
+| `fields` | `{ [fieldDefId]: string }` | Values of the project's custom fields |
+| `locked` | boolean | Locked devices cannot be dragged and are skipped by Tidy, align and distribute |
 | `firewall` | `{ defaultAction, rules[] }` | Present only on `firewall` devices, and required there |
 
 ### Firewall rule
@@ -55,11 +59,19 @@ Removing a zone or device also removes any rule that refers to it, so no rule si
 
 ## Link
 
-An undirected network connection: `{ id, source, target, medium }`, where `medium` is `ethernet`, `serial` or `wireless`. Duplicate links between the same pair of devices, in either direction, are rejected.
+An undirected network connection: `{ id, source, target, medium, sourcePort, targetPort, vlans, networkId, waypoints }`.
+
+- `medium` is `ethernet`, `serial` or `wireless`.
+- `sourcePort` and `targetPort` name the interface at each end, such as `Gi1/0/12` or `X1`; empty when unknown.
+- `vlans` holds one VLAN id for an access link or several for a trunk, each 1–4094.
+- `networkId` is the planned network the link carries, or `null`.
+- `waypoints` are bend points `{ x, y }` in drawing order (at most 100).
+
+Duplicate links between the same pair of devices, in either direction, are rejected.
 
 ## Flow
 
-A directed protocol session from `source` to `target`:
+A directed protocol session from `source` to `target`, with optional bend points in `waypoints`:
 
 ```jsonc
 { "id": "flow-1", "source": "hmi", "target": "plc", "protocol": "modbus", "port": 502,
@@ -91,11 +103,15 @@ Where two ports are listed, the port follows the setting unless the user has typ
 
 ## Site and area
 
-A site is `{ id, name }`; every project has at least one. An area is a named rectangle on one site, used for cells, lines or substations: `{ id, siteId, name, color, rect: { x, y, width, height }, collapsed }`.
+A site is `{ id, name }`; every project has at least one. An area is a named rectangle on one site, used for cells, lines or substations: `{ id, siteId, name, color, rect: { x, y, width, height }, collapsed, locked }`.
 
 ## Note
 
-Free text on one site's canvas: `{ id, siteId, text, position: { x, y }, width, color }`. Notes are annotations only; they are included in the Markdown record.
+Free text on one site's canvas: `{ id, siteId, text, position: { x, y }, width, color, locked }`. Notes are annotations only; they are included in the Markdown record.
+
+## Custom field definition
+
+`{ id, label, kind, options }`, where `kind` is `text`, `date` or `select` and `options` lists the choices of a `select` field. Devices store values under the definition's id. A select value that is no longer one of the options is kept and shown as such.
 
 ## Network
 
@@ -121,10 +137,10 @@ Conduits are not stored. They are derived as the zone pairs joined directly by a
 A file is accepted only if:
 
 1. it parses as JSON,
-2. after any upgrade, it matches the schema, including `schemaVersion: 3`, and
+2. after any upgrade, it matches the schema, including `schemaVersion: 4`, and
 3. it passes the reference checks:
    - every id is unique;
-   - links, flows, sites, zones, areas, notes, networks and rule endpoints point at things that exist;
+   - links, flows, sites, zones, areas, notes, networks, custom fields and rule endpoints point at things that exist;
    - every variant is in the catalog, and every flow's settings match its protocol;
    - nothing connects a device to itself;
    - only firewalls carry rules;

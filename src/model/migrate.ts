@@ -38,7 +38,29 @@ function v2ToV3(p: Json): Json {
   return { ...p, schemaVersion: 3, notes: [], networks: [], revisions: [] };
 }
 
-const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2, 2: v2ToV3 };
+/** v4 adds link interfaces, bend points, locking, device tags and custom fields. Revisions are upgraded too. */
+function designToV4(d: Json): Json {
+  const withLock = (items: unknown) => list(items).map((x) => (isObject(x) ? { locked: false, ...x } : x));
+  return {
+    ...d,
+    devices: list(d.devices).map((x) => (isObject(x) ? { tags: [], fields: {}, locked: false, ...x } : x)),
+    links: list(d.links).map((x) =>
+      isObject(x) ? { sourcePort: '', targetPort: '', vlans: [], networkId: null, waypoints: [], ...x } : x,
+    ),
+    flows: list(d.flows).map((x) => (isObject(x) ? { waypoints: [], ...x } : x)),
+    notes: withLock(d.notes),
+    areas: withLock(d.areas),
+    fieldDefs: [],
+  };
+}
+
+function v3ToV4(p: Json): Json {
+  const revisions = list(p.revisions).map((r) => (isObject(r) && isObject(r.design) ? { ...r, design: designToV4(r.design) } : r));
+  return { ...designToV4(p), schemaVersion: 4, revisions };
+}
+
+
+const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2, 2: v2ToV3, 3: v3ToV4 };
 
 export function migrate(raw: unknown): unknown {
   if (!isObject(raw)) return raw;

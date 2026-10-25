@@ -16,7 +16,7 @@ export const NOTE_WIDTHS = [
 ] as const;
 
 export function createNote(siteId: string, position: { x: number; y: number }, id = newId('note')): Note {
-  return { id, siteId, text: 'New note', position, width: NOTE_WIDTHS[1].value, color: NOTE_COLORS[0].value };
+  return { id, siteId, text: 'New note', position, width: NOTE_WIDTHS[1].value, color: NOTE_COLORS[0].value, locked: false };
 }
 
 export function addNote(project: Project, note: Note): Project {

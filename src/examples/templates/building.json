@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "name": "Harbour View Office Tower (fictional demo)",
   "sites": [
     {
@@ -30,7 +30,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "fm",
@@ -54,7 +57,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ra",
@@ -83,7 +89,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "fw",
@@ -157,7 +166,10 @@
             "note": "Contractor sessions via the gateway only"
           }
         ]
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "bms",
@@ -186,7 +198,10 @@
         "serial": "",
         "ip": "10.60.0.10",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "web",
@@ -210,7 +225,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "bms-sw",
@@ -234,7 +252,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "bbmd",
@@ -258,7 +279,10 @@
         "serial": "",
         "ip": "10.60.1.2",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "ahu",
@@ -282,7 +306,10 @@
         "serial": "",
         "ip": "10.60.1.21",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "chiller",
@@ -306,7 +333,10 @@
         "serial": "",
         "ip": "10.60.1.22",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "light",
@@ -330,7 +360,10 @@
         "serial": "",
         "ip": "10.60.1.23",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "vav",
@@ -354,7 +387,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "temp",
@@ -378,7 +414,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "fan",
@@ -402,7 +441,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     },
     {
       "id": "cwv",
@@ -426,7 +468,10 @@
         "serial": "",
         "ip": "",
         "notes": ""
-      }
+      },
+      "tags": [],
+      "fields": {},
+      "locked": false
     }
   ],
   "links": [
@@ -434,85 +479,155 @@
       "id": "link-vendor-fw",
       "source": "vendor",
       "target": "fw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fm-fw",
       "source": "fm",
       "target": "fw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fw-ra",
       "source": "fw",
       "target": "ra",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-fw-bms-sw",
       "source": "fw",
       "target": "bms-sw",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bms-sw-bms",
       "source": "bms-sw",
       "target": "bms",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bms-sw-web",
       "source": "bms-sw",
       "target": "web",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bms-sw-ahu",
       "source": "bms-sw",
       "target": "ahu",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bms-sw-chiller",
       "source": "bms-sw",
       "target": "chiller",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bms-sw-light",
       "source": "bms-sw",
       "target": "light",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bms-sw-bbmd",
       "source": "bms-sw",
       "target": "bbmd",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-bbmd-vav",
       "source": "bbmd",
       "target": "vav",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ahu-temp",
       "source": "ahu",
       "target": "temp",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-ahu-fan",
       "source": "ahu",
       "target": "fan",
-      "medium": "ethernet"
+      "medium": "ethernet",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     },
     {
       "id": "link-chiller-cwv",
       "source": "chiller",
       "target": "cwv",
-      "medium": "serial"
+      "medium": "serial",
+      "sourcePort": "",
+      "targetPort": "",
+      "vlans": [],
+      "networkId": null,
+      "waypoints": []
     }
   ],
   "flows": [
@@ -525,7 +640,8 @@
       "settings": {
         "secureConnect": false,
         "access": "read-write"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-bms-chiller-bacnet",
@@ -536,7 +652,8 @@
       "settings": {
         "secureConnect": false,
         "access": "read-write"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-bms-light-bacnet",
@@ -547,7 +664,8 @@
       "settings": {
         "secureConnect": false,
         "access": "read-write"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-bms-bbmd-bacnet",
@@ -558,7 +676,8 @@
       "settings": {
         "secureConnect": false,
         "access": "read-write"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-bbmd-vav-bacnet",
@@ -569,7 +688,8 @@
       "settings": {
         "secureConnect": false,
         "access": "read-write"
-      }
+      },
+      "waypoints": []
     },
     {
       "id": "flow-fm-web-custom",
@@ -581,7 +701,8 @@
         "name": "HTTPS dashboard",
         "transport": "tcp",
         "encrypted": true
-      }
+      },
+      "waypoints": []
     }
   ],
   "zones": [
@@ -627,5 +748,6 @@
       "siteId": "site-main"
     }
   ],
+  "fieldDefs": [],
   "revisions": []
 }
