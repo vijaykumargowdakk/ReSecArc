@@ -194,8 +194,8 @@ flowchart TB
             P["Palette<br/>device types and kinds<br/>text note<br/>your blocks"]
             subgraph Mid["Centre column"]
                 direction TB
-                B["Canvas bar: Diagram or Inventory · Site tabs · Tidy · Filters"]
-                C["Canvas or Inventory tables"]
+                B["Canvas bar: Diagram, Inventory or Outline · Site tabs · Tidy · Filters"]
+                C["Canvas, Inventory tables or Outline tree"]
             end
             I["Properties panel<br/>selected item, or project overview:<br/>zones · networks · conduits · revisions"]
         end
@@ -209,6 +209,7 @@ flowchart TB
 | **Palette** (left) | Drag a device type or a specific kind onto a lane, or click to add it. Also holds the text note tool and your saved blocks |
 | **Canvas** (centre) | The diagram for the open site: lanes, areas, devices, links, flows, notes and stubs for devices on other sites |
 | **Inventory** (centre, second view) | Sortable, editable tables of devices, flows, firewall rules and the IP plan |
+| **Outline** (centre, third view) | The whole design as a tree: site, Purdue level, device, then each device's links and flows; also areas, notes and zones. Built for keyboard and screen-reader use |
 | **Properties panel** (right) | Edits whatever is selected. With nothing selected it shows the project: zones, networks, conduits and revisions |
 
 ![Properties panel for a selected PLC, showing the network its address belongs to](docs/images/device-panel.png)
@@ -245,6 +246,7 @@ flowchart TB
 - **Edit history:** the clock button lists recent steps by name ("Added device HMI", "Moved 3 devices", "Filtration PLC: firmware: — → V4.2") and jumps back or forward to any of them.
 - **Command palette** (Ctrl + Shift + P or Alt + P): run any action by typing part of its name, such as "export csv", "dark" or "tidy".
 - Copy, paste, duplicate, select all, and box selection with Shift + drag.
+- **Connect from the keyboard:** with a device focused or selected, press L for a link or F for a flow, move the highlight to another device with the arrow keys, and press Enter (Esc cancels). See [section 19](#19-themes-and-accessibility).
 - Bulk editing of zone, criticality and site, plus align and distribute.
 - Snap to grid, a right-click menu on devices, and **Tidy layout** for a whole site.
 - **Bend points:** double-click a link or flow to bend it, drag the handle to move it, and double-click the handle to remove it; **Straighten** in the properties panel removes them all.
@@ -435,15 +437,15 @@ flowchart LR
     SRC --> EX["examples/templates/<br/>5 fictional projects"]
     MODEL --> MA["schema · io · migrate"]
     MODEL --> MB["ops · structure · notes · areas · layout"]
-    MODEL --> MC["catalog · protocols · purdue · conduits · filter · search"]
+    MODEL --> MC["catalog · protocols · purdue · conduits · filter · search · outline · direction"]
     MODEL --> MD["ipam · revisions · share"]
     MODEL --> ME["csv · csvImport · exportDoc"]
     STORE --> SA["useProject · history"]
     STORE --> SB["autosave · blocks · theme · compare · announcer"]
-    UI --> UA["canvas/<br/>Canvas · nodes · edges · view · Legend · NodeMenu · TidyButton"]
+    UI --> UA["canvas/<br/>Canvas · nodes · edges · view · useKeyboardConnect · Legend · NodeMenu · TidyButton"]
     UI --> UB["inspector/<br/>Inspector · Bulk · Area · Note · FirewallRules · ProjectPanel · Networks · Revisions · Changes"]
     UI --> UC["icons/<br/>control · field · supervisory · network · enterprise"]
-    UI --> UD["Toolbar · Palette · SiteTabs · FilterBar · Inventory · dialogs"]
+    UI --> UD["Toolbar · Palette · SiteTabs · FilterBar · Inventory · Outline · dialogs"]
 ```
 
 | Path | Responsibility |
@@ -462,9 +464,13 @@ flowchart LR
 | `src/model/share.ts` | Encoding and decoding share links |
 | `src/model/csv.ts`, `csvImport.ts` | CSV export of every table; CSV import of devices, flows and rules |
 | `src/model/exportDoc.ts` | The Markdown architecture record |
+| `src/model/outline.ts` | The design as a tree for the Outline view; visible rows and type-ahead matching |
+| `src/model/direction.ts` | The nearest device in an arrow-key direction, for keyboard connections |
 | `src/store/useProject.ts` | The main store: project, undo history, selection, active site, filter, clipboard |
 | `src/store/history.ts` | Pure undo and redo with edit coalescing |
 | `src/ui/canvas/view.ts` | Pure function that turns the project into React Flow nodes and edges for one site |
+| `src/ui/canvas/useKeyboardConnect.ts` | L / F, arrow keys, Enter and Esc for connecting devices on the canvas |
+| `src/ui/Outline.tsx` | The Outline view (WAI-ARIA tree), loaded on demand |
 
 ---
 
@@ -1024,9 +1030,25 @@ flowchart LR
 
 - **Keyboard:** everything can be done without a mouse:
   - add devices from the palette with Enter;
-  - connect them with "Link to…" or "Flow to…" in the properties panel;
+  - connect them on the canvas with L (link) or F (flow), or with "Link to…" or "Flow to…" in the properties panel;
   - move the selection with the arrow keys;
   - press `?` to list every shortcut.
+- **Outline view:** the third view lists the design as a tree that follows the WAI-ARIA tree pattern (one Tab stop, arrow keys inside):
+  - Up and Down move; Right opens an item or goes to its first child; Left closes it or goes to its parent; Home and End jump to the ends; typing a letter jumps to the next item starting with it;
+  - Enter shows the item in the properties panel and moves focus there; Space selects it without moving focus;
+  - on a device, L and F open a device list to link it or add a flow (using the protocol chosen in the toolbar), and Delete removes it after the same confirmation as the properties panel;
+  - the filter applies: devices, links and flows that do not match are left out, and a line says how many devices are shown.
+- **Keyboard connections on the canvas:** each step is announced ("Linking from Filtration PLC. Use arrow keys to choose a device, Enter to connect, Escape to cancel.", "Target: Control switch", "Link added from Filtration PLC to Control switch"). The source is outlined with a dashed line and a "From" badge, the target with a solid line and a "To" badge. Arrow keys pick the nearest device in that direction, preferring devices roughly in line; when no connection is pending they move the selection as before.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Choosing: L or F on a focused or selected device
+    Choosing --> Choosing: arrow key highlights the nearest device that way
+    Choosing --> Idle: Enter with a device highlighted adds the link or flow
+    Choosing --> Idle: Esc, a click or another site cancels
+```
+
 - **Screen readers:** each device has a descriptive name ("Filtration PLC, Modular PLC, level 1, zone Control, high criticality"). A live region announces adds, deletes, undo, redo and layout changes.
 - **Not by colour alone:** protocols differ by dash pattern and label, criticality is a lettered badge, and comparison tags read "New" or "Changed".
 - **Motion:** animations are switched off when the system asks for reduced motion.
@@ -1176,25 +1198,30 @@ gitGraph
 Testing has three layers:
 
 - **Unit tests** (Vitest) cover the model layer, which is pure TypeScript, so its rules are tested directly without a browser.
-- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions and CSV import.
+- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline and keyboard-only connections.
 - **Accessibility scans** (axe) check every main view and dialog against WCAG 2.1 A and AA in all three themes. Any violation fails CI.
 
 A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and checks that opening it, switching sites and editing each stay within time budgets. It also checks that a diagram export of a 200-device site contains every device.
 
 ```mermaid
 pie showData
-    title Unit tests by file (114)
+    title Unit tests by file (153)
+    "v3" : 15
     "schema-v2" : 13
     "model" : 13
     "ipam" : 12
     "templates" : 12
-    "v3" : 15
     "scale" : 12
+    "ports" : 12
     "revisions" : 10
     "editing" : 9
+    "outline" : 8
+    "fields" : 8
+    "v4" : 7
     "export" : 6
     "csvImport" : 5
     "icons" : 4
+    "history-names" : 4
     "share" : 3
 ```
 
@@ -1212,15 +1239,21 @@ pie showData
 | `share.test.ts` | Share link round-trips and damaged links |
 | `templates.test.ts` | Every template loads, round-trips, uses every protocol and has a clean IP plan |
 | `icons.test.ts` | Every device kind has an icon |
+| `v4.test.ts` | v3 migration, link ports, VLANs, networks, locking, tags and custom fields in the file |
+| `ports.test.ts` | Link interface and VLAN warnings, bend points |
+| `fields.test.ts` | Custom field definitions, tags, bulk edits, CSV columns |
+| `history-names.test.ts` | Names of undo steps, history jumps, command palette matching |
+| `outline.test.ts` | The outline tree, visible rows, type-ahead, the nearest device in a direction |
 
 | Browser test file | Covers |
 |-------------------|--------|
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
 | `e2e/data.spec.ts` | Save and open, broken files, autosave restore, share links, IP warnings, revisions, CSV import |
-| `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, dialogs and comparison in each theme |
+| `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs and comparison in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour, the empty-site hint |
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
+| `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 
 ---
@@ -1266,6 +1299,12 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 | Tab | Move focus between devices |
 | Enter or Space | Select the focused device |
 | Arrow keys | Move the selection (Shift for bigger steps) |
+| L or F | Start a link or a protocol flow from the focused or selected device |
+| Arrow keys, then Enter | While connecting: highlight the nearest device that way, then connect (Esc cancels) |
+| Outline: arrow keys, Home, End | Move through the outline; Right opens an item, Left closes it or goes to its parent |
+| Outline: Enter or Space | Show the item in the properties panel (Enter also moves focus there) |
+| Outline: L, F, Delete | Link the focused device, add a flow from it, or delete it |
+| Outline: a letter | Jump to the next item starting with it |
 | Shift + drag | Box selection |
 | Ctrl + click | Add to the selection |
 | Right-click a device | Duplicate, delete or connect |
