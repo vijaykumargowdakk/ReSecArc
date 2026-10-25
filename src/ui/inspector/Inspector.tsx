@@ -25,7 +25,9 @@ import { AddressInfo } from './AddressInfo';
 import { AreaInspector } from './AreaInspector';
 import { ChangesPanel } from './ChangesPanel';
 import { BulkInspector } from './BulkInspector';
-import { Field, IntInput, Section, Select, TextInput, Toggle } from '../form';
+import { Field, IntInput, Section, Select, TextInput, Toggle, VlanInput } from '../form';
+import { IssueList } from './AddressInfo';
+import { useLinkIssues } from '../../store/derived';
 import { FirewallRules } from './FirewallRules';
 import { NoteInspector } from './NoteInspector';
 import { ProjectPanel } from './ProjectPanel';
@@ -136,6 +138,7 @@ function DeviceInspector({ device }: { device: Device }) {
         <Field label="Criticality">
           <Select value={device.criticality} options={CRITICALITY} onChange={(criticality) => patch({ criticality })} />
         </Field>
+        <Toggle label="Locked (cannot be moved)" checked={device.locked} onChange={(locked) => patch({ locked })} />
       </Section>
 
       <Section title="Asset details">
@@ -237,10 +240,29 @@ function ConnectSection({ device }: { device: Device }) {
   );
 }
 
+/** "Straighten" for a link or flow that has bend points; drawn only when there are some. */
+function BendPoints({ count, onStraighten }: { count: number; onStraighten: () => void }) {
+  if (count === 0) return <p className="muted">Double-click the line on the canvas to add a bend point.</p>;
+  return (
+    <div className="button-row">
+      <span className="muted">
+        {count} bend point{count === 1 ? '' : 's'}
+      </span>
+      <button type="button" className="button" onClick={onStraighten}>
+        Straighten
+      </button>
+    </div>
+  );
+}
+
 function LinkInspector({ link }: { link: Link }) {
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
+  const networks = useProject((s) => s.project.networks);
+  const issues = useLinkIssues().get(link.id) ?? [];
   const name = useDeviceLabel();
+  const patch = (p: Partial<Omit<Link, 'id' | 'source' | 'target'>>) =>
+    apply((q) => updateLink(q, link.id, p), `link:${link.id}:${Object.keys(p).join(',')}`);
   return (
     <>
       <Section title="Network link">
@@ -248,8 +270,30 @@ function LinkInspector({ link }: { link: Link }) {
           {name(link.source)} <span aria-hidden="true">↔</span> {name(link.target)}
         </p>
         <Field label="Medium">
-          <Select value={link.medium} options={MEDIUM} onChange={(medium) => apply((p) => updateLink(p, link.id, { medium }))} />
+          <Select value={link.medium} options={MEDIUM} onChange={(medium) => patch({ medium })} />
         </Field>
+        <BendPoints count={link.waypoints.length} onStraighten={() => patch({ waypoints: [] })} />
+      </Section>
+      <Section title="Interfaces">
+        <div className="asset-grid">
+          <Field label={`Port at ${name(link.source)}`}>
+            <TextInput value={link.sourcePort} placeholder="e.g. Gi1/0/12" onChange={(sourcePort) => patch({ sourcePort })} />
+          </Field>
+          <Field label={`Port at ${name(link.target)}`}>
+            <TextInput value={link.targetPort} placeholder="e.g. X1" onChange={(targetPort) => patch({ targetPort })} />
+          </Field>
+        </div>
+        <Field label="VLANs" hint="One for an access port, several for a trunk.">
+          <VlanInput value={link.vlans} onChange={(vlans) => patch({ vlans })} />
+        </Field>
+        <Field label="Network">
+          <Select
+            value={link.networkId ?? ''}
+            options={[{ value: '', label: 'Not set' }, ...networks.map((n) => ({ value: n.id, label: `${n.name || n.cidr} (${n.cidr})` }))]}
+            onChange={(v) => patch({ networkId: v || null })}
+          />
+        </Field>
+        <IssueList issues={issues} />
       </Section>
       <div className="panel-actions">
         <DeleteButton
@@ -326,6 +370,7 @@ function FlowInspector({ flow }: { flow: Flow }) {
         {def?.fields.map((f) => (
           <SettingField key={f.key} field={f} value={flow.settings[f.key]} onChange={(v) => setSetting(f.key, v)} />
         ))}
+        <BendPoints count={flow.waypoints.length} onStraighten={() => set({ ...flow, waypoints: [] })} />
       </Section>
       <div className="panel-actions">
         <DeleteButton

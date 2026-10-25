@@ -17,12 +17,14 @@ import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type
 import { variantInfo } from '../../model/catalog';
 import { dimmedIds } from '../../model/filter';
 import { addNote, createNote, moveNote, removeNote } from '../../model/notes';
-import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink } from '../../model/ops';
+import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink, replaceFlow, updateLink } from '../../model/ops';
+import { insertWaypoint } from '../../model/routing';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../../model/purdue';
 import { deviceTypeSchema, type DeviceType, type Project } from '../../model/schema';
 import { moveArea, removeArea } from '../../model/structure';
 import { announce } from '../../store/announcer';
 import { useComparison } from '../../store/compare';
+import { usePrefs } from '../../store/prefs';
 import { flowColorMode, useTheme } from '../../store/theme';
 import { useRenderAll } from '../exportDiagram';
 import { NO_SELECTION, useProject } from '../../store/useProject';
@@ -82,6 +84,7 @@ export function Canvas() {
   const siteId = useProject((s) => s.activeSiteId);
   const filter = useProject((s) => s.filter);
   const focus = useProject((s) => s.focus);
+  const loadCount = useProject((s) => s.loadCount);
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
   const focusDevice = useProject((s) => s.focusDevice);
@@ -90,7 +93,7 @@ export function Canvas() {
   const snapToGrid = useProject((s) => s.snapToGrid);
   const flowProtocol = useProject((s) => s.flowProtocol);
   const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
-  const { screenToFlowPosition, setCenter, fitView, fitBounds } = useReactFlow();
+  const { screenToFlowPosition, setCenter, fitView, fitBounds, getInternalNode } = useReactFlow();
   const theme = useTheme((s) => s.theme);
   const renderAll = useRenderAll((s) => s.all);
   const dragging = useRef(false);
@@ -98,7 +101,8 @@ export function Canvas() {
   const dimmed = useMemo(() => dimmedIds(project, filter), [project, filter]);
   const comparison = useComparison();
   const marks = comparison?.marks;
-  const view = useMemo(() => buildView(project, siteId, selection, dimmed, marks), [project, siteId, selection, dimmed, marks]);
+  const layers = usePrefs((s) => s.layers);
+  const view = useMemo(() => buildView(project, siteId, selection, dimmed, marks, layers), [project, siteId, selection, dimmed, marks, layers]);
 
   const [nodes, setNodes] = useState<CanvasNode[]>(() => [...LANE_NODES, ...view.nodes]);
   const [edges, setEdges] = useState<CanvasEdge[]>(view.edges);
@@ -108,7 +112,8 @@ export function Canvas() {
     setEdges(view.edges);
   }, [view]);
 
-  // Frame the newly shown site (devices, areas, notes and stubs), unless a search result is about to be centred instead.
+  // Frame the newly shown site or newly loaded project (devices, areas, notes and stubs), unless a search
+  // result is about to be centred instead.
   const latestView = useRef(view);
   latestView.current = view;
   // Bounds come from known node sizes rather than measured ones: when only visible nodes are drawn,
@@ -128,7 +133,7 @@ export function Canvas() {
       fitBounds({ x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y }, { padding: 0.1, duration: reducedMotion() ? 0 : 250 });
     });
     return () => cancelAnimationFrame(frame);
-  }, [siteId, fitView, fitBounds]);
+  }, [siteId, loadCount, fitView, fitBounds]);
 
   useEffect(() => {
     if (!focus) return;
@@ -228,6 +233,33 @@ export function Canvas() {
     [select],
   );
 
+  // Double-clicking a link or flow bends it at that point; the new bend can then be dragged.
+  const onEdgeDoubleClick = useCallback(
+    (event: MouseEvent, edge: CanvasEdge) => {
+      if (edge.data?.aggregated) return;
+      event.preventDefault();
+      const centre = (id: string) => {
+        const n = getInternalNode(id);
+        if (!n) return null;
+        return { x: n.internals.positionAbsolute.x + (n.measured.width ?? 0) / 2, y: n.internals.positionAbsolute.y + (n.measured.height ?? 0) / 2 };
+      };
+      const from = centre(edge.source);
+      const to = centre(edge.target);
+      if (!from || !to) return;
+      const at = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      if (edge.type === 'link' && edge.data) {
+        const link = edge.data.link;
+        apply((p) => updateLink(p, link.id, { waypoints: insertWaypoint(link.waypoints, from, to, at) }));
+      } else if (edge.type === 'flow' && edge.data) {
+        const flow = edge.data.flow;
+        apply((p) => replaceFlow(p, { ...flow, waypoints: insertWaypoint(flow.waypoints, from, to, at) }));
+      }
+      select({ ...NO_SELECTION, [edge.type === 'link' ? 'links' : 'flows']: [edge.id] });
+      announce('Bend point added. Drag it to move, double-click it to remove.');
+    },
+    [apply, getInternalNode, screenToFlowPosition, select],
+  );
+
   const onNodeClick = useCallback(
     (_event: MouseEvent, node: CanvasNode) => {
       if (node.type === 'portal') focusDevice(node.data.device.id);
@@ -295,6 +327,7 @@ export function Canvas() {
         onNodeDragStop={onNodeDragStop}
         onDelete={onDelete}
         onNodeClick={onNodeClick}
+        onEdgeDoubleClick={onEdgeDoubleClick}
         onNodeContextMenu={onNodeContextMenu}
         onPaneClick={() => setMenu(null)}
         onMoveStart={() => setMenu(null)}

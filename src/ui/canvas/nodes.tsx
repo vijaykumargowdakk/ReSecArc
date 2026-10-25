@@ -1,5 +1,5 @@
 import { Handle, NodeResizer, Position, type Node, type NodeProps } from '@xyflow/react';
-import { ChevronsDownUp, ChevronsUpDown, ExternalLink } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown, ExternalLink, Lock } from 'lucide-react';
 import { useState, type CSSProperties } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../../model/catalog';
 import { levelLabel, type PurdueLane } from '../../model/purdue';
@@ -45,6 +45,11 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
       {data.diff && (
         <span className={`diff-badge diff-badge--${data.diff}`} aria-hidden="true">
           {data.diff === 'added' ? 'New' : 'Changed'}
+        </span>
+      )}
+      {device.locked && (
+        <span className="lock-badge" title="Locked: cannot be moved" aria-hidden="true">
+          <Lock size={10} />
         </span>
       )}
       <span className={`criticality criticality--${device.criticality}`} title={`${device.criticality} criticality`} aria-hidden="true">
@@ -109,6 +114,7 @@ export function AreaNode({ id, data, selected }: NodeProps<AreaFlowNode>) {
         {handles}
         <div className="area__head">
           <span className="area__name">{area.name}</span>
+          {area.locked && <Lock size={11} aria-label="Locked" />}
           <span className="area__count">{members.length}</span>
           {toggle}
         </div>
@@ -170,6 +176,11 @@ export function NoteNode({ id, data, selected }: NodeProps<NoteFlowNode>) {
       onDoubleClick={() => setEditing(true)}
       title="Double-click to edit"
     >
+      {note.locked && (
+        <span className="lock-badge lock-badge--note" title="Locked: cannot be moved" aria-hidden="true">
+          <Lock size={10} />
+        </span>
+      )}
       {note.text || <span className="muted">Empty note</span>}
     </div>
   );

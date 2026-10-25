@@ -13,6 +13,8 @@ const THEMES: Theme[] = ['light', 'dark', 'contrast'];
 
 for (const theme of THEMES) {
   test.describe(`${theme} theme`, () => {
+    // Each test runs several full-page axe scans.
+    test.describe.configure({ timeout: 90_000 });
     test.beforeEach(async ({ page }) => openApp(page, { theme }));
 
     test('diagram, properties and inventory have no violations', async ({ page }) => {
@@ -24,6 +26,12 @@ for (const theme of THEMES) {
       await expectNoViolations(page, 'inventory devices');
       await page.getByRole('tab', { name: 'IP plan' }).click();
       await expectNoViolations(page, 'inventory IP plan');
+      await page.getByRole('tab', { name: /Links/ }).click();
+      await expectNoViolations(page, 'inventory links');
+      await page.getByRole('button', { name: 'Show link on diagram' }).first().click();
+      await expectNoViolations(page, 'link properties');
+      await page.locator('summary', { hasText: 'View' }).click();
+      await expectNoViolations(page, 'view menu');
     });
 
     test('dialogs have no violations', async ({ page }) => {

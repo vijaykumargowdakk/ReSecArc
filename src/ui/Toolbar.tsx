@@ -216,6 +216,9 @@ export function Toolbar({
             <button type="button" role="menuitem" onClick={() => exportFile('-devices.csv', 'text/csv', (m) => m.devicesToCsv(project))}>
               Devices (CSV)
             </button>
+            <button type="button" role="menuitem" onClick={() => exportFile('-links.csv', 'text/csv', (m) => m.linksToCsv(project))}>
+              Network links (CSV)
+            </button>
             <button type="button" role="menuitem" onClick={() => exportFile('-flows.csv', 'text/csv', (m) => m.flowsToCsv(project))}>
               Protocol flows (CSV)
             </button>
@@ -233,8 +236,12 @@ export function Toolbar({
         <button type="button" className="button icon-only" onClick={onHelp} aria-label="Keyboard shortcuts and help" title="Keyboard shortcuts (?)">
           <CircleHelp size={16} />
         </button>
-        <span className={`autosave${autosave.failed ? ' is-failed' : ''}`} aria-live="polite">
-          {autosave.failed ? 'Not saved in browser' : autosave.savedAt ? `Saved in browser ${clock.format(autosave.savedAt)}` : ''}
+        <span
+          className={`autosave${autosave.failed ? ' is-failed' : ''}`}
+          aria-live="polite"
+          title={autosave.failed ? 'This browser did not allow saving. Save the project file to keep your work.' : 'Your work is saved in this browser as you go'}
+        >
+          {autosave.failed ? 'Not saved' : autosave.savedAt ? <>Saved <span className="sr-only">in this browser at </span>{clock.format(autosave.savedAt)}</> : ''}
         </span>
         <input
           ref={fileInput}

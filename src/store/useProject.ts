@@ -29,6 +29,8 @@ interface ProjectState {
   /** The site shown on the canvas. */
   activeSiteId: string;
   filter: Filter;
+  /** Increases each time a project is loaded, so the canvas can frame the new design. */
+  loadCount: number;
   /** A device the canvas should centre on once it is rendered. */
   focus: { deviceId: string; nonce: number } | null;
   /** Applies a pure operation from model/ops. Edits sharing a `coalesceKey` in quick succession undo as one step. */
@@ -117,6 +119,7 @@ export const useProject = create<ProjectState>((set, get) => {
     clipboard: null,
     activeSiteId: initial.sites[0].id,
     filter: NO_FILTER,
+    loadCount: 0,
     focus: null,
     apply: (op, coalesceKey) => {
       const { history } = get();
@@ -126,7 +129,14 @@ export const useProject = create<ProjectState>((set, get) => {
     undo: () => setHistory(undo(get().history)),
     redo: () => setHistory(redo(get().history)),
     load: (project) =>
-      set({ project, history: initHistory(project), selection: NO_SELECTION, activeSiteId: project.sites[0].id, filter: NO_FILTER }),
+      set((s) => ({
+        project,
+        history: initHistory(project),
+        selection: NO_SELECTION,
+        activeSiteId: project.sites[0].id,
+        filter: NO_FILTER,
+        loadCount: s.loadCount + 1,
+      })),
     select: (selection) => {
       if (!sameSelection(selection, get().selection)) set({ selection });
     },

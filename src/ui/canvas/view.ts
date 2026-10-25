@@ -5,6 +5,7 @@ import { kindLabel } from '../../model/catalog';
 import { levelLabel, NODE_WIDTH } from '../../model/purdue';
 import { getProtocol } from '../../model/protocols';
 import type { Area, Device, Flow, Link, Note, Project, Zone } from '../../model/schema';
+import { ALL_LAYERS, type Layers } from '../../store/prefs';
 import type { Selection } from '../../store/useProject';
 import type { CanvasEdge } from './edges';
 import type { CanvasNode } from './nodes';
@@ -18,8 +19,8 @@ export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolea
 export type AreaNodeData = { area: Area; members: Device[] };
 export type PortalNodeData = { device: Device; siteName: string };
 export type NoteNodeData = { note: Note };
-export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean; diff?: DiffMark };
-export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean; diff?: DiffMark };
+export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showPorts: boolean };
+export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showLabel: boolean };
 
 export const portalId = (deviceId: string) => `portal:${deviceId}`;
 
@@ -30,7 +31,10 @@ export function buildView(
   dimmed: Set<string>,
   /** Items added or changed since the revision being compared with. */
   marks: ReadonlyMap<string, DiffMark> = new Map(),
+  /** Which kinds of item are shown; hidden ones are left out entirely. */
+  layers: Layers = ALL_LAYERS,
 ): { nodes: CanvasNode[]; edges: CanvasEdge[] } {
+  const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined;
   const diffClass = (id: string) => (marks.has(id) ? `diff-${marks.get(id)}` : undefined);
   const onSite = new Set(project.devices.filter((d) => d.siteId === siteId).map((d) => d.id));
   const areas = project.areas.filter((a) => a.siteId === siteId);
@@ -56,6 +60,8 @@ export function buildView(
   const anchorPos = new Map<string, { x: number; y: number }>();
 
   for (const area of areas) {
+    // A collapsed area stands in for its devices, so it stays even when area frames are hidden.
+    if (!layers.areas && !area.collapsed) continue;
     const members = project.devices.filter((d) => d.areaId === area.id);
     const size = area.collapsed ? COLLAPSED_AREA : { width: area.rect.width, height: area.rect.height };
     nodes.push({
@@ -64,7 +70,8 @@ export function buildView(
       position: { x: area.rect.x, y: area.rect.y },
       data: { area, members },
       selected: sel.areas.has(area.id),
-      className: diffClass(area.id),
+      draggable: !area.locked,
+      className: classes(diffClass(area.id), area.locked && 'is-locked'),
       zIndex: area.collapsed ? 0 : -1,
       ...size,
     });
@@ -79,12 +86,14 @@ export function buildView(
       position: d.position,
       data: { device: d, zone: d.zoneId ? (zoneById.get(d.zoneId) ?? null) : null, dimmed: dimmed.has(d.id), diff: marks.get(d.id) },
       selected: sel.devices.has(d.id),
-      className: [dimmed.has(d.id) ? 'is-dimmed' : '', diffClass(d.id) ?? ''].filter(Boolean).join(' ') || undefined,
+      draggable: !d.locked,
+      className: classes(dimmed.has(d.id) && 'is-dimmed', diffClass(d.id), d.locked && 'is-locked'),
       ariaLabel: [
         `${d.label}, ${kindLabel(d.type, d.variant)}`,
         `level ${levelLabel(d.purdueLevel).slice(1)}`,
         d.zoneId ? `zone ${zoneById.get(d.zoneId)?.name ?? ''}` : 'no zone',
         `${d.criticality} criticality`,
+        ...(d.locked ? ['locked'] : []),
         ...(marks.has(d.id) ? [`${marks.get(d.id)} since the compared revision`] : []),
       ].join(', '),
     });
@@ -92,14 +101,15 @@ export function buildView(
   }
 
   for (const note of project.notes) {
-    if (note.siteId !== siteId) continue;
+    if (note.siteId !== siteId || !layers.notes) continue;
     nodes.push({
       id: note.id,
       type: 'note',
       position: note.position,
       data: { note },
       selected: sel.notes.has(note.id),
-      className: diffClass(note.id),
+      draggable: !note.locked,
+      className: classes(diffClass(note.id), note.locked && 'is-locked'),
       width: note.width,
       connectable: false,
       ariaLabel: `Note: ${note.text}`,
@@ -153,7 +163,7 @@ export function buildView(
     return { source, target, aggregated, id: aggregated ? `agg:${e.id}` : e.id };
   };
 
-  for (const link of project.links) {
+  for (const link of layers.links ? project.links : []) {
     const r = ends(link, (s, t) => `link|${[s, t].sort().join('|')}`);
     if (!r) continue;
     edges.push({
@@ -161,12 +171,12 @@ export function buildView(
       type: 'link',
       source: r.source,
       target: r.target,
-      data: { link, dimmed: dimmed.has(link.id), aggregated: r.aggregated, diff: r.aggregated ? undefined : marks.get(link.id) },
+      data: { link, dimmed: dimmed.has(link.id), aggregated: r.aggregated, diff: r.aggregated ? undefined : marks.get(link.id), showPorts: layers.ports },
       selected: !r.aggregated && sel.edges.has(link.id),
       selectable: !r.aggregated,
     });
   }
-  for (const flow of project.flows) {
+  for (const flow of layers.flows ? project.flows : []) {
     const r = ends(flow, (s, t) => `flow|${flow.protocol}|${s}|${t}`);
     if (!r) continue;
     edges.push({
@@ -174,7 +184,7 @@ export function buildView(
       type: 'flow',
       source: r.source,
       target: r.target,
-      data: { flow, dimmed: dimmed.has(flow.id), aggregated: r.aggregated, diff: r.aggregated ? undefined : marks.get(flow.id) },
+      data: { flow, dimmed: dimmed.has(flow.id), aggregated: r.aggregated, diff: r.aggregated ? undefined : marks.get(flow.id), showLabel: layers.flowLabels },
       selected: !r.aggregated && sel.edges.has(flow.id),
       selectable: !r.aggregated,
       markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color: getProtocol(flow.protocol)?.color },

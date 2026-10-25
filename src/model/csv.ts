@@ -120,6 +120,25 @@ export function addressRows(project: Project, report: AddressReport = addressRep
     .sort((a, b) => addressSortKey(a.address) - addressSortKey(b.address) || a.device.localeCompare(b.device));
 }
 
+export const LINK_COLUMNS = ['source', 'source port', 'target', 'target port', 'medium', 'vlans', 'network'] as const;
+
+export function linksToCsv(project: Project): string {
+  const device = new Map(project.devices.map((d) => [d.id, d.label]));
+  const network = new Map(project.networks.map((n) => [n.id, n.name || n.cidr]));
+  return unparse({
+    fields: [...LINK_COLUMNS],
+    data: project.links.map((l) => [
+      device.get(l.source) ?? l.source,
+      l.sourcePort,
+      device.get(l.target) ?? l.target,
+      l.targetPort,
+      l.medium,
+      l.vlans.join(' '),
+      l.networkId ? (network.get(l.networkId) ?? '') : '',
+    ]),
+  });
+}
+
 export function endpointName(project: Project, ep: RuleEndpoint): string {
   if (ep.kind === 'any') return 'any';
   if (ep.kind === 'zone') return `zone: ${project.zones.find((z) => z.id === ep.id)?.name ?? ep.id}`;

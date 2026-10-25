@@ -1,11 +1,11 @@
 import { Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { DEVICE_COLUMNS, importDevices, parseDeviceCsv } from '../model/csv';
-import { FLOW_COLUMNS, importFlows, importRules, parseFlowCsv, parseRuleCsv, RULE_COLUMNS } from '../model/csvImport';
+import { DEVICE_COLUMNS, importDevices, LINK_COLUMNS, parseDeviceCsv } from '../model/csv';
+import { FLOW_COLUMNS, importFlows, importLinks, importRules, parseFlowCsv, parseLinkCsv, parseRuleCsv, RULE_COLUMNS } from '../model/csvImport';
 import type { Project } from '../model/schema';
 import { useProject } from '../store/useProject';
 
-export type ImportKind = 'devices' | 'flows' | 'rules';
+export type ImportKind = 'devices' | 'links' | 'flows' | 'rules';
 
 interface Row {
   line: number;
@@ -28,6 +28,16 @@ const TEXT: Record<ImportKind, { title: string; noun: string; help: ReactNode }>
         One device per row with a header line. Only <code>name</code> and <code>type</code> are required. Recognised columns:{' '}
         <code>{DEVICE_COLUMNS.filter((c) => c !== 'area').join(', ')}</code>. Types and kinds may be ids or labels; zones and sites are matched
         by name. Devices without a site go to the site that is open now.
+      </>
+    ),
+  },
+  links: {
+    title: 'Import network links from CSV',
+    noun: 'link',
+    help: (
+      <>
+        One link per row with a header line: <code>{LINK_COLUMNS.join(', ')}</code>, as in the links export. Source and target are device
+        names. VLANs may be listed or given as ranges (<code>10 20 30-32</code>); the network is matched by name or subnet.
       </>
     ),
   },
@@ -58,6 +68,10 @@ function parse(kind: ImportKind, project: Project, text: string, siteId: string)
   if (kind === 'devices') {
     const rows = parseDeviceCsv(project, text, siteId);
     return { rows: rows.map((r) => ({ ...r, ok: r.device !== null })), apply: (p) => importDevices(p, rows) };
+  }
+  if (kind === 'links') {
+    const rows = parseLinkCsv(project, text);
+    return { rows: rows.map((r) => ({ ...r, ok: r.value !== null })), apply: (p) => importLinks(p, rows) };
   }
   if (kind === 'flows') {
     const rows = parseFlowCsv(project, text);

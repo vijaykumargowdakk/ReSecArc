@@ -1,6 +1,6 @@
-import { Cable, Copy, Trash2, Workflow } from 'lucide-react';
+import { Cable, Copy, Lock, LockOpen, Trash2, Workflow } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { addFlow, addLink, defaultFlow, removeDevice } from '../../model/ops';
+import { addFlow, addLink, defaultFlow, removeDevice, updateDevice } from '../../model/ops';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { DevicePicker } from '../DevicePicker';
 
@@ -56,6 +56,16 @@ export function NodeMenu({ deviceId, x, y, onClose }: { deviceId: string; x: num
           </button>
           <button type="button" role="menuitem" onClick={() => setPicking('flow')}>
             <Workflow size={15} /> Flow to…
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              apply((p) => updateDevice(p, device.id, { locked: !device.locked }));
+              onClose();
+            }}
+          >
+            {device.locked ? <LockOpen size={15} /> : <Lock size={15} />} {device.locked ? 'Unlock' : 'Lock in place'}
           </button>
           <button
             type="button"

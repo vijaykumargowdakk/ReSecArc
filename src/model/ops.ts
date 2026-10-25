@@ -349,7 +349,7 @@ export function pasteFragment(
 export function bulkUpdateDevices(
   project: Project,
   ids: readonly string[],
-  patch: Partial<Pick<Device, 'zoneId' | 'criticality' | 'siteId' | 'areaId'>>,
+  patch: Partial<Pick<Device, 'zoneId' | 'criticality' | 'siteId' | 'areaId' | 'locked'>>,
 ): Project {
   const set = new Set(ids);
   return { ...project, devices: project.devices.map((d) => (set.has(d.id) ? { ...d, ...patch } : d)) };
@@ -357,10 +357,10 @@ export function bulkUpdateDevices(
 
 export type AlignMode = 'left' | 'hcentre' | 'right' | 'top' | 'vcentre' | 'bottom';
 
-/** Lines up devices by an edge or centre. Vertical moves re-derive each device's Purdue level. */
+/** Lines up devices by an edge or centre; locked devices are left alone. Vertical moves re-derive each device's Purdue level. */
 export function alignDevices(project: Project, ids: readonly string[], mode: AlignMode): Project {
   const set = new Set(ids);
-  const targets = project.devices.filter((d) => set.has(d.id));
+  const targets = project.devices.filter((d) => set.has(d.id) && !d.locked);
   if (targets.length < 2) return project;
   const xs = targets.map((d) => d.position.x);
   const ys = targets.map((d) => d.position.y);
@@ -380,10 +380,10 @@ export function alignDevices(project: Project, ids: readonly string[], mode: Ali
   );
 }
 
-/** Spaces three or more devices evenly between the outermost two along one axis. */
+/** Spaces three or more devices evenly between the outermost two along one axis; locked devices are left alone. */
 export function distributeDevices(project: Project, ids: readonly string[], axis: 'x' | 'y'): Project {
   const set = new Set(ids);
-  const targets = project.devices.filter((d) => set.has(d.id)).sort((a, b) => a.position[axis] - b.position[axis]);
+  const targets = project.devices.filter((d) => set.has(d.id) && !d.locked).sort((a, b) => a.position[axis] - b.position[axis]);
   if (targets.length < 3) return project;
   const first = targets[0].position[axis];
   const step = (targets[targets.length - 1].position[axis] - first) / (targets.length - 1);

@@ -223,7 +223,7 @@ flowchart TB
 - **Asset details:** vendor, model, firmware, serial number, one or more IP addresses, and notes.
 - **Criticality:** low, medium or high, shown as a lettered badge on the device.
 - **Remote-access services:** RDP, SSH, VNC or HTTPS listeners with their ports.
-- **Network links:** undirected Ethernet, serial or wireless connections.
+- **Network links:** undirected Ethernet, serial or wireless connections. Each records the port or interface at both ends (shown on the canvas), its VLANs (one for an access port, several for a trunk) and the planned network it carries. A warning appears when an end device has no address in that network, or when the link does not carry the network's VLAN.
 - **Protocol flows:** directed sessions with protocol-specific roles (client → server, master → outstation, publisher → subscriber) and settings such as TLS, access mode or security mode. Each protocol has its own colour *and* dash pattern.
 - **Firewall rules:** an ordered, first-match list of allow and deny rules per firewall, with a default action. Sources and destinations can be *any*, a zone or a device.
 - **Zones and conduits:** see [section 2.2](#22-zones-and-conduits-iec-62443).
@@ -244,6 +244,9 @@ flowchart TB
 - Copy, paste, duplicate, select all, and box selection with Shift + drag.
 - Bulk editing of zone, criticality and site, plus align and distribute.
 - Snap to grid, a right-click menu on devices, and **Tidy layout** for a whole site.
+- **Bend points:** double-click a link or flow to bend it, drag the handle to move it, and double-click the handle to remove it; **Straighten** in the properties panel removes them all.
+- **Lock** devices, notes and areas so they cannot be dragged; Tidy, align and distribute leave them in place.
+- **View menu:** show or hide network links, protocol flows, flow labels, port names, notes and area frames. The choice is remembered in the browser.
 - **Reusable blocks:** save a group of devices with their links and flows, then insert copies from the palette.
 - **Autosave** to the browser one second after each change, with an offer to restore it next time.
 
@@ -255,7 +258,7 @@ Five fictional reference architectures, chosen from **New**:
 
 ### 4.5 Inventory
 
-A table view of the same model. Edits made here go through the same undoable operations as the diagram.
+A table view of the same model, with tabs for devices, links (ports, VLANs, networks), protocol flows, firewall rules and the IP plan. Edits made here go through the same undoable operations as the diagram.
 
 ![Inventory view with the device table](docs/images/inventory.png)
 
@@ -294,13 +297,13 @@ The change list can be downloaded as a Markdown change record. See [section 13](
 | Printable diagram | PDF via the browser's print dialog | Uses a print stylesheet |
 | Architecture record | Markdown | Zones, networks, conduits, and per site: devices, flows, firewall rules and notes |
 | Change record | Markdown | Changes since a chosen revision |
-| Tables | CSV | Devices, flows, firewall rules, IP plan |
+| Tables | CSV | Devices, links, flows, firewall rules, IP plan |
 | Share link | URL | The whole design inside the link; see [section 15](#15-share-links) |
 
 | Input | Format |
 |-------|--------|
 | Project file | `.json` from any ConduitOT version |
-| Devices, flows, firewall rules | CSV in the same columns as the exports |
+| Devices, links, flows, firewall rules | CSV in the same columns as the exports |
 | Shared design | A share link opened in the browser |
 
 ---
@@ -861,7 +864,7 @@ Anyone who has a link can read the full design, including addresses and firewall
 
 ## 16. CSV import and export
 
-Every table exports to CSV, and devices, flows and firewall rules import from the same columns. An exported table can therefore be edited in a spreadsheet and read back.
+Every table exports to CSV, and devices, links, flows and firewall rules import from the same columns. An exported table can therefore be edited in a spreadsheet and read back.
 
 ```mermaid
 flowchart TD
@@ -877,6 +880,7 @@ flowchart TD
 | Table | Columns |
 |-------|---------|
 | Devices | `name, type, variant, level, zone, site, area, criticality, vendor, model, firmware, serial, ip, notes` |
+| Links | `source, source port, target, target port, medium, vlans, network` (VLANs as `10 20` or `30-32`) |
 | Flows | `source, target, protocol, port, summary, settings` (`settings` written as `name=value; name=value`) |
 | Firewall rules | `firewall, order, action, source, destination, protocol, port, note` (endpoints as `any`, `zone: Name` or a device name) |
 | IP plan (export only) | `address, device, site, network, subnet, vlan, zone, warnings` |
@@ -892,7 +896,7 @@ Import rules worth knowing:
 
 ## 17. Tidy layout
 
-**Tidy** (in the canvas bar) arranges the open site in one undoable step. Devices keep their Purdue level, site and area; only their order and spacing within each lane change.
+**Tidy** (in the canvas bar) arranges the open site in one undoable step. Devices keep their Purdue level, site and area; only their order and spacing within each lane change. Locked devices and areas stay put and the rest are placed around them, and bend points on the site are cleared.
 
 ```mermaid
 flowchart TD
@@ -1210,6 +1214,7 @@ pie showData
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
 | `e2e/data.spec.ts` | Save and open, broken files, autosave restore, share links, IP warnings, revisions, CSV import |
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, dialogs and comparison in each theme |
+| `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 
 ---
