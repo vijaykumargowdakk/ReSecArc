@@ -14,13 +14,14 @@ import {
   type Node,
   type NodeChange,
 } from '@xyflow/react';
-import { useCallback, useEffect, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useState, type DragEvent, type MouseEvent } from 'react';
 import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink } from '../../model/ops';
 import { getProtocol } from '../../model/protocols';
-import { LANE_HEIGHT, LANE_WIDTH, laneTop, PURDUE_LANES } from '../../model/purdue';
+import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_WIDTH, PURDUE_LANES } from '../../model/purdue';
 import { variantInfo } from '../../model/catalog';
 import { deviceTypeSchema, type DeviceType, type Project } from '../../model/schema';
-import { useProject } from '../../store/useProject';
+import { NO_SELECTION, useProject, type Selection } from '../../store/useProject';
+import { NodeMenu } from './NodeMenu';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { DeviceNode, LaneNode, type CanvasNode, type LaneFlowNode } from './nodes';
 
@@ -33,7 +34,7 @@ export function parseDeviceKind(payload: string): { type: DeviceType; variant: s
   if (!type.success || !variantInfo(type.data, variant)) return null;
   return { type: type.data, variant };
 }
-const NODE_WIDTH = 190;
+
 const DROP_OFFSET = { x: NODE_WIDTH / 2, y: 32 };
 
 const nodeTypes = { device: DeviceNode, lane: LaneNode };
@@ -55,7 +56,8 @@ const LANE_NODES: LaneFlowNode[] = PURDUE_LANES.map((lane) => ({
 }));
 
 /** Rebuilds canvas nodes from the project, keeping React Flow's own state (size, selection). */
-function buildNodes(project: Project, prev: CanvasNode[]): CanvasNode[] {
+function buildNodes(project: Project, selection: Selection, prev: CanvasNode[]): CanvasNode[] {
+  const selected = new Set(selection.devices);
   const prevById = new Map(prev.map((n) => [n.id, n]));
   const zoneById = new Map(project.zones.map((z) => [z.id, z]));
   const devices: CanvasNode[] = project.devices.map((device) => {
@@ -65,14 +67,15 @@ function buildNodes(project: Project, prev: CanvasNode[]): CanvasNode[] {
       id: device.id,
       type: 'device',
       position: device.position,
+      selected: selected.has(device.id),
       data: { device, zone: device.zoneId ? (zoneById.get(device.zoneId) ?? null) : null },
     };
   });
   return [...LANE_NODES, ...devices];
 }
 
-function buildEdges(project: Project, prev: CanvasEdge[]): CanvasEdge[] {
-  const selected = new Set(prev.filter((e) => e.selected).map((e) => e.id));
+function buildEdges(project: Project, selection: Selection): CanvasEdge[] {
+  const selected = new Set([...selection.links, ...selection.flows]);
   const links: CanvasEdge[] = project.links.map((link) => ({
     id: link.id,
     type: 'link',
@@ -95,19 +98,22 @@ function buildEdges(project: Project, prev: CanvasEdge[]): CanvasEdge[] {
 
 export function Canvas() {
   const project = useProject((s) => s.project);
+  const selection = useProject((s) => s.selection);
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
   const connectMode = useProject((s) => s.connectMode);
+  const snapToGrid = useProject((s) => s.snapToGrid);
+  const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
   const siteId = project.sites[0].id;
   const { screenToFlowPosition } = useReactFlow();
 
-  const [nodes, setNodes] = useState<CanvasNode[]>(() => buildNodes(project, []));
-  const [edges, setEdges] = useState<CanvasEdge[]>(() => buildEdges(project, []));
+  const [nodes, setNodes] = useState<CanvasNode[]>(() => buildNodes(project, selection, []));
+  const [edges, setEdges] = useState<CanvasEdge[]>(() => buildEdges(project, selection));
 
   useEffect(() => {
-    setNodes((prev) => buildNodes(project, prev));
-    setEdges((prev) => buildEdges(project, prev));
-  }, [project]);
+    setNodes((prev) => buildNodes(project, selection, prev));
+    setEdges(buildEdges(project, selection));
+  }, [project, selection]);
 
   const onNodesChange = useCallback((changes: NodeChange<CanvasNode>[]) => {
     setNodes((nds) => applyNodeChanges(changes, nds));
@@ -124,31 +130,35 @@ export function Canvas() {
     [apply],
   );
 
-  const onNodesDelete = useCallback(
-    (deleted: CanvasNode[]) => {
-      apply((p) => deleted.reduce((q, n) => (n.type === 'device' ? removeDevice(q, n.id) : q), p));
-      select(null);
-    },
-    [apply, select],
-  );
-
-  const onEdgesDelete = useCallback(
-    (deleted: CanvasEdge[]) => {
-      apply((p) => deleted.reduce((q, e) => (e.type === 'flow' ? removeFlow(q, e.id) : removeLink(q, e.id)), p));
-      select(null);
+  // One callback for nodes and edges together, so a multi-delete is a single undo step.
+  const onDelete = useCallback(
+    ({ nodes: delNodes, edges: delEdges }: { nodes: CanvasNode[]; edges: CanvasEdge[] }) => {
+      apply((p) => {
+        const afterEdges = delEdges.reduce((q, e) => (e.type === 'flow' ? removeFlow(q, e.id) : removeLink(q, e.id)), p);
+        return delNodes.reduce((q, n) => (n.type === 'device' ? removeDevice(q, n.id) : q), afterEdges);
+      });
+      select(NO_SELECTION);
     },
     [apply, select],
   );
 
   const onSelectionChange = useCallback(
     ({ nodes: selNodes, edges: selEdges }: { nodes: Node[]; edges: Edge[] }) => {
-      const device = selNodes.find((n) => n.type === 'device');
-      if (device) return select({ kind: 'device', id: device.id });
-      const edge = selEdges[0];
-      select(edge ? { kind: edge.type === 'flow' ? 'flow' : 'link', id: edge.id } : null);
+      select({
+        devices: selNodes.filter((n) => n.type === 'device').map((n) => n.id),
+        links: selEdges.filter((e) => e.type === 'link').map((e) => e.id),
+        flows: selEdges.filter((e) => e.type === 'flow').map((e) => e.id),
+      });
     },
     [select],
   );
+
+  const onNodeContextMenu = useCallback((event: MouseEvent, node: CanvasNode) => {
+    if (node.type !== 'device') return;
+    event.preventDefault();
+    const bounds = (event.currentTarget as HTMLElement).closest('.canvas')?.getBoundingClientRect();
+    setMenu({ deviceId: node.id, x: event.clientX - (bounds?.left ?? 0), y: event.clientY - (bounds?.top ?? 0) });
+  }, []);
 
   const onConnect = useCallback(
     (c: Connection) => {
@@ -186,8 +196,12 @@ export function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStop={onNodeDragStop}
-        onNodesDelete={onNodesDelete}
-        onEdgesDelete={onEdgesDelete}
+        onDelete={onDelete}
+        onNodeContextMenu={onNodeContextMenu}
+        onPaneClick={() => setMenu(null)}
+        onMoveStart={() => setMenu(null)}
+        snapToGrid={snapToGrid}
+        snapGrid={[25, 25]}
         onSelectionChange={onSelectionChange}
         onConnect={onConnect}
         isValidConnection={(c) => c.source !== c.target}
@@ -209,6 +223,7 @@ export function Canvas() {
           nodeStrokeColor={(n) => (n.type === 'lane' ? '#cbd5e1' : 'transparent')}
         />
       </ReactFlow>
+      {menu && <NodeMenu {...menu} onClose={() => setMenu(null)} />}
     </div>
   );
 }

@@ -229,3 +229,131 @@ export function setDefaultAction(project: Project, firewallId: string, defaultAc
     ),
   };
 }
+
+/** Devices plus the links, flows and rules among them, detached from a project for copy/paste. */
+export interface Fragment {
+  devices: Device[];
+  links: Link[];
+  flows: Flow[];
+}
+
+export function extractFragment(project: Project, deviceIds: readonly string[]): Fragment {
+  const ids = new Set(deviceIds);
+  return {
+    devices: project.devices.filter((d) => ids.has(d.id)),
+    links: project.links.filter((l) => ids.has(l.source) && ids.has(l.target)),
+    flows: project.flows.filter((f) => ids.has(f.source) && ids.has(f.target)),
+  };
+}
+
+/**
+ * Inserts a copy of `fragment` with fresh ids, shifted by `offset`, onto `siteId`.
+ * Zone assignments and firewall rules are kept; rule endpoints that point at copied devices follow the copies.
+ * Returns the new project and the ids of the inserted devices.
+ */
+export function pasteFragment(
+  project: Project,
+  fragment: Fragment,
+  offset: { x: number; y: number },
+  siteId: string,
+): { project: Project; deviceIds: string[] } {
+  const idMap = new Map(fragment.devices.map((d) => [d.id, newId(d.type)]));
+  const zoneIds = new Set(project.zones.map((z) => z.id));
+  const deviceIds = new Set(project.devices.map((d) => d.id));
+  const remap = (ep: RuleEndpoint): RuleEndpoint | null => {
+    if (ep.kind === 'device') {
+      const id = idMap.get(ep.id) ?? (deviceIds.has(ep.id) ? ep.id : null);
+      return id ? { kind: 'device', id } : null;
+    }
+    if (ep.kind === 'zone') return zoneIds.has(ep.id) ? ep : null;
+    return ep;
+  };
+
+  const devices = fragment.devices.map((d): Device => {
+    const position = { x: d.position.x + offset.x, y: d.position.y + offset.y };
+    const copy: Device = {
+      ...d,
+      id: idMap.get(d.id)!,
+      siteId,
+      zoneId: d.zoneId && zoneIds.has(d.zoneId) ? d.zoneId : null,
+      areaId: null,
+      position,
+      purdueLevel: levelAtY(position.y),
+      services: d.services.map((s) => ({ ...s })),
+      asset: { ...d.asset },
+    };
+    if (d.firewall) {
+      copy.firewall = {
+        defaultAction: d.firewall.defaultAction,
+        // A rule whose endpoint no longer exists is dropped rather than silently widened.
+        rules: d.firewall.rules.flatMap((r) => {
+          const src = remap(r.src);
+          const dst = remap(r.dst);
+          return src && dst ? [{ ...r, id: newId('rule'), src, dst }] : [];
+        }),
+      };
+    }
+    return copy;
+  });
+  const links = fragment.links.map((l) => ({ ...l, id: newId('link'), source: idMap.get(l.source)!, target: idMap.get(l.target)! }));
+  const flows = fragment.flows.map((f) => ({
+    ...f,
+    id: newId('flow'),
+    source: idMap.get(f.source)!,
+    target: idMap.get(f.target)!,
+    settings: { ...f.settings },
+  }));
+  return {
+    project: {
+      ...project,
+      devices: [...project.devices, ...devices],
+      links: [...project.links, ...links],
+      flows: [...project.flows, ...flows],
+    },
+    deviceIds: devices.map((d) => d.id),
+  };
+}
+
+export function bulkUpdateDevices(
+  project: Project,
+  ids: readonly string[],
+  patch: Partial<Pick<Device, 'zoneId' | 'criticality' | 'siteId' | 'areaId'>>,
+): Project {
+  const set = new Set(ids);
+  return { ...project, devices: project.devices.map((d) => (set.has(d.id) ? { ...d, ...patch } : d)) };
+}
+
+export type AlignMode = 'left' | 'hcentre' | 'right' | 'top' | 'vcentre' | 'bottom';
+
+/** Lines up devices by an edge or centre. Vertical moves re-derive each device's Purdue level. */
+export function alignDevices(project: Project, ids: readonly string[], mode: AlignMode): Project {
+  const set = new Set(ids);
+  const targets = project.devices.filter((d) => set.has(d.id));
+  if (targets.length < 2) return project;
+  const xs = targets.map((d) => d.position.x);
+  const ys = targets.map((d) => d.position.y);
+  const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;
+  const value = {
+    left: Math.min(...xs),
+    hcentre: mean(xs),
+    right: Math.max(...xs),
+    top: Math.min(...ys),
+    vcentre: mean(ys),
+    bottom: Math.max(...ys),
+  }[mode];
+  const horizontal = mode === 'left' || mode === 'hcentre' || mode === 'right';
+  return targets.reduce(
+    (p, d) => moveDevice(p, d.id, horizontal ? { x: value, y: d.position.y } : { x: d.position.x, y: value }),
+    project,
+  );
+}
+
+/** Spaces three or more devices evenly between the outermost two along one axis. */
+export function distributeDevices(project: Project, ids: readonly string[], axis: 'x' | 'y'): Project {
+  const set = new Set(ids);
+  const targets = project.devices.filter((d) => set.has(d.id)).sort((a, b) => a.position[axis] - b.position[axis]);
+  if (targets.length < 3) return project;
+  const first = targets[0].position[axis];
+  const step = (targets[targets.length - 1].position[axis] - first) / (targets.length - 1);
+  return targets.reduce((p, d, i) => moveDevice(p, d.id, { ...d.position, [axis]: first + i * step }), project);
+}

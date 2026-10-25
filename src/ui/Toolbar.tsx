@@ -1,8 +1,11 @@
-import { Cable, FilePlus2, FolderOpen, Download, Workflow, Factory } from 'lucide-react';
+import { Cable, Download, Factory, FilePlus2, FolderOpen, Grid3x3, Redo2, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { parseProject, serializeProject } from '../model/io';
 import { emptyProject } from '../model/ops';
+import { useAutosaveStatus } from '../store/autosave';
 import { demoProject, useProject, type ConnectMode } from '../store/useProject';
+
+const clock = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
 
 function fileName(projectName: string): string {
   const slug = projectName
@@ -17,6 +20,13 @@ export function Toolbar({ onErrors }: { onErrors: (errors: string[]) => void }) 
   const load = useProject((s) => s.load);
   const connectMode = useProject((s) => s.connectMode);
   const setConnectMode = useProject((s) => s.setConnectMode);
+  const canUndo = useProject((s) => s.history.past.length > 0);
+  const canRedo = useProject((s) => s.history.future.length > 0);
+  const undo = useProject((s) => s.undo);
+  const redo = useProject((s) => s.redo);
+  const snapToGrid = useProject((s) => s.snapToGrid);
+  const toggleSnap = useProject((s) => s.toggleSnap);
+  const autosave = useAutosaveStatus();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const replace = (next: typeof project, message: string) => {
@@ -59,6 +69,25 @@ export function Toolbar({ onErrors }: { onErrors: (errors: string[]) => void }) 
         </span>
       </div>
 
+      <div className="toolbar__group" role="group" aria-label="Edit">
+        <button type="button" className="button icon-only" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" aria-label="Undo">
+          <Undo2 size={16} />
+        </button>
+        <button type="button" className="button icon-only" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" aria-label="Redo">
+          <Redo2 size={16} />
+        </button>
+        <button
+          type="button"
+          className={`segment icon-only${snapToGrid ? ' is-active' : ''}`}
+          aria-pressed={snapToGrid}
+          onClick={toggleSnap}
+          title="Snap to grid"
+          aria-label="Snap to grid"
+        >
+          <Grid3x3 size={16} />
+        </button>
+      </div>
+
       <div className="toolbar__group" role="group" aria-label="Connection type">
         <span className="toolbar__label">Connect as</span>
         {modes.map((m) => (
@@ -92,6 +121,9 @@ export function Toolbar({ onErrors }: { onErrors: (errors: string[]) => void }) 
           <Factory size={16} />
           Demo
         </button>
+        <span className={`autosave${autosave.failed ? ' is-failed' : ''}`} aria-live="polite">
+          {autosave.failed ? 'Not saved in browser' : autosave.savedAt ? `Saved in browser ${clock.format(autosave.savedAt)}` : ''}
+        </span>
         <input
           ref={fileInput}
           type="file"

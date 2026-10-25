@@ -150,6 +150,26 @@ button:focus-visible {
   background: #1d4763;
 }
 
+.toolbar .button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.toolbar .icon-only {
+  padding: 6px 8px;
+}
+
+.autosave {
+  min-width: 0;
+  font-size: 11.5px;
+  color: #9fb3c4;
+  white-space: nowrap;
+}
+
+.autosave.is-failed {
+  color: #fca5a5;
+}
+
 .segment.is-active {
   background: #5eead4;
   border-color: #5eead4;
@@ -165,6 +185,18 @@ button:focus-visible {
   background: var(--danger-soft);
   border-bottom: 1px solid #f5c2bd;
   color: var(--danger);
+}
+
+.notice--info {
+  align-items: center;
+  background: #e0f2fe;
+  border-bottom-color: #bae6fd;
+  color: #0c4a6e;
+}
+
+.notice p {
+  margin: 0;
+  flex: 1;
 }
 
 .notice ul {
@@ -458,6 +490,115 @@ button:focus-visible {
 
 .flow-label.is-selected {
   box-shadow: 0 0 0 2px currentColor;
+}
+
+/* Node context menu and device picker */
+.node-menu {
+  position: absolute;
+  z-index: 20;
+  min-width: 190px;
+  padding: 4px;
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 28, 42, 0.18);
+}
+
+.node-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.node-menu > button:hover,
+.node-menu > button:focus-visible {
+  background: var(--panel-alt);
+}
+
+.node-menu > button.danger {
+  color: var(--danger);
+}
+
+.node-menu kbd {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+
+.device-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 260px;
+  max-width: 100%;
+}
+
+.inspector .device-picker {
+  width: 100%;
+}
+
+.device-picker ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.device-picker li button {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--icon-ink);
+}
+
+.device-picker li button span:nth-child(2) {
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.device-picker li button:hover,
+.device-picker li button:focus-visible {
+  background: var(--panel-alt);
+}
+
+.device-picker__none {
+  padding: 8px;
+}
+
+.button-row,
+.tool-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.button.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.tool-grid .icon-button {
+  padding: 6px 8px;
 }
 
 /* Inspector */

@@ -18,7 +18,8 @@ export const PURDUE_LANES: PurdueLane[] = [
 
 export const LANE_HEIGHT = 150;
 export const LANE_WIDTH = 1500;
-/** Approximate rendered node height, used to place a node by its centre. */
+/** Rendered device node size (must match .device-node in styles.css); used to place nodes by their centre. */
+export const NODE_WIDTH = 190;
 export const NODE_HEIGHT = 64;
 
 export function laneIndex(level: PurdueLevel): number {

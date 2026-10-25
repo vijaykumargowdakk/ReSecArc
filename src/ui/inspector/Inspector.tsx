@@ -1,6 +1,9 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { DEVICE_CATALOG, REMOTE_SERVICE_PORTS } from '../../model/catalog';
+import { useState } from 'react';
 import {
+  addFlow,
+  addLink,
   countRuleReferences,
   defaultFlow,
   removeDevice,
@@ -13,7 +16,9 @@ import {
 import { defaultPortFor, getProtocol, PROTOCOLS, type FieldDef, type SettingValue } from '../../model/protocols';
 import { laneTop, levelLabel, PURDUE_LANES } from '../../model/purdue';
 import type { Asset, Device, Flow, Link, PurdueLevel, RemoteService } from '../../model/schema';
-import { useProject } from '../../store/useProject';
+import { NO_SELECTION, useProject } from '../../store/useProject';
+import { DevicePicker } from '../DevicePicker';
+import { BulkInspector } from './BulkInspector';
 import { Field, IntInput, Section, Select, TextInput, Toggle } from '../form';
 import { FirewallRules } from './FirewallRules';
 import { ProjectPanel } from './ProjectPanel';
@@ -63,16 +68,18 @@ function DeviceInspector({ device }: { device: Device }) {
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
   const info = DEVICE_CATALOG[device.type];
-  const patch = (p: Partial<Omit<Device, 'id' | 'type'>>) => apply((q) => updateDevice(q, device.id, p));
+  const patch = (p: Partial<Omit<Device, 'id' | 'type'>>) =>
+    apply((q) => updateDevice(q, device.id, p), `device:${device.id}:${Object.keys(p).join(',')}`);
   const setServices = (services: RemoteService[]) => patch({ services });
-  const setAsset = (p: Partial<Asset>) => patch({ asset: { ...device.asset, ...p } });
+  const setAsset = (p: Partial<Asset>) =>
+    apply((q) => updateDevice(q, device.id, { asset: { ...device.asset, ...p } }), `device:${device.id}:asset:${Object.keys(p).join(',')}`);
 
   const remove = () => {
     const refs = countRuleReferences(project, 'device', device.id);
     const warning = refs ? `\n\n${refs} firewall rule(s) refer to it and will also be removed.` : '';
     if (!window.confirm(`Delete "${device.label}" and its connections?${warning}`)) return;
     apply((q) => removeDevice(q, device.id));
-    select(null);
+    select(NO_SELECTION);
   };
 
   return (
@@ -168,12 +175,43 @@ function DeviceInspector({ device }: { device: Device }) {
         </ul>
       </Section>
 
+      <ConnectSection device={device} />
+
       {device.firewall && <FirewallRules device={device} />}
 
       <div className="panel-actions">
         <DeleteButton label="Delete device" onClick={remove} />
       </div>
     </>
+  );
+}
+
+function ConnectSection({ device }: { device: Device }) {
+  const apply = useProject((s) => s.apply);
+  const [mode, setMode] = useState<'link' | 'flow' | null>(null);
+  return (
+    <Section title="Connect">
+      <div className="button-row">
+        <button type="button" className={`button${mode === 'link' ? ' is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode(mode === 'link' ? null : 'link')}>
+          Link to…
+        </button>
+        <button type="button" className={`button${mode === 'flow' ? ' is-active' : ''}`} aria-pressed={mode === 'flow'} onClick={() => setMode(mode === 'flow' ? null : 'flow')}>
+          Flow to…
+        </button>
+      </div>
+      {mode && (
+        <DevicePicker
+          excludeId={device.id}
+          siteId={device.siteId}
+          label={mode === 'link' ? `Link ${device.label} to` : `Flow from ${device.label} to`}
+          onPick={(target) => {
+            if (mode === 'link') apply((p) => addLink(p, device.id, target));
+            else apply((p) => addFlow(p, defaultFlow('modbus', device.id, target)));
+            setMode(null);
+          }}
+        />
+      )}
+    </Section>
   );
 }
 
@@ -196,7 +234,7 @@ function LinkInspector({ link }: { link: Link }) {
           label="Delete link"
           onClick={() => {
             apply((p) => removeLink(p, link.id));
-            select(null);
+            select(NO_SELECTION);
           }}
         />
       </div>
@@ -225,14 +263,14 @@ function FlowInspector({ flow }: { flow: Flow }) {
   const select = useProject((s) => s.select);
   const name = useDeviceLabel();
   const def = getProtocol(flow.protocol);
-  const set = (next: Flow) => apply((p) => replaceFlow(p, next));
+  const set = (next: Flow, key?: string) => apply((p) => replaceFlow(p, next), key && `flow:${flow.id}:${key}`);
 
   const setSetting = (key: string, value: SettingValue) => {
     if (!def) return;
     const settings = { ...flow.settings, [key]: value };
     // Follow the protocol's default port (e.g. 502 → 802 for TLS) unless the user chose a custom one.
     const port = flow.port === defaultPortFor(def, flow.settings) ? defaultPortFor(def, settings) : flow.port;
-    set({ ...flow, settings, port });
+    set({ ...flow, settings, port }, key);
   };
 
   return (
@@ -253,7 +291,7 @@ function FlowInspector({ flow }: { flow: Flow }) {
         </Field>
         {def && def.defaultPort !== null && (
           <Field label="Port">
-            <IntInput value={flow.port} min={1} max={65535} onChange={(port) => port !== null && set({ ...flow, port })} />
+            <IntInput value={flow.port} min={1} max={65535} onChange={(port) => port !== null && set({ ...flow, port }, 'port')} />
           </Field>
         )}
         {def?.defaultPort === null && <p className="muted">{def.label} runs at layer 2 and has no port.</p>}
@@ -266,7 +304,7 @@ function FlowInspector({ flow }: { flow: Flow }) {
           label="Delete flow"
           onClick={() => {
             apply((p) => removeFlow(p, flow.id));
-            select(null);
+            select(NO_SELECTION);
           }}
         />
       </div>
@@ -277,17 +315,40 @@ function FlowInspector({ flow }: { flow: Flow }) {
 export function Inspector() {
   const project = useProject((s) => s.project);
   const selection = useProject((s) => s.selection);
+  const select = useProject((s) => s.select);
+  const apply = useProject((s) => s.apply);
+  const count = selection.devices.length + selection.links.length + selection.flows.length;
 
   let body = <ProjectPanel />;
-  if (selection?.kind === 'device') {
-    const device = project.devices.find((d) => d.id === selection.id);
+  if (selection.devices.length > 1) {
+    body = <BulkInspector ids={selection.devices} />;
+  } else if (count === 1) {
+    const device = project.devices.find((d) => d.id === selection.devices[0]);
+    const link = project.links.find((l) => l.id === selection.links[0]);
+    const flow = project.flows.find((f) => f.id === selection.flows[0]);
     if (device) body = <DeviceInspector key={device.id} device={device} />;
-  } else if (selection?.kind === 'link') {
-    const link = project.links.find((l) => l.id === selection.id);
-    if (link) body = <LinkInspector key={link.id} link={link} />;
-  } else if (selection?.kind === 'flow') {
-    const flow = project.flows.find((f) => f.id === selection.id);
-    if (flow) body = <FlowInspector key={flow.id} flow={flow} />;
+    else if (link) body = <LinkInspector key={link.id} link={link} />;
+    else if (flow) body = <FlowInspector key={flow.id} flow={flow} />;
+  } else if (count > 1) {
+    body = (
+      <>
+        <Section title={`${count} items selected`}>
+          <p className="muted">Select a single item to edit it, or several devices to edit them together.</p>
+        </Section>
+        <div className="panel-actions">
+          <DeleteButton
+            label="Delete selected"
+            onClick={() => {
+              apply((p) => {
+                const q = selection.flows.reduce(removeFlow, selection.links.reduce(removeLink, p));
+                return selection.devices.reduce(removeDevice, q);
+              });
+              select(NO_SELECTION);
+            }}
+          />
+        </div>
+      </>
+    );
   }
 
   return (
