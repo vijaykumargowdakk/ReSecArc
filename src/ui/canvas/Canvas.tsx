@@ -16,9 +16,10 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import { variantInfo } from '../../model/catalog';
 import { dimmedIds } from '../../model/filter';
+import { addNote, createNote, moveNote, removeNote } from '../../model/notes';
 import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink } from '../../model/ops';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../../model/purdue';
-import { deviceTypeSchema, type DeviceType } from '../../model/schema';
+import { deviceTypeSchema, type DeviceType, type Project } from '../../model/schema';
 import { moveArea, removeArea } from '../../model/structure';
 import { announce } from '../../store/announcer';
 import { flowColorMode, useTheme } from '../../store/theme';
@@ -26,10 +27,11 @@ import { NO_SELECTION, useProject } from '../../store/useProject';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { Legend } from './Legend';
 import { NodeMenu } from './NodeMenu';
-import { AreaNode, DeviceNode, LaneNode, PortalNode, type CanvasNode, type LaneFlowNode } from './nodes';
+import { AreaNode, DeviceNode, LaneNode, NoteNode, PortalNode, type CanvasNode, type LaneFlowNode } from './nodes';
 import { buildView } from './view';
 
 export const DEVICE_DND_MIME = 'application/x-conduitot-device';
+export const NOTE_DND_MIME = 'application/x-conduitot-note';
 
 /** Drag payload `type` or `type:variant`, validated against the catalog. */
 export function parseDeviceKind(payload: string): { type: DeviceType; variant: string } | null {
@@ -42,7 +44,7 @@ export function parseDeviceKind(payload: string): { type: DeviceType; variant: s
 const DROP_OFFSET = { x: NODE_WIDTH / 2, y: NODE_HEIGHT / 2 };
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const nodeTypes = { device: DeviceNode, lane: LaneNode, area: AreaNode, portal: PortalNode };
+const nodeTypes = { device: DeviceNode, lane: LaneNode, area: AreaNode, portal: PortalNode, note: NoteNode };
 const edgeTypes = { link: LinkEdge, flow: FlowEdge };
 
 const LANE_NODES: LaneFlowNode[] = PURDUE_LANES.map((lane) => ({
@@ -121,9 +123,16 @@ export function Canvas() {
       if (dragging.current) return;
       const moved = changes.flatMap((c) => (c.type === 'position' && c.position && c.dragging === false ? [{ id: c.id, position: c.position }] : []));
       if (moved.length === 0) return;
-      const areaIds = new Set(useProject.getState().project.areas.map((a) => a.id));
+      const { areas, notes } = useProject.getState().project;
+      const areaIds = new Set(areas.map((a) => a.id));
+      const noteIds = new Set(notes.map((n) => n.id));
+      const move = (q: Project, m: (typeof moved)[number]) => {
+        if (areaIds.has(m.id)) return moveArea(q, m.id, m.position);
+        if (noteIds.has(m.id)) return moveNote(q, m.id, m.position);
+        return moveDevice(q, m.id, m.position);
+      };
       apply(
-        (p) => moved.reduce((q, m) => (areaIds.has(m.id) ? moveArea(q, m.id, m.position) : moveDevice(q, m.id, m.position)), p),
+        (p) => moved.reduce(move, p),
         `nudge:${moved.map((m) => m.id).join(',')}`,
       );
     },
@@ -156,7 +165,10 @@ export function Canvas() {
         const areas = dragged.filter((n) => n.type === 'area');
         const carried = new Set(areas.flatMap((n) => (n.type === 'area' ? n.data.members.map((d) => d.id) : [])));
         const afterAreas = areas.reduce((q, n) => moveArea(q, n.id, n.position), p);
-        return dragged.reduce((q, n) => (n.type === 'device' && !carried.has(n.id) ? moveDevice(q, n.id, n.position) : q), afterAreas);
+        return dragged.reduce((q, n) => {
+          if (n.type === 'note') return moveNote(q, n.id, n.position);
+          return n.type === 'device' && !carried.has(n.id) ? moveDevice(q, n.id, n.position) : q;
+        }, afterAreas);
       });
     },
     [apply],
@@ -170,6 +182,7 @@ export function Canvas() {
         return delNodes.reduce((q, n) => {
           if (n.type === 'device') return removeDevice(q, n.id);
           if (n.type === 'area') return removeArea(q, n.id);
+          if (n.type === 'note') return removeNote(q, n.id);
           return q;
         }, afterEdges);
       });
@@ -187,6 +200,7 @@ export function Canvas() {
         links: selEdges.filter((e) => e.type === 'link').map((e) => e.id),
         flows: selEdges.filter((e) => e.type === 'flow').map((e) => e.id),
         areas: selNodes.filter((n) => n.type === 'area').map((n) => n.id),
+        notes: selNodes.filter((n) => n.type === 'note').map((n) => n.id),
       });
     },
     [select],
@@ -216,22 +230,31 @@ export function Canvas() {
   );
 
   const onDragOver = useCallback((event: DragEvent) => {
-    if (!event.dataTransfer.types.includes(DEVICE_DND_MIME)) return;
+    const types = event.dataTransfer.types;
+    if (!types.includes(DEVICE_DND_MIME) && !types.includes(NOTE_DND_MIME)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
   }, []);
 
   const onDrop = useCallback(
     (event: DragEvent) => {
+      const at = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      if (event.dataTransfer.types.includes(NOTE_DND_MIME)) {
+        event.preventDefault();
+        const note = createNote(siteId, { x: at.x - 20, y: at.y - 20 });
+        apply((p) => addNote(p, note));
+        select({ ...NO_SELECTION, notes: [note.id] });
+        announce('Note added');
+        return;
+      }
       const kind = parseDeviceKind(event.dataTransfer.getData(DEVICE_DND_MIME));
       if (!kind) return;
       event.preventDefault();
-      const at = screenToFlowPosition({ x: event.clientX, y: event.clientY });
       const device = createDevice(kind.type, { x: at.x - DROP_OFFSET.x, y: at.y - DROP_OFFSET.y }, { siteId, variant: kind.variant });
       apply((p) => addDevice(p, device));
       announce(`${device.label} added`);
     },
-    [apply, screenToFlowPosition, siteId],
+    [apply, screenToFlowPosition, siteId, select],
   );
 
   return (
@@ -274,6 +297,7 @@ export function Canvas() {
             const node = n as CanvasNode;
             if (node.type === 'device') return node.data.zone?.color ?? '#94a3b8';
             if (node.type === 'area') return node.data.area.collapsed ? node.data.area.color : 'transparent';
+            if (node.type === 'note') return node.data.note.color;
             return 'transparent';
           }}
           nodeStrokeColor={(n) => (n.type === 'lane' ? '#cbd5e1' : 'transparent')}

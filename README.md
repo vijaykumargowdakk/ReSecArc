@@ -23,6 +23,7 @@ Everything runs in the browser. There is no server, no account and no telemetry.
   - a custom protocol of your own naming.
 - **Firewall rules:** ordered, first-match allow/deny rules per firewall, with source and destination given as any, a zone or a device, plus a default action.
 - **Zones and conduits:** IEC 62443 zones with a trust flag and target security level. The conduits between zones are listed automatically.
+- **Text notes** on the canvas for legends, remarks or open questions.
 
 ### Working at scale
 - **Sites:** one tab per site, each with its own lanes. Connections to another site appear as clickable stubs.
@@ -36,6 +37,7 @@ Everything runs in the browser. There is no server, no account and no telemetry.
 - Undo and redo, copy, paste, duplicate, select all, and box selection.
 - Bulk editing of zone, criticality and site, plus align and distribute for several devices at once.
 - Snap to grid, and a right-click menu on devices.
+- **Tidy layout:** one click lines a site's devices up in their lanes and areas and keeps connected devices close. Undo restores the previous positions.
 - **Autosave** to your browser, with an offer to restore unsaved work the next time you open the app.
 
 ### Inventory and export

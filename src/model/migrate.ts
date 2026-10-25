@@ -34,7 +34,11 @@ function v1ToV2(p: Json): Json {
   return { ...p, schemaVersion: 2, sites: [{ ...DEFAULT_SITE }], areas: [], devices, flows };
 }
 
-const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2 };
+function v2ToV3(p: Json): Json {
+  return { ...p, schemaVersion: 3, notes: [], networks: [], revisions: [] };
+}
+
+const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2, 2: v2ToV3 };
 
 export function migrate(raw: unknown): unknown {
   if (!isObject(raw)) return raw;

@@ -129,6 +129,7 @@ export function Toolbar({
         >
           <Grid3x3 size={16} />
         </button>
+
       </div>
 
       <div className="toolbar__group" role="group" aria-label="Connection type">

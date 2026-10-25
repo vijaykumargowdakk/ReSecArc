@@ -10,8 +10,9 @@ export interface Selection {
   links: string[];
   flows: string[];
   areas: string[];
+  notes: string[];
 }
-export const NO_SELECTION: Selection = { devices: [], links: [], flows: [], areas: [] };
+export const NO_SELECTION: Selection = { devices: [], links: [], flows: [], areas: [], notes: [] };
 export type ConnectMode = 'link' | 'flow';
 
 const PASTE_OFFSET = { x: 40, y: 40 };
@@ -59,7 +60,7 @@ export function demoProject(): Project {
 
 const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((id, i) => id === b[i]);
 const sameSelection = (a: Selection, b: Selection) =>
-  sameIds(a.devices, b.devices) && sameIds(a.links, b.links) && sameIds(a.flows, b.flows) && sameIds(a.areas, b.areas);
+  sameIds(a.devices, b.devices) && sameIds(a.links, b.links) && sameIds(a.flows, b.flows) && sameIds(a.areas, b.areas) && sameIds(a.notes, b.notes);
 
 /** Drops ids that no longer exist, e.g. after undo removes a selected device. */
 function pruneSelection(selection: Selection, project: Project): Selection {
@@ -68,11 +69,13 @@ function pruneSelection(selection: Selection, project: Project): Selection {
   const l = has(project.links);
   const f = has(project.flows);
   const a = has(project.areas);
+  const n = has(project.notes);
   const next = {
     devices: selection.devices.filter((id) => d.has(id)),
     links: selection.links.filter((id) => l.has(id)),
     flows: selection.flows.filter((id) => f.has(id)),
     areas: selection.areas.filter((id) => a.has(id)),
+    notes: selection.notes.filter((id) => n.has(id)),
   };
   return sameSelection(next, selection) ? selection : next;
 }

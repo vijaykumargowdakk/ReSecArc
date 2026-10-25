@@ -31,6 +31,9 @@ export function emptyProject(name = 'Untitled architecture'): Project {
     flows: [],
     zones: [],
     areas: [],
+    notes: [],
+    networks: [],
+    revisions: [],
   };
 }
 
@@ -187,10 +190,15 @@ export function updateZone(project: Project, id: string, patch: Partial<Omit<Zon
   return { ...project, zones: project.zones.map((z) => (z.id === id ? { ...z, ...patch } : z)) };
 }
 
-/** Removes a zone, unassigns its devices and drops firewall rules that referenced it. */
+/** Removes a zone, unassigns its devices and networks, and drops firewall rules that referenced it. */
 export function removeZone(project: Project, id: string): Project {
   const devices = project.devices.map((d) => (d.zoneId === id ? { ...d, zoneId: null } : d));
-  return { ...project, zones: project.zones.filter((z) => z.id !== id), devices: pruneRules(devices, 'zone', id) };
+  return {
+    ...project,
+    zones: project.zones.filter((z) => z.id !== id),
+    devices: pruneRules(devices, 'zone', id),
+    networks: project.networks.map((n) => (n.zoneId === id ? { ...n, zoneId: null } : n)),
+  };
 }
 
 function updateFirewall(project: Project, firewallId: string, update: (rules: FirewallRule[]) => FirewallRule[]): Project {

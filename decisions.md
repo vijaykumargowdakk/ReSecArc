@@ -109,3 +109,18 @@
 **Decision:** All CSV exports escape cells that begin with = + - @ tab or carriage return. Import removes the escape again, so round-trips are exact.
 **Why:** An automated security review flagged formula injection: a device name from a shared project file could otherwise run as a formula when the CSV is opened in a spreadsheet.
 **User input:** None (security fix).
+
+## 2026-10-25 — Hosted on Vercel by the owner
+**Decision:** The app is deployed on Vercel. The owner manages it; deployment and hosting settings are left alone. The GitHub Pages workflow stays manual and unused.
+**Why:** The owner chose Vercel and asked that nothing be changed for it.
+**User input:** "I have deployed it on vercel so don't worry or do anything regarding it."
+
+## 2026-10-25 — v0.3 roadmap (M14–M17)
+**Decision:** Add canvas notes and auto-layout, IP/VLAN planning, named revisions with a change diff, and share-by-link with CSV import of flows and firewall rules, as milestones M14–M17. Schema v3 adds `notes`, `networks` and `revisions` in one version bump. The security analysis items from the original scope stay out.
+**Why:** These make the tool more useful for documenting and maintaining real estates without adding analysis features.
+**User input:** Owner selected all four proposed feature groups.
+
+## 2026-10-25 — Schema v3, canvas notes and tidy layout
+**Decision:** Project files move to `schemaVersion: 3`, adding `notes`, `networks` and `revisions` (v1 and v2 files are upgraded on open). A revision stores a `design`: every top-level field except `schemaVersion` and `revisions`, so revisions cannot nest. A file whose format is newer than the app gets one clear error instead of a list of schema errors. Notes are free text on a site's canvas, edited in place or in the properties panel. "Tidy layout" (canvas bar) lays out the open site with barycentre sweeps: devices keep their Purdue level, site and area; areas widen to fit their longest row and are pushed apart if they then overlap; the whole layout is one undo step.
+**Why:** One format bump for all v0.3 data means one migration. Keeping levels and areas fixed makes the layout safe to apply to a hand-arranged diagram. The button moved from the toolbar to the canvas bar because the toolbar was out of room at 1440px.
+**User input:** Approved in the v0.3 scope.

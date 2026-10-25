@@ -22,7 +22,14 @@ export function canRemoveSite(project: Project, id: string): boolean {
 
 export function removeSite(project: Project, id: string): Project {
   if (!canRemoveSite(project, id)) return project;
-  return { ...project, sites: project.sites.filter((s) => s.id !== id), areas: project.areas.filter((a) => a.siteId !== id) };
+  return {
+    ...project,
+    sites: project.sites.filter((s) => s.id !== id),
+    areas: project.areas.filter((a) => a.siteId !== id),
+    notes: project.notes.filter((n) => n.siteId !== id),
+    // A network tied to the removed site now applies to every site rather than vanishing.
+    networks: project.networks.map((n) => (n.siteId === id ? { ...n, siteId: null } : n)),
+  };
 }
 
 /** Recomputes area membership for every device on a site. */

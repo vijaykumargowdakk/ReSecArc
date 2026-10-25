@@ -4,18 +4,21 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
 
 ```jsonc
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites":   [ /* Site, at least one */ ],
   "devices": [ /* Device */ ],
   "links":   [ /* Link */ ],
   "flows":   [ /* Flow */ ],
   "zones":   [ /* Zone */ ],
-  "areas":   [ /* Area */ ]
+  "areas":   [ /* Area */ ],
+  "notes":   [ /* Note */ ],
+  "networks":  [ /* Network */ ],
+  "revisions": [ /* Revision */ ]
 }
 ```
 
-Files saved by older versions (`schemaVersion: 1`) are upgraded automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
+Files saved by older versions (`schemaVersion` 1 or 2) are upgraded automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
 
 ## Device
 
@@ -90,6 +93,18 @@ Where two ports are listed, the port follows the setting unless the user has typ
 
 A site is `{ id, name }`; every project has at least one. An area is a named rectangle on one site, used for cells, lines or substations: `{ id, siteId, name, color, rect: { x, y, width, height }, collapsed }`.
 
+## Note
+
+Free text on one site's canvas: `{ id, siteId, text, position: { x, y }, width, color }`. Notes are annotations only; they are included in the Markdown record.
+
+## Network
+
+An IPv4 subnet: `{ id, name, cidr, vlan, zoneId, siteId }`. `cidr` is a string such as `10.10.1.0/24`. `vlan` is 1–4094 or `null`. `zoneId` is the security zone the subnet belongs to, or `null`. `siteId` is `null` for a network that spans every site.
+
+## Revision
+
+A named copy of the design at a point in time: `{ id, name, createdAt, design }`. `createdAt` is an ISO 8601 timestamp. `design` holds every top-level field above except `schemaVersion` and `revisions`, so revisions do not nest.
+
 Conduits are not stored. They are derived as the zone pairs joined directly by a link or flow; see [`src/model/conduits.ts`](../src/model/conduits.ts).
 
 ## Validation on load
@@ -97,12 +112,13 @@ Conduits are not stored. They are derived as the zone pairs joined directly by a
 A file is accepted only if:
 
 1. it parses as JSON,
-2. after any upgrade, it matches the schema, including `schemaVersion: 2`, and
+2. after any upgrade, it matches the schema, including `schemaVersion: 3`, and
 3. it passes the reference checks:
    - every id is unique;
-   - links, flows, sites, zones, areas and rule endpoints point at things that exist;
+   - links, flows, sites, zones, areas, notes, networks and rule endpoints point at things that exist;
    - every variant is in the catalog, and every flow's settings match its protocol;
    - nothing connects a device to itself;
-   - only firewalls carry rules.
+   - only firewalls carry rules;
+   - the design inside every revision passes the same checks.
 
 Otherwise every problem found is listed and the current project is left unchanged.

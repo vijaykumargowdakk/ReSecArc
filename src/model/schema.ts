@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const deviceTypeSchema = z.enum([
   'plc',
@@ -136,8 +136,28 @@ export const areaSchema = z.object({
   collapsed: z.boolean(),
 });
 
-export const projectSchema = z.object({
-  schemaVersion: z.literal(SCHEMA_VERSION),
+export const noteSchema = z.object({
+  id: idSchema,
+  siteId: idSchema,
+  text: z.string(),
+  position: z.object({ x: z.number().finite(), y: z.number().finite() }),
+  width: z.number().finite().positive(),
+  color: colorSchema,
+});
+
+export const networkSchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  /** IPv4 subnet in CIDR notation, e.g. `10.10.1.0/24`; checked in referenceErrors. */
+  cidr: z.string(),
+  vlan: z.number().int().min(1).max(4094).nullable(),
+  zoneId: idSchema.nullable(),
+  /** `null` when the network spans every site. */
+  siteId: idSchema.nullable(),
+});
+
+/** Everything that describes the design itself; a revision stores a copy of this. */
+export const designSchema = z.object({
   name: z.string(),
   sites: z.array(siteSchema).min(1),
   devices: z.array(deviceSchema),
@@ -145,6 +165,21 @@ export const projectSchema = z.object({
   flows: z.array(flowSchema),
   zones: z.array(zoneSchema),
   areas: z.array(areaSchema),
+  notes: z.array(noteSchema),
+  networks: z.array(networkSchema),
+});
+
+export const revisionSchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  /** ISO 8601 timestamp. */
+  createdAt: z.string().datetime(),
+  design: designSchema,
+});
+
+export const projectSchema = designSchema.extend({
+  schemaVersion: z.literal(SCHEMA_VERSION),
+  revisions: z.array(revisionSchema),
 });
 
 export type DeviceType = z.infer<typeof deviceTypeSchema>;
@@ -160,4 +195,8 @@ export type Flow = z.infer<typeof flowSchema>;
 export type Zone = z.infer<typeof zoneSchema>;
 export type Site = z.infer<typeof siteSchema>;
 export type Area = z.infer<typeof areaSchema>;
+export type Note = z.infer<typeof noteSchema>;
+export type Network = z.infer<typeof networkSchema>;
+export type Design = z.infer<typeof designSchema>;
+export type Revision = z.infer<typeof revisionSchema>;
 export type Project = z.infer<typeof projectSchema>;
