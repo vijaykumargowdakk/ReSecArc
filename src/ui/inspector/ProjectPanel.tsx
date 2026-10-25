@@ -4,9 +4,11 @@ import type { Zone } from '../../model/schema';
 import { useConduits } from '../../store/derived';
 import { useProject } from '../../store/useProject';
 import { Field, Section, Select, TextInput, Toggle } from '../form';
-import { CustomFieldsSection } from './CustomFieldsSection';
+import { lazy, Suspense } from 'react';
 import { NetworksSection } from './NetworksSection';
-import { RevisionsSection } from './RevisionsSection';
+
+const CustomFieldsSection = lazy(() => import('./CustomFieldsSection').then((m) => ({ default: m.CustomFieldsSection })));
+const RevisionsSection = lazy(() => import('./RevisionsSection').then((m) => ({ default: m.RevisionsSection })));
 
 const ZONE_COLORS = ['#0ea5e9', '#16a34a', '#8b5cf6', '#f59e0b', '#dc2626', '#64748b', '#db2777', '#0d9488'];
 const SECURITY_LEVELS = [
@@ -101,7 +103,9 @@ export function ProjectPanel() {
 
       <NetworksSection />
 
-      <CustomFieldsSection />
+      <Suspense fallback={null}>
+        <CustomFieldsSection />
+      </Suspense>
 
       <Section title="Conduits">
         <p className="muted">Zone pairs joined directly by a link or protocol flow.</p>
@@ -120,7 +124,9 @@ export function ProjectPanel() {
         </ul>
       </Section>
 
-      <RevisionsSection />
+      <Suspense fallback={null}>
+        <RevisionsSection />
+      </Suspense>
     </>
   );
 }

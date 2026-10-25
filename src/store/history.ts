@@ -29,6 +29,18 @@ export function undo(h: History): History {
   return { past: h.past.slice(0, -1), present: h.past[h.past.length - 1], future: [h.present, ...h.future], last: null };
 }
 
+/** Moves `delta` steps back (negative) or forward (positive) in one go, stopping at either end. */
+export function jump(h: History, delta: number): History {
+  let next = h;
+  for (let i = 0; i < Math.abs(delta); i++) next = delta < 0 ? undo(next) : redo(next);
+  return next;
+}
+
+/** Every snapshot from oldest to newest, and the index of the one on screen. */
+export function timeline(h: History): { states: Project[]; current: number } {
+  return { states: [...h.past, h.present, ...h.future], current: h.past.length };
+}
+
 export function redo(h: History): History {
   if (h.future.length === 0) return h;
   return { past: [...h.past, h.present], present: h.future[0], future: h.future.slice(1), last: null };

@@ -6,7 +6,7 @@ import { useCompare } from '../../store/compare';
 import { useProject } from '../../store/useProject';
 import { Section, TextInput } from '../form';
 
-export const revisionTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+import { revisionTime } from './format';
 
 /** Named snapshots of the design, stored in the project file, that the live design can be compared with or restored to. */
 export function RevisionsSection() {

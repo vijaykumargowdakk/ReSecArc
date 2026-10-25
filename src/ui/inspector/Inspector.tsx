@@ -1,6 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { DEVICE_CATALOG, REMOTE_SERVICE_PORTS } from '../../model/catalog';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import {
   addFlow,
   addLink,
@@ -24,15 +24,17 @@ import { setDeviceField, setTags, tagCounts } from '../../model/fields';
 import { removeNote } from '../../model/notes';
 import { moveDevicesToSite } from '../../model/structure';
 import { AddressInfo } from './AddressInfo';
-import { AreaInspector } from './AreaInspector';
-import { ChangesPanel } from './ChangesPanel';
-import { BulkInspector } from './BulkInspector';
 import { Field, IntInput, Section, Select, TextInput, Toggle, VlanInput } from '../form';
 import { IssueList } from './AddressInfo';
 import { useLinkIssues } from '../../store/derived';
-import { FirewallRules } from './FirewallRules';
-import { NoteInspector } from './NoteInspector';
 import { ProjectPanel } from './ProjectPanel';
+
+// Panels for less common selections load on first use, keeping them out of the startup bundle.
+const AreaInspector = lazy(() => import('./AreaInspector').then((m) => ({ default: m.AreaInspector })));
+const BulkInspector = lazy(() => import('./BulkInspector').then((m) => ({ default: m.BulkInspector })));
+const ChangesPanel = lazy(() => import('./ChangesPanel').then((m) => ({ default: m.ChangesPanel })));
+const FirewallRules = lazy(() => import('./FirewallRules').then((m) => ({ default: m.FirewallRules })));
+const NoteInspector = lazy(() => import('./NoteInspector').then((m) => ({ default: m.NoteInspector })));
 
 const LEVEL_OPTIONS = PURDUE_LANES.map((l) => ({ value: String(l.level), label: `${levelLabel(l.level)} · ${l.name}` }));
 const CRITICALITY = [
@@ -444,7 +446,7 @@ export function Inspector() {
 
   return (
     <aside className="inspector" aria-label="Properties">
-      {body}
+      <Suspense fallback={<p className="muted inspector__loading">Loading…</p>}>{body}</Suspense>
     </aside>
   );
 }

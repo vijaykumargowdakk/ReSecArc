@@ -4,7 +4,7 @@ import { useCompare, type Comparison } from '../../store/compare';
 import { useProject } from '../../store/useProject';
 import { downloadText, slug } from '../download';
 import { Section, Toggle } from '../form';
-import { revisionTime } from './RevisionsSection';
+import { revisionTime } from './format';
 
 /** The change list between the compared revision and the live design. */
 export function ChangesPanel({ comparison }: { comparison: Comparison }) {

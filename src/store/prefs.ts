@@ -24,10 +24,12 @@ export const LAYER_LABELS: Record<keyof Layers, string> = {
 
 interface Prefs {
   layers: Layers;
+  /** Whether the first-run tour has been shown (or skipped) in this browser. */
+  tourSeen: boolean;
 }
 
 const KEY = 'conduitot:prefs';
-const DEFAULTS: Prefs = { layers: ALL_LAYERS };
+const DEFAULTS: Prefs = { layers: ALL_LAYERS, tourSeen: false };
 
 function read(): Prefs {
   try {
@@ -36,7 +38,7 @@ function read(): Prefs {
     for (const key of Object.keys(ALL_LAYERS) as (keyof Layers)[]) {
       if (typeof raw.layers?.[key] === 'boolean') layers[key] = raw.layers[key];
     }
-    return { ...DEFAULTS, layers };
+    return { ...DEFAULTS, layers, tourSeen: raw.tourSeen === true };
   } catch {
     return DEFAULTS;
   }
@@ -50,14 +52,22 @@ function write(prefs: Prefs): void {
   }
 }
 
-export const usePrefs = create<Prefs & { setLayer: (key: keyof Layers, on: boolean) => void; showAllLayers: () => void }>((set, get) => ({
-  ...read(),
-  setLayer: (key, on) => {
-    set({ layers: { ...get().layers, [key]: on } });
-    write({ layers: get().layers });
-  },
-  showAllLayers: () => {
-    set({ layers: ALL_LAYERS });
-    write({ layers: ALL_LAYERS });
-  },
-}));
+interface PrefActions {
+  setLayer: (key: keyof Layers, on: boolean) => void;
+  showAllLayers: () => void;
+  setTourSeen: () => void;
+}
+
+export const usePrefs = create<Prefs & PrefActions>((set, get) => {
+  const update = (patch: Partial<Prefs>) => {
+    set(patch);
+    const { layers, tourSeen } = get();
+    write({ layers, tourSeen });
+  };
+  return {
+    ...read(),
+    setLayer: (key, on) => update({ layers: { ...get().layers, [key]: on } }),
+    showAllLayers: () => update({ layers: ALL_LAYERS }),
+    setTourSeen: () => update({ tourSeen: true }),
+  };
+});

@@ -2,15 +2,16 @@ import { useReactFlow } from '@xyflow/react';
 import { Boxes, ChevronRight, StickyNote, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { DEVICE_CATALOG, PALETTE_GROUPS } from '../model/catalog';
-import { addNote, createNote } from '../model/notes';
+import { freeSpotInLane } from '../model/layout';
 import { addDevice, createDevice } from '../model/ops';
-import { laneTop } from '../model/purdue';
 import type { DeviceType } from '../model/schema';
 import { announce } from '../store/announcer';
 import { useBlocks } from '../store/blocks';
 import { useProject } from '../store/useProject';
-import { NO_SELECTION } from '../store/useProject';
+import { addNoteInView } from './actions';
 import { DEVICE_DND_MIME, NOTE_DND_MIME } from './canvas/Canvas';
+import type { CanvasEdge } from './canvas/edges';
+import type { CanvasNode } from './canvas/nodes';
 import { DeviceIcon } from './icons';
 
 function PaletteItem({
@@ -48,29 +49,18 @@ function PaletteItem({
 
 export function Palette() {
   const apply = useProject((s) => s.apply);
-  const count = useProject((s) => s.project.devices.length);
   const siteId = useProject((s) => s.activeSiteId);
   const [open, setOpen] = useState<Set<DeviceType>>(() => new Set());
   const blocks = useBlocks((s) => s.blocks);
   const removeBlock = useBlocks((s) => s.remove);
   const insertFragment = useProject((s) => s.insertFragment);
-  const select = useProject((s) => s.select);
-  const { screenToFlowPosition } = useReactFlow();
-
-  // Click alternative to dragging a note: place it in the middle of the visible canvas.
-  const addNoteInView = () => {
-    const box = document.querySelector('.canvas')?.getBoundingClientRect();
-    const at = box ? screenToFlowPosition({ x: box.left + box.width / 2, y: box.top + box.height / 2 }) : { x: 240, y: 40 };
-    const note = createNote(siteId, { x: Math.round(at.x - 130), y: Math.round(at.y - 20) });
-    apply((p) => addNote(p, note));
-    select({ ...NO_SELECTION, notes: [note.id] });
-    announce('Note added');
-  };
+  const reactFlow = useReactFlow<CanvasNode, CanvasEdge>();
 
   // Keyboard and click alternative to dragging: drop into the type's default lane.
   const addToDefaultLane = (type: DeviceType, variant: string) => {
     const level = DEVICE_CATALOG[type].defaultLevel;
-    const device = createDevice(type, { x: 240 + (count % 8) * 45, y: laneTop(level) + 37 }, { siteId, variant });
+    const at = freeSpotInLane(useProject.getState().project, siteId, level);
+    const device = createDevice(type, at, { siteId, variant });
     apply((p) => addDevice(p, device));
     announce(`${device.label} added`);
   };
@@ -141,7 +131,7 @@ export function Palette() {
                 e.dataTransfer.setData(NOTE_DND_MIME, 'note');
                 e.dataTransfer.effectAllowed = 'copy';
               }}
-              onClick={addNoteInView}
+              onClick={() => addNoteInView(reactFlow)}
               title="A free text note on the canvas"
             >
               <StickyNote size={22} />

@@ -308,6 +308,46 @@ const ITEM_TITLES: Record<ItemKind, string> = {
 export const ITEM_ORDER = Object.keys(ITEM_TITLES) as ItemKind[];
 export const itemTitle = (k: ItemKind) => ITEM_TITLES[k];
 
+const NOUNS: Record<ItemKind, [string, string]> = {
+  project: ['project', 'project'],
+  field: ['custom field', 'custom fields'],
+  site: ['site', 'sites'],
+  zone: ['zone', 'zones'],
+  network: ['network', 'networks'],
+  area: ['area', 'areas'],
+  device: ['device', 'devices'],
+  link: ['link', 'links'],
+  flow: ['flow', 'flows'],
+  rule: ['firewall rule', 'firewall rules'],
+  note: ['note', 'notes'],
+};
+const VERBS: Record<ChangeKind, string> = { added: 'Added', removed: 'Removed', changed: 'Changed' };
+const clip = (s: string, n = 90) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+/**
+ * A short name for one undo step, worked out from what changed between two snapshots, such as
+ * "Added device PLC", "Moved 3 devices" or "Filtration PLC: firmware: — → V4.2".
+ */
+export function describeChange(before: Project, after: Project): string {
+  const changes = diffDesigns(before, after);
+  if (changes.length === 0) {
+    if (after.revisions.length > before.revisions.length) return `Saved revision “${after.revisions[after.revisions.length - 1].name}”`;
+    if (after.revisions.length < before.revisions.length) return 'Deleted a revision';
+    return before.revisions !== after.revisions ? 'Renamed a revision' : 'No visible change';
+  }
+  const one = (c: Change) => {
+    if (c.moveOnly) return `Moved ${c.label}`;
+    if (c.change === 'changed' && c.details.length === 1) return `${c.label}: ${c.details[0]}`;
+    return `${VERBS[c.change]} ${NOUNS[c.item][0]} ${c.label}`;
+  };
+  const [first] = changes;
+  if (changes.length === 1) return clip(one(first));
+  const sameKind = changes.every((c) => c.item === first.item && c.change === first.change);
+  if (sameKind && changes.every((c) => c.moveOnly)) return `Moved ${changes.length} ${NOUNS[first.item][1]}`;
+  if (sameKind) return `${VERBS[first.change]} ${changes.length} ${NOUNS[first.item][1]}`;
+  return clip(`${one(first)} and ${changes.length - 1} more change${changes.length === 2 ? '' : 's'}`);
+}
+
 /** A change record in Markdown, for change requests or a project log. */
 export function changesToMarkdown(changes: Change[], from: string, to: string): string {
   const out = [`# Changes: ${from} → ${to}\n`];

@@ -2,7 +2,9 @@ import { X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 const SHORTCUTS: [string, string][] = [
+  ['Ctrl + Shift + P  or  Alt + P', 'Run any command by name'],
   ['Ctrl + K  or  /', 'Find a device on any site'],
+  ['Ctrl + S', 'Save the project file'],
   ['Ctrl + Z', 'Undo'],
   ['Ctrl + Shift + Z  or  Ctrl + Y', 'Redo'],
   ['Ctrl + C / Ctrl + V', 'Copy and paste selected devices'],
@@ -20,7 +22,7 @@ const SHORTCUTS: [string, string][] = [
   ['Esc', 'Close dialogs and menus'],
 ];
 
-export function HelpDialog({ onClose }: { onClose: () => void }) {
+export function HelpDialog({ onClose, onTour }: { onClose: () => void; onTour: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     dialog.current?.showModal();
@@ -43,6 +45,11 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
           </div>
         ))}
       </dl>
+      <div className="help-dialog__note">
+        <button type="button" className="button" onClick={onTour}>
+          Take the tour
+        </button>
+      </div>
       <p className="muted help-dialog__note">
         Everything on the canvas can also be done without a mouse: add devices from the palette with Enter, and connect them from the
         device panel with “Link to…” or “Flow to…”.
