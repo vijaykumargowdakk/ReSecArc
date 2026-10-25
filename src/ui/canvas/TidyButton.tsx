@@ -13,6 +13,7 @@ export function TidyButton() {
     <button
       type="button"
       className="tidy-button"
+      aria-label="Tidy layout"
       title="Line devices up in their lanes and areas, keeping connected devices close. Undo restores the previous positions."
       onClick={() => {
         apply((p) => tidyLayout(p, siteId));
@@ -20,7 +21,7 @@ export function TidyButton() {
         requestAnimationFrame(() => fitView({ padding: 0.1, duration: 250 }));
       }}
     >
-      <LayoutGrid size={14} aria-hidden="true" /> Tidy layout
+      <LayoutGrid size={14} aria-hidden="true" /> Tidy
     </button>
   );
 }

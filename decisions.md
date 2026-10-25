@@ -134,3 +134,13 @@
 **Decision:** A revision is a deep copy of the design saved in `revisions` inside the project file, so it travels with the file. The change list (`src/model/revisions.ts`) matches items by id and resolves zone, site and area names within each design, so renaming a zone is one change rather than one per device. Firewall rule edits appear as rule changes, and position-only changes are flagged so the panel can hide them (hidden by default). The comparison state lives in its own small store, outside undo history; deleting the compared revision ends the comparison. Restoring a revision replaces the design but keeps the revision list, and is undoable. Status tags use a new `--on-status` text token, so they keep their contrast in the dark theme.
 **Why:** Change records need to survive sharing the file. Id matching is exact, because saving a revision copies the design with its ids.
 **User input:** Approved in the v0.3 scope.
+
+## 2026-10-25 — Share links carry the design in the URL fragment
+**Decision:** "Share as a link…" (Export menu) compresses the project with the browser's built-in `CompressionStream('deflate-raw')` into `#share=v1.<base64url>`. Opening such a link shows a banner. The design replaces the current one only when the user chooses "Open it", with a confirmation if they have made edits. The fragment is then removed from the address bar. Decoding is capped at 8 MB and the result goes through the same validation as an opened file. Revisions are left out unless the sender ticks the option. The dialog says plainly that anyone with the link can read the whole design.
+**Why:** The app is a static site with no server or accounts. The fragment is never sent in HTTP requests, so the design does not reach the hosting provider. The built-in compression avoids a dependency, and a template fits in about 3,000 characters.
+**User input:** Approved in the v0.3 scope ("Share by link").
+
+## 2026-10-25 — CSV import of flows and firewall rules
+**Decision:** Flows and rules import from the same columns their exports write. Devices are matched by name; ambiguous names are rejected with a clear reason instead of guessing. Flow settings start from the protocol defaults, and an empty port takes the protocol's default port. Flows that already exist are rejected. Rule import replaces the named firewalls' rules by default (rules are an ordered list, so re-importing an edited export should not append duplicates), with an option to append instead.
+**Why:** Rule tables and flow lists are often maintained in spreadsheets. Exact round-trips make that workflow safe.
+**User input:** Approved in the v0.3 scope.

@@ -126,7 +126,7 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
             <Trash2 size={15} /> Delete {checked.size}
           </button>
         )}
-        {tab === 'devices' && (
+        {tab !== 'addresses' && (
           <button type="button" className="button" onClick={() => setImporting(true)}>
             <Upload size={15} /> Import CSV
           </button>
@@ -376,7 +376,7 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
           <p className="empty inventory__empty">No device has an IP address yet. Add addresses in the Devices tab or in a device's properties.</p>
         )}
       </div>
-      {importing && <ImportDialog onClose={() => setImporting(false)} />}
+      {importing && tab !== 'addresses' && <ImportDialog kind={tab} onClose={() => setImporting(false)} />}
     </section>
   );
 }

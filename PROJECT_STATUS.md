@@ -8,7 +8,7 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M13 are complete (v0.2). v0.3 (M14–M17) is in progress.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3).
 
 No analysis features have been built, and none are planned.
 
@@ -44,7 +44,7 @@ Work is committed on feature branches and merged into `main` with merge commits,
 | M14 | Schema v3, notes, auto-layout | File format v3 (notes, networks, revisions), text notes on the canvas, one-click tidy layout per site | v2 files open; notes editable; layout is one undo step ✅ |
 | M15 | IP and VLAN planning | Networks (CIDR, VLAN, zone, site), IP plan table, duplicate/invalid/out-of-subnet address warnings | Warnings shown in inspector and inventory ✅ |
 | M16 | Revisions and change diff | Named revisions saved in the project file, compare any revision with the current design, highlight changes on the canvas | Diff lists added/removed/changed items ✅ |
-| M17 | Share by link, more CSV import | Whole project compressed into the link's #fragment, open-shared-project banner, CSV import of flows and firewall rules | A shared link opens the same project |
+| M17 | Share by link, more CSV import | Whole project compressed into the link's #fragment, open-shared-project banner, CSV import of flows and firewall rules | A shared link opens the same project ✅ |
 
 ## Known issues
 - Below 900px the palette and properties panel become slide-over drawers. The canvas itself is still best used with a mouse or trackpad on a larger screen.

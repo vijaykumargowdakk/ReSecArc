@@ -20,6 +20,7 @@ export function Toolbar({
   onSearch,
   onNew,
   onHelp,
+  onShare,
   diagramVisible,
   drawer,
   onDrawer,
@@ -28,6 +29,7 @@ export function Toolbar({
   onSearch: () => void;
   onNew: () => void;
   onHelp: () => void;
+  onShare: () => void;
   diagramVisible: boolean;
   drawer: 'palette' | 'inspector' | null;
   onDrawer: (drawer: 'palette' | 'inspector') => void;
@@ -180,6 +182,17 @@ export function Toolbar({
             Export
           </summary>
           <div className="menu__items" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                closeMenu();
+                onShare();
+              }}
+            >
+              Share as a link…
+            </button>
+            <hr />
             <button type="button" role="menuitem" disabled={!diagramVisible} onClick={() => exportAs('svg')} title={diagramVisible ? undefined : 'Switch to the diagram view first'}>
               Diagram as SVG
             </button>

@@ -15,6 +15,7 @@ const SHORTCUTS: [string, string][] = [
   ['Shift + drag', 'Select several devices with a box'],
   ['Ctrl + click', 'Add a device to the selection'],
   ['Right-click a device', 'Duplicate, delete, or connect it to another device'],
+  ['Double-click a note', 'Edit it in place; Ctrl + Enter or clicking away finishes, Esc cancels'],
   ['?', 'Show this help'],
   ['Esc', 'Close dialogs and menus'],
 ];
