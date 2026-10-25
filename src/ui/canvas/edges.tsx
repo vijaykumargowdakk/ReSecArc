@@ -1,4 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, useInternalNode, type Edge, type EdgeProps, type InternalNode } from '@xyflow/react';
+import { flowLabel, getProtocol } from '../../model/protocols';
 import type { Flow, Link } from '../../model/schema';
 
 export type LinkFlowEdge = Edge<{ link: Link }, 'link'>;
@@ -53,37 +54,31 @@ export function LinkEdge({ id, source, target, data, selected }: EdgeProps<LinkF
   return <BaseEdge id={id} path={path} className={`link-edge medium-${data.link.medium}${selected ? ' is-selected' : ''}`} />;
 }
 
-export function flowSummary(flow: Flow): string {
-  if (flow.protocol === 'modbus') {
-    const access = { read: 'R', write: 'W', 'read-write': 'RW' }[flow.access];
-    return `Modbus${flow.variant === 'tls' ? '/TLS' : ''} ${access}`;
-  }
-  const parts = ['DNP3'];
-  if (flow.secureAuthentication) parts.push('SA');
-  if (flow.tls) parts.push('TLS');
-  if (flow.controlCommands) parts.push('ctrl');
-  return parts.join(' ');
-}
-
 export function FlowEdge({ id, source, target, data, selected, markerEnd }: EdgeProps<ProtocolFlowEdge>) {
   const s = useInternalNode(source);
   const t = useInternalNode(target);
   if (!s || !t || !data) return null;
   const { start, end, path } = floatingSegment(s, t, FLOW_OFFSET);
+  const def = getProtocol(data.flow.protocol);
+  const color = def?.color ?? 'var(--ink-soft)';
   return (
     <>
       <BaseEdge
         id={id}
         path={path}
         markerEnd={markerEnd}
-        className={`flow-edge protocol-${data.flow.protocol}${selected ? ' is-selected' : ''}`}
+        className={`flow-edge${selected ? ' is-selected' : ''}`}
+        style={{ stroke: color, strokeDasharray: def?.dash ?? '6 4' }}
       />
       <EdgeLabelRenderer>
         <div
-          className={`flow-label protocol-${data.flow.protocol}${selected ? ' is-selected' : ''}`}
-          style={{ transform: `translate(-50%, -50%) translate(${(start.x + end.x) / 2}px, ${(start.y + end.y) / 2}px)` }}
+          className={`flow-label${selected ? ' is-selected' : ''}`}
+          style={{
+            color,
+            transform: `translate(-50%, -50%) translate(${(start.x + end.x) / 2}px, ${(start.y + end.y) / 2}px)`,
+          }}
         >
-          {flowSummary(data.flow)}
+          {flowLabel(data.flow.protocol, data.flow.settings)}
         </div>
       </EdgeLabelRenderer>
     </>

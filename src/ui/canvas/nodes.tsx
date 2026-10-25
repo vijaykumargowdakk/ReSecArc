@@ -1,6 +1,6 @@
 import { Handle, Position, type Node, type NodeProps } from '@xyflow/react';
 import type { CSSProperties } from 'react';
-import { DEVICE_CATALOG } from '../../model/catalog';
+import { DEVICE_CATALOG, kindLabel } from '../../model/catalog';
 import { levelLabel, type PurdueLane } from '../../model/purdue';
 import type { Device, Zone } from '../../model/schema';
 import { DeviceIcon } from '../DeviceIcon';
@@ -25,7 +25,7 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
       <span className="device-node__text">
         <span className="device-node__label">{device.label || DEVICE_CATALOG[device.type].label}</span>
         <span className="device-node__meta">
-          {DEVICE_CATALOG[device.type].label} · {levelLabel(device.purdueLevel)}
+          {kindLabel(device.type, device.variant)} · {levelLabel(device.purdueLevel)}
           {zone ? ` · ${zone.name}` : ''}
         </span>
       </span>

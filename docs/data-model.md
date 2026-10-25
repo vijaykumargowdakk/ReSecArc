@@ -4,27 +4,35 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
 
 ```jsonc
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "Riverbend Water Treatment (fictional demo)",
+  "sites":   [ /* Site, at least one */ ],
   "devices": [ /* Device */ ],
   "links":   [ /* Link */ ],
   "flows":   [ /* Flow */ ],
-  "zones":   [ /* Zone */ ]
+  "zones":   [ /* Zone */ ],
+  "areas":   [ /* Area */ ]
 }
 ```
+
+Files saved by older versions (`schemaVersion: 1`) are upgraded automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
 
 ## Device
 
 | Field | Type | Notes |
 |-------|------|-------|
 | `id` | string | Unique across the whole project |
-| `type` | `plc` `rtu` `sis` `hmi` `scada` `ews` `historian` `firewall` `switch` `router` `jumphost` `workstation` `internet` `sensor` `actuator` | |
+| `type` | `plc` `rtu` `sis` `machine` `sensor` `actuator` `hmi` `scada` `ews` `historian` `server` `firewall` `switch` `router` `gateway` `wap` `jumphost` `workstation` `internet` | |
+| `variant` | string | A kind of that type from the catalog, e.g. `compact` for a PLC; `generic` when unspecified |
 | `label` | string | Display name |
 | `purdueLevel` | `0` `1` `2` `3` `3.5` `4` `5` | Derived from the lane the device is placed in |
+| `siteId` | string | Must name an existing site |
 | `zoneId` | string or `null` | Must name an existing zone |
+| `areaId` | string or `null` | Must name an area on the same site |
 | `criticality` | `low` `medium` `high` | |
 | `position` | `{ x, y }` | Canvas coordinates |
 | `services` | `{ protocol: rdp/ssh/vnc/https, port }[]` | Listening remote-access services |
+| `asset` | `{ vendor, model, firmware, serial, ip, notes }` | Inventory details; all strings, may be empty |
 | `firewall` | `{ defaultAction, rules[] }` | Present only on `firewall` devices, and required there |
 
 ### Firewall rule
@@ -35,7 +43,7 @@ Rules are evaluated in array order, and the first match applies. If no rule matc
 |-------|------|
 | `id` | string |
 | `src`, `dst` | `{ kind: "any" }`, `{ kind: "zone", id }` or `{ kind: "device", id }` |
-| `protocol` | `any` `modbus` `dnp3` `rdp` `ssh` `vnc` `https` |
+| `protocol` | `any`, any flow protocol id, or `rdp` `ssh` `vnc` `https` |
 | `port` | 1–65535, or `null` for any port |
 | `action` | `allow` or `deny` |
 | `note` | string |
@@ -48,30 +56,27 @@ An undirected network connection: `{ id, source, target, medium }`, where `mediu
 
 ## Flow
 
-A directed protocol session from `source` to `target`.
+A directed protocol session from `source` to `target`:
 
-**Modbus** (`protocol: "modbus"`): `source` is the client and `target` is the server.
+```jsonc
+{ "id": "flow-1", "source": "hmi", "target": "plc", "protocol": "modbus", "port": 502,
+  "settings": { "variant": "tcp", "access": "read-write", "authentication": false } }
+```
 
-| Field | Type |
-|-------|------|
-| `variant` | `tcp` or `tls` (Modbus/TCP Security) |
-| `port` | default 502 (TCP) or 802 (TLS) |
-| `access` | `read`, `write`, `read-write` |
-| `authentication` | boolean |
+`protocol` is an id from the protocol registry in [`src/model/protocols.ts`](../src/model/protocols.ts). The registry defines each protocol's roles (for example client → server or master → outstation), default port and `settings` fields. `settings` must contain exactly those fields, with values of the right type. `port` is `null` for layer-2 protocols, and required otherwise.
 
-**DNP3** (`protocol: "dnp3"`): `source` is the master and `target` is the outstation.
-
-| Field | Type |
-|-------|------|
-| `transport` | `tcp` or `udp` |
-| `port` | default 20000 |
-| `secureAuthentication` | boolean |
-| `tls` | boolean |
-| `controlCommands` | boolean: whether the master may issue control operations |
+| Protocol | Roles | Settings |
+|----------|-------|----------|
+| `modbus` | client → server | `variant` (`tcp`/`tls`), `access` (`read`/`write`/`read-write`), `authentication` |
+| `dnp3` | master → outstation | `transport` (`tcp`/`udp`), `secureAuthentication`, `tls`, `controlCommands` |
 
 ## Zone
 
 `{ id, name, color, trusted, targetSL }`. `color` is a `#rrggbb` hex string and `targetSL` is 1–4.
+
+## Site and area
+
+A site is `{ id, name }`; every project has at least one. An area is a named rectangle on one site, used for cells, lines or substations: `{ id, siteId, name, color, rect: { x, y, width, height }, collapsed }`.
 
 Conduits are not stored. They are derived as the zone pairs joined directly by a link or flow; see [`src/model/conduits.ts`](../src/model/conduits.ts).
 
@@ -80,10 +85,11 @@ Conduits are not stored. They are derived as the zone pairs joined directly by a
 A file is accepted only if:
 
 1. it parses as JSON,
-2. it matches the schema, including `schemaVersion: 1`, and
+2. after any upgrade, it matches the schema, including `schemaVersion: 2`, and
 3. it passes the reference checks:
    - every id is unique;
-   - links, flows, zone assignments and rule endpoints point at things that exist;
+   - links, flows, sites, zones, areas and rule endpoints point at things that exist;
+   - every variant is in the catalog, and every flow's settings match its protocol;
    - nothing connects a device to itself;
    - only firewalls carry rules.
 

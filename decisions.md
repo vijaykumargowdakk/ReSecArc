@@ -59,3 +59,13 @@
 **Decision:** The Stop review hook now reviews only the files in `.claude/.pending-review`. It never blocks because a conversation or plan looks unfinished, and it exits immediately when `stop_hook_active` is true.
 **Why:** It had blocked a turn nine times in a row by judging plan completeness, which is outside its purpose.
 **User input:** Owner asked for the best fix.
+
+## 2026-10-25 — v0.2 roadmap (M6–M13)
+**Decision:** Add device variants, a silhouette icon set, editing power and autosave, sites/areas/search, a protocol registry with more protocols, templates, an inventory view with import/export, and accessibility/themes, as milestones M6–M13.
+**Why:** Make the editor useful for large and varied plants.
+**User input:** Owner approved the plan, chose two-tone device silhouettes for icons, and selected all improvement areas.
+
+## 2026-10-25 — Schema v2 with automatic migration
+**Decision:** Project files move to `schemaVersion: 2`. Devices gain `variant`, `asset`, `siteId` and `areaId`; projects gain `sites` and `areas`; flows become `{ protocol, port, settings }` validated against a protocol registry. v1 files are upgraded on open by `src/model/migrate.ts`.
+**Why:** Bundling every format change into one version bump means one migration. The registry lets new protocols be added as data instead of code branches.
+**User input:** None beyond the approved plan.

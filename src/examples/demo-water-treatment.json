@@ -1,6 +1,12 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "name": "Riverbend Water Treatment (fictional demo)",
+  "sites": [
+    {
+      "id": "site-main",
+      "name": "Main site"
+    }
+  ],
   "devices": [
     {
       "id": "vendor",
@@ -13,7 +19,18 @@
         "x": 600,
         "y": 37
       },
-      "services": []
+      "services": [],
+      "variant": "vendor",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     },
     {
       "id": "office-ws",
@@ -26,7 +43,18 @@
         "x": 300,
         "y": 187
       },
-      "services": []
+      "services": [],
+      "variant": "desktop",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.10.4.21",
+        "notes": ""
+      }
     },
     {
       "id": "corp-router",
@@ -39,7 +67,18 @@
         "x": 600,
         "y": 187
       },
-      "services": []
+      "services": [],
+      "variant": "router",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     },
     {
       "id": "jump",
@@ -57,7 +96,18 @@
           "protocol": "https",
           "port": 443
         }
-      ]
+      ],
+      "variant": "jump",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.30.0.10",
+        "notes": ""
+      }
     },
     {
       "id": "fw-itot",
@@ -120,6 +170,17 @@
             "note": "Historian replication to the DMZ"
           }
         ]
+      },
+      "variant": "ngfw",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
       }
     },
     {
@@ -138,7 +199,18 @@
           "protocol": "https",
           "port": 443
         }
-      ]
+      ],
+      "variant": "replica",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.30.0.20",
+        "notes": ""
+      }
     },
     {
       "id": "scada",
@@ -156,7 +228,18 @@
           "protocol": "rdp",
           "port": 3389
         }
-      ]
+      ],
+      "variant": "scada",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.1.10",
+        "notes": ""
+      }
     },
     {
       "id": "ops-switch",
@@ -169,7 +252,18 @@
         "x": 600,
         "y": 487
       },
-      "services": []
+      "services": [],
+      "variant": "managed",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     },
     {
       "id": "ews",
@@ -187,7 +281,18 @@
           "protocol": "rdp",
           "port": 3389
         }
-      ]
+      ],
+      "variant": "desktop",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.1.20",
+        "notes": ""
+      }
     },
     {
       "id": "historian",
@@ -200,7 +305,18 @@
         "x": 1100,
         "y": 487
       },
-      "services": []
+      "services": [],
+      "variant": "site",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.1.30",
+        "notes": ""
+      }
     },
     {
       "id": "hmi",
@@ -213,7 +329,18 @@
         "x": 350,
         "y": 637
       },
-      "services": []
+      "services": [],
+      "variant": "panel",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.50.2.11",
+        "notes": ""
+      }
     },
     {
       "id": "ctrl-switch",
@@ -226,7 +353,18 @@
         "x": 600,
         "y": 637
       },
-      "services": []
+      "services": [],
+      "variant": "industrial",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     },
     {
       "id": "plc-filter",
@@ -239,7 +377,18 @@
         "x": 350,
         "y": 787
       },
-      "services": []
+      "services": [],
+      "variant": "modular",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.50.2.21",
+        "notes": ""
+      }
     },
     {
       "id": "plc-dosing",
@@ -252,7 +401,18 @@
         "x": 600,
         "y": 787
       },
-      "services": []
+      "services": [],
+      "variant": "compact",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.50.2.22",
+        "notes": ""
+      }
     },
     {
       "id": "sis",
@@ -265,7 +425,18 @@
         "x": 850,
         "y": 787
       },
-      "services": []
+      "services": [],
+      "variant": "safety-plc",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     },
     {
       "id": "rtu-pump",
@@ -278,7 +449,18 @@
         "x": 1100,
         "y": 787
       },
-      "services": []
+      "services": [],
+      "variant": "field",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.50.2.40",
+        "notes": ""
+      }
     },
     {
       "id": "turbidity",
@@ -291,7 +473,18 @@
         "x": 350,
         "y": 937
       },
-      "services": []
+      "services": [],
+      "variant": "analyser",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     },
     {
       "id": "dosing-pump",
@@ -304,7 +497,18 @@
         "x": 600,
         "y": 937
       },
-      "services": []
+      "services": [],
+      "variant": "pump",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     },
     {
       "id": "level",
@@ -317,7 +521,18 @@
         "x": 1100,
         "y": 937
       },
-      "services": []
+      "services": [],
+      "variant": "level",
+      "siteId": "site-main",
+      "areaId": null,
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
     }
   ],
   "links": [
@@ -436,41 +651,49 @@
       "source": "hmi",
       "target": "plc-filter",
       "protocol": "modbus",
-      "variant": "tcp",
       "port": 502,
-      "access": "read-write",
-      "authentication": false
+      "settings": {
+        "variant": "tcp",
+        "access": "read-write",
+        "authentication": false
+      }
     },
     {
       "id": "flow-hmi-dosing",
       "source": "hmi",
       "target": "plc-dosing",
       "protocol": "modbus",
-      "variant": "tcp",
       "port": 502,
-      "access": "read-write",
-      "authentication": false
+      "settings": {
+        "variant": "tcp",
+        "access": "read-write",
+        "authentication": false
+      }
     },
     {
       "id": "flow-scada-filter",
       "source": "scada",
       "target": "plc-filter",
       "protocol": "modbus",
-      "variant": "tcp",
       "port": 502,
-      "access": "read",
-      "authentication": false
+      "settings": {
+        "variant": "tcp",
+        "access": "read",
+        "authentication": false
+      }
     },
     {
       "id": "flow-scada-rtu",
       "source": "scada",
       "target": "rtu-pump",
       "protocol": "dnp3",
-      "transport": "tcp",
       "port": 20000,
-      "secureAuthentication": true,
-      "tls": false,
-      "controlCommands": true
+      "settings": {
+        "transport": "tcp",
+        "secureAuthentication": true,
+        "tls": false,
+        "controlCommands": true
+      }
     }
   ],
   "zones": [
@@ -516,5 +739,6 @@
       "trusted": true,
       "targetSL": 3
     }
-  ]
+  ],
+  "areas": []
 }
