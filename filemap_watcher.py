@@ -7,6 +7,7 @@ Usage:
 """
 import io
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -35,19 +36,33 @@ def mtime(path):
     return datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d %H:%M")
 
 
-def build_tree(directory, depth, lines, counts):
+def git_ignored():
+    """Paths git ignores (relative, forward slashes), so local-only files never reach the committed map."""
+    try:
+        out = subprocess.run(
+            ["git", "status", "--porcelain", "--ignored", "--untracked-files=normal"],
+            cwd=ROOT, capture_output=True, text=True, encoding="utf-8", check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return set()
+    return {line[3:].strip('"').rstrip("/") for line in out.splitlines() if line.startswith("!! ")}
+
+
+def build_tree(directory, depth, lines, counts, ignored):
     try:
         entries = sorted(os.scandir(directory), key=lambda e: (not e.is_dir(), e.name.lower()))
     except OSError:
         return
     indent = "  " * depth
     for entry in entries:
+        if os.path.relpath(entry.path, ROOT).replace(os.sep, "/") in ignored:
+            continue
         if entry.is_dir(follow_symlinks=False):
             if entry.name in SKIP_DIRS:
                 continue
             counts[0] += 1
             lines.append(f"{indent}- 📁 **{entry.name}/**")
-            build_tree(entry.path, depth + 1, lines, counts)
+            build_tree(entry.path, depth + 1, lines, counts, ignored)
         else:
             if os.path.splitext(entry.name)[1].lower() in SKIP_EXTS:
                 continue
@@ -64,7 +79,7 @@ def build_tree(directory, depth, lines, counts):
 
 def generate():
     lines, counts = [], [0, 0]
-    build_tree(ROOT, 0, lines, counts)
+    build_tree(ROOT, 0, lines, counts, git_ignored())
     header = [
         "# FILEMAP",
         "",
