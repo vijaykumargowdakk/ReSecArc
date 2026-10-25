@@ -1,15 +1,17 @@
 // Named revisions of a design, kept inside the project file, and the change list between two designs.
 // Items are matched by id, which copy-on-save keeps stable between a revision and the live design.
 import { kindLabel } from './catalog';
+import { checkById } from './checks';
 import { newId } from './ops';
+import { describePolicy } from './policies';
 import { getProtocol } from './protocols';
 import { levelLabel } from './purdue';
 import type { Design, Device, FirewallRule, Flow, Link, Project, Revision } from './schema';
 
 export function designOf(project: Project): Design {
   // Listing the fields keeps schemaVersion and revisions out even if more top-level fields appear later.
-  const { name, sites, devices, links, flows, zones, areas, notes, networks, fieldDefs } = project;
-  return structuredClone({ name, sites, devices, links, flows, zones, areas, notes, networks, fieldDefs });
+  const { name, sites, devices, links, flows, zones, areas, notes, networks, fieldDefs, policies, disabledChecks } = project;
+  return structuredClone({ name, sites, devices, links, flows, zones, areas, notes, networks, fieldDefs, policies, disabledChecks });
 }
 
 export function saveRevision(project: Project, name: string, now = new Date(), id = newId('rev')): Project {
@@ -33,7 +35,20 @@ export function restoreRevision(project: Project, id: string): Project {
 }
 
 export type ChangeKind = 'added' | 'removed' | 'changed';
-export type ItemKind = 'project' | 'field' | 'site' | 'zone' | 'network' | 'area' | 'device' | 'link' | 'flow' | 'rule' | 'note';
+export type ItemKind =
+  | 'project'
+  | 'field'
+  | 'site'
+  | 'zone'
+  | 'network'
+  | 'area'
+  | 'device'
+  | 'link'
+  | 'flow'
+  | 'rule'
+  | 'note'
+  | 'policy'
+  | 'check';
 
 export interface Change {
   item: ItemKind;
@@ -284,6 +299,23 @@ export function diffDesigns(before: Design, after: Design): Change[] {
       (n) => n.siteId,
     ),
   );
+
+  changes.push(
+    ...compare('policy', before.policies, after.policies, (r) => r.name || 'Unnamed rule', (a, b) => [
+      ...fieldChanges(a, b, [
+        ['name', (r) => r.name],
+        ['enabled', (r) => (r.enabled ? 'yes' : 'no')],
+        ['severity', (r) => r.severity],
+      ]),
+      ...(describePolicy(a, before) === describePolicy(b, after) ? [] : [`rule: ${describePolicy(a, before)} → ${describePolicy(b, after)}`]),
+    ]),
+  );
+  const wasOff = new Set(before.disabledChecks);
+  const nowOff = new Set(after.disabledChecks);
+  for (const id of new Set([...wasOff, ...nowOff])) {
+    if (wasOff.has(id) === nowOff.has(id)) continue;
+    changes.push({ item: 'check', id, change: 'changed', label: checkById(id)?.title ?? id, details: [nowOff.has(id) ? 'switched off' : 'switched on'] });
+  }
   return changes;
 }
 
@@ -304,6 +336,8 @@ const ITEM_TITLES: Record<ItemKind, string> = {
   flow: 'Protocol flows',
   rule: 'Firewall rules',
   note: 'Notes',
+  policy: 'Company policies',
+  check: 'Built-in security checks',
 };
 export const ITEM_ORDER = Object.keys(ITEM_TITLES) as ItemKind[];
 export const itemTitle = (k: ItemKind) => ITEM_TITLES[k];
@@ -320,6 +354,8 @@ const NOUNS: Record<ItemKind, [string, string]> = {
   flow: ['flow', 'flows'],
   rule: ['firewall rule', 'firewall rules'],
   note: ['note', 'notes'],
+  policy: ['policy rule', 'policy rules'],
+  check: ['security check', 'security checks'],
 };
 const VERBS: Record<ChangeKind, string> = { added: 'Added', removed: 'Removed', changed: 'Changed' };
 const clip = (s: string, n = 90) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);

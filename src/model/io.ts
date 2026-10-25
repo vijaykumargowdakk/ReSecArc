@@ -37,6 +37,7 @@ function designErrors(project: Design): string[] {
     ...project.networks.map((n) => n.id),
     ...project.fieldDefs.map((f) => f.id),
     ...project.devices.flatMap((d) => d.firewall?.rules.map((r) => r.id) ?? []),
+    ...project.policies.map((r) => r.id),
   ];
   for (const id of all) {
     if (seen.has(id)) errors.push(`Duplicate id "${id}"`);
@@ -90,6 +91,15 @@ function designErrors(project: Design): string[] {
           errors.push(`Rule "${r.id}" ${side} refers to unknown device "${ep.id}"`);
         }
       }
+    }
+  }
+  // Unknown ids in disabledChecks are kept: they may name checks from a newer version.
+  for (const r of project.policies) {
+    for (const [side, sel] of [['from', r.from], ['to', r.to]] as const) {
+      if (sel.kind === 'zone' && !zoneIds.has(sel.id)) errors.push(`Policy "${r.id}" ${side} refers to unknown zone "${sel.id}"`);
+    }
+    for (const id of r.protocols) {
+      if (!getProtocol(id)) errors.push(`Policy "${r.id}" uses unknown protocol "${id}"`);
     }
   }
   for (const e of [...project.links, ...project.flows]) {

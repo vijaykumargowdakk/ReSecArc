@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const deviceTypeSchema = z.enum([
   'plc',
@@ -189,6 +189,30 @@ export const fieldDefSchema = z.object({
   options: z.array(z.string().min(1).max(60)).max(100),
 });
 
+/** Which devices a company policy rule applies to. */
+export const policySelectorSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('any') }),
+  z.object({ kind: z.literal('levels'), levels: z.array(purdueLevelSchema).min(1) }),
+  z.object({ kind: z.literal('zone'), id: idSchema }),
+  z.object({ kind: z.literal('type'), types: z.array(deviceTypeSchema).min(1) }),
+  z.object({ kind: z.literal('tag'), tag: z.string().min(1).max(60) }),
+]);
+
+/** A company rule that forbids direct links or flows between two groups of devices. */
+export const policyRuleSchema = z.object({
+  id: idSchema,
+  name: z.string().max(120),
+  enabled: z.boolean(),
+  severity: z.enum(['high', 'medium', 'low']),
+  from: policySelectorSchema,
+  to: policySelectorSchema,
+  /** Also forbid the reverse direction. */
+  bothWays: z.boolean(),
+  connection: z.enum(['link', 'flow', 'any']),
+  /** Flow protocol ids the rule is limited to; empty means any protocol. */
+  protocols: z.array(idSchema).max(50),
+});
+
 /** Everything that describes the design itself; a revision stores a copy of this. */
 export const designSchema = z.object({
   name: z.string(),
@@ -201,6 +225,9 @@ export const designSchema = z.object({
   notes: z.array(noteSchema),
   networks: z.array(networkSchema),
   fieldDefs: z.array(fieldDefSchema).max(50),
+  policies: z.array(policyRuleSchema).max(200),
+  /** Built-in security check ids switched off for this project. */
+  disabledChecks: z.array(z.string().min(1)).max(100),
 });
 
 export const revisionSchema = z.object({
@@ -232,6 +259,8 @@ export type Area = z.infer<typeof areaSchema>;
 export type Note = z.infer<typeof noteSchema>;
 export type Network = z.infer<typeof networkSchema>;
 export type FieldDef = z.infer<typeof fieldDefSchema>;
+export type PolicySelector = z.infer<typeof policySelectorSchema>;
+export type PolicyRule = z.infer<typeof policyRuleSchema>;
 export type Design = z.infer<typeof designSchema>;
 export type Revision = z.infer<typeof revisionSchema>;
 export type Project = z.infer<typeof projectSchema>;

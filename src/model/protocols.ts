@@ -25,6 +25,8 @@ export interface ProtocolDef {
   dash: string;
   /** Short badges shown on the edge label after the protocol name. */
   badges: (s: Settings) => string[];
+  /** Whether the settings give message authentication or encryption; used by the security checks. */
+  isSecured: (s: Settings) => boolean;
   /** Overrides the protocol name on the edge label, e.g. a custom protocol's own name. */
   title?: (s: Settings) => string;
 }
@@ -62,6 +64,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#c2410c',
     dash: '6 4',
     badges: (s) => [s.variant === 'tls' ? 'TLS' : '', ACCESS_BADGE[String(s.access)] ?? ''],
+    isSecured: (s) => s.variant === 'tls',
   },
   {
     id: 'dnp3',
@@ -86,6 +89,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#6d28d9',
     dash: '10 4 2 4',
     badges: (s) => [s.secureAuthentication ? 'SA' : '', s.tls ? 'TLS' : '', s.controlCommands ? 'ctrl' : ''],
+    isSecured: (s) => s.secureAuthentication === true || s.tls === true,
   },
   {
     id: 'enip',
@@ -109,6 +113,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#0369a1',
     dash: '2 3',
     badges: (s) => [s.messaging === 'implicit' ? 'I/O' : '', s.cipSecurity ? 'CIP-Sec' : ''],
+    isSecured: (s) => s.cipSecurity === true,
   },
   {
     id: 'profinet',
@@ -142,6 +147,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#15803d',
     dash: '12 3',
     badges: (s) => [s.realtime === 'irt' ? 'IRT' : '', s.security ? 'Sec' : ''],
+    isSecured: (s) => s.security === true,
   },
   {
     id: 'opcua',
@@ -178,6 +184,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
       s.securityMode === 'sign' ? 'Sign' : s.securityMode === 'signandencrypt' ? 'Encrypt' : '',
       s.userAuth === 'anonymous' ? 'anon' : '',
     ],
+    isSecured: (s) => s.securityMode !== 'none',
   },
   {
     id: 'iec104',
@@ -189,6 +196,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#b45309',
     dash: '8 3 2 3 2 3',
     badges: (s) => [s.tls ? 'TLS' : '', s.controlCommands ? 'ctrl' : ''],
+    isSecured: (s) => s.tls === true,
   },
   {
     id: 'mms',
@@ -200,6 +208,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#0f766e',
     dash: '6 2 2 2',
     badges: (s) => [s.tls ? 'TLS' : '', s.controlCommands ? 'ctrl' : ''],
+    isSecured: (s) => s.tls === true,
   },
   {
     id: 'goose',
@@ -210,6 +219,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#be123c',
     dash: '1 3',
     badges: (s) => [s.authenticated ? 'auth' : ''],
+    isSecured: (s) => s.authenticated === true,
   },
   {
     id: 'bacnet',
@@ -224,6 +234,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#4d7c0f',
     dash: '9 5',
     badges: (s) => [s.secureConnect ? 'SC' : '', ACCESS_BADGE[String(s.access)] ?? ''],
+    isSecured: (s) => s.secureConnect === true,
   },
   {
     id: 's7',
@@ -246,6 +257,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#1d4ed8',
     dash: '3 3 9 3',
     badges: (s) => [s.variant === 'plus' ? '+' : '', ACCESS_BADGE[String(s.access)] ?? ''],
+    isSecured: () => false,
   },
   {
     id: 'mqtt',
@@ -270,6 +282,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     color: '#ca8a04',
     dash: '14 4',
     badges: (s) => [s.tls ? 'TLS' : '', s.clientAuth === 'none' ? 'no-auth' : ''],
+    isSecured: (s) => s.tls === true,
   },
   {
     id: 'custom',
@@ -297,6 +310,7 @@ export const PROTOCOLS: readonly ProtocolDef[] = [
     dash: '5 3',
     badges: (s) => [s.encrypted ? 'enc' : ''],
     title: (s) => String(s.name || 'Custom'),
+    isSecured: (s) => s.encrypted === true,
   },
 ];
 
