@@ -1060,7 +1060,7 @@ Treat project files, exports and share links as sensitive: they can contain addr
 | Image export | html-to-image 1.11.11 (pinned) | The version React Flow recommends for exporting diagrams |
 | Compression | Browser `CompressionStream` | Share links without an extra dependency |
 | Build | Vite 5 | Fast development server and small production bundles |
-| Tests | Vitest 2 | Shares the build configuration; fast |
+| Tests | Vitest 2; Playwright with axe-core | Fast unit tests; real-browser flows and accessibility checks against the production build |
 | Lint | ESLint 9 with typescript-eslint | Consistent code |
 
 Licences of all runtime dependencies are listed in [docs/third-party.md](docs/third-party.md).
@@ -1088,18 +1088,29 @@ Open the printed local URL. The fictional Riverbend water treatment plant loads 
 | `npm test` | Unit tests (Vitest) |
 | `npm run build` | Production build into `dist/` |
 | `npm run preview` | Serve the production build locally |
-| `npm run ci` | Type check, lint, tests and build, as run in CI |
+| `npm run ci` | Type check, lint, unit tests, build and bundle-size check, as run in CI |
+| `npm run e2e` | Browser tests with accessibility checks (Playwright; run `npx playwright install chromium` once) |
 
 The build uses relative asset paths, so `dist/` can be served from any static host or sub-path.
 
 ### 22.2 Continuous integration
 
+Two jobs run in parallel on every push and pull request:
+
 ```mermaid
-flowchart LR
-    PUSH["Push to main<br/>or pull request"] --> CI["npm ci<br/>on Node.js 22"]
-    CI --> CHK["Type check · Lint<br/>114 unit tests"]
-    CHK --> BU["Production build"]
-    BU --> OK(["Green"])
+flowchart TB
+    PUSH["Push to main or pull request"] --> J1["Job: ci"]
+    PUSH --> J2["Job: e2e"]
+    J1 --> A1["Type check · Lint"]
+    A1 --> A2["114 unit tests"]
+    A2 --> A3["Production build"]
+    A3 --> A4["Startup bundle within budget"]
+    J2 --> B1["Build and serve with vite preview"]
+    B1 --> B2["Browser tests in Chromium"]
+    B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
+    B3 --> B4["1,000-device benchmark"]
+    A4 --> OK(["Green"])
+    B4 --> OK
 ```
 
 ### 22.3 Branching
@@ -1140,7 +1151,13 @@ gitGraph
 
 ## 23. Testing
 
-The model layer is pure TypeScript, so its rules are tested directly without a browser. UI behaviour is checked in a real browser during development.
+Testing has three layers:
+
+- **Unit tests** (Vitest) cover the model layer, which is pure TypeScript, so its rules are tested directly without a browser.
+- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions and CSV import.
+- **Accessibility scans** (axe) check every main view and dialog against WCAG 2.1 A and AA in all three themes. Any violation fails CI.
+
+A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and checks that opening it, switching sites and editing each stay within time budgets. It also checks that a diagram export of a 200-device site contains every device.
 
 ```mermaid
 pie showData
@@ -1173,6 +1190,13 @@ pie showData
 | `share.test.ts` | Share link round-trips and damaged links |
 | `templates.test.ts` | Every template loads, round-trips, uses every protocol and has a clean IP plan |
 | `icons.test.ts` | Every device kind has an icon |
+
+| Browser test file | Covers |
+|-------------------|--------|
+| `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
+| `e2e/data.spec.ts` | Save and open, broken files, autosave restore, share links, IP warnings, revisions, CSV import |
+| `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, dialogs and comparison in each theme |
+| `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 
 ---
 

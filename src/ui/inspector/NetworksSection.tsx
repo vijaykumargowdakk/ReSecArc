@@ -2,6 +2,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { addNetwork, createNetwork, networkSummaries, removeNetwork, suggestCidr, updateNetwork } from '../../model/ipam';
 import type { Network } from '../../model/schema';
+import { useAddressReport } from '../../store/derived';
 import { useProject } from '../../store/useProject';
 import { Field, IntInput, Section, Select, TextInput } from '../form';
 import { IssueList } from './AddressInfo';
@@ -10,7 +11,8 @@ import { IssueList } from './AddressInfo';
 export function NetworksSection() {
   const project = useProject((s) => s.project);
   const apply = useProject((s) => s.apply);
-  const summaries = useMemo(() => networkSummaries(project), [project]);
+  const report = useAddressReport();
+  const summaries = useMemo(() => networkSummaries(project, report), [project, report]);
   const patch = (id: string, p: Partial<Omit<Network, 'id'>>) =>
     apply((q) => updateNetwork(q, id, p), `network:${id}:${Object.keys(p).join(',')}`);
   const zoneOptions = [{ value: '', label: 'No zone' }, ...project.zones.map((z) => ({ value: z.id, label: z.name }))];

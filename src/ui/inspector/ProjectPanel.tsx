@@ -1,8 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { useMemo } from 'react';
-import { deriveConduits } from '../../model/conduits';
 import { addZone, countRuleReferences, newId, removeZone, updateZone } from '../../model/ops';
 import type { Zone } from '../../model/schema';
+import { useConduits } from '../../store/derived';
 import { useProject } from '../../store/useProject';
 import { Field, Section, Select, TextInput, Toggle } from '../form';
 import { NetworksSection } from './NetworksSection';
@@ -19,7 +18,7 @@ const SECURITY_LEVELS = [
 export function ProjectPanel() {
   const project = useProject((s) => s.project);
   const apply = useProject((s) => s.apply);
-  const conduits = useMemo(() => deriveConduits(project), [project]);
+  const conduits = useConduits();
   const zoneName = (id: string) => project.zones.find((z) => z.id === id)?.name ?? id;
   const patchZone = (id: string, p: Partial<Omit<Zone, 'id'>>) => apply((q) => updateZone(q, id, p));
 

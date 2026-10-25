@@ -2,7 +2,7 @@
 import Papa from 'papaparse';
 import { DEVICE_CATALOG, kindLabel } from './catalog';
 import { addDevice, createDevice, emptyAsset } from './ops';
-import { addressReport, addressSortKey } from './ipam';
+import { addressReport, addressSortKey, type AddressReport } from './ipam';
 import { flowLabel, getProtocol } from './protocols';
 import { laneTop, levelLabel, NODE_WIDTH, PURDUE_LANES } from './purdue';
 import { deviceTypeSchema, type Device, type DeviceType, type Project, type PurdueLevel, type RuleEndpoint } from './schema';
@@ -100,8 +100,7 @@ export interface AddressRow {
 }
 
 /** Every device address with its network, sorted numerically; shared by the inventory and the CSV export. */
-export function addressRows(project: Project): AddressRow[] {
-  const report = addressReport(project);
+export function addressRows(project: Project, report: AddressReport = addressReport(project)): AddressRow[] {
   const zone = names(project.zones);
   const site = names(project.sites);
   return project.devices

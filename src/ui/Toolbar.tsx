@@ -1,8 +1,6 @@
 import { Cable, CircleHelp, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { useReactFlow } from '@xyflow/react';
-import { devicesToCsv, flowsToCsv, rulesToCsv } from '../model/csv';
-import { projectToMarkdown } from '../model/exportDoc';
 import { parseProject, serializeProject } from '../model/io';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
@@ -11,7 +9,7 @@ import type { CanvasEdge } from './canvas/edges';
 import type { CanvasNode } from './canvas/nodes';
 import { downloadText, downloadUrl, slug } from './download';
 import { exportDiagram } from './exportDiagram';
-import { useProject, type ConnectMode } from '../store/useProject';
+import { hasEdits, useProject, type ConnectMode } from '../store/useProject';
 
 const clock = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
 
@@ -54,7 +52,7 @@ export function Toolbar({
   const fileInput = useRef<HTMLInputElement>(null);
 
   const replace = (next: typeof project, message: string) => {
-    if (project.devices.length > 0 && !window.confirm(message)) return;
+    if (hasEdits() && !window.confirm(message)) return;
     onErrors([]);
     load(next);
   };
@@ -70,9 +68,10 @@ export function Toolbar({
       onErrors([`Could not export the diagram: ${(err as Error).message}`]);
     }
   };
-  const exportFile = (suffix: string, text: string, mime: string) => {
+  // The CSV and Markdown writers (and the CSV library) are loaded on first use.
+  const exportFile = async (suffix: string, mime: string, write: (m: typeof import('../model/exportFiles')) => string) => {
     closeMenu();
-    downloadText(`${slug(project.name)}${suffix}`, text, mime);
+    downloadText(`${slug(project.name)}${suffix}`, write(await import('../model/exportFiles')), mime);
   };
 
   const open = async (file: File) => {
@@ -211,16 +210,16 @@ export function Toolbar({
               Print / save as PDF…
             </button>
             <hr />
-            <button type="button" role="menuitem" onClick={() => exportFile('.md', projectToMarkdown(project), 'text/markdown')}>
+            <button type="button" role="menuitem" onClick={() => exportFile('.md', 'text/markdown', (m) => m.projectToMarkdown(project))}>
               Architecture document (Markdown)
             </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('-devices.csv', devicesToCsv(project), 'text/csv')}>
+            <button type="button" role="menuitem" onClick={() => exportFile('-devices.csv', 'text/csv', (m) => m.devicesToCsv(project))}>
               Devices (CSV)
             </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('-flows.csv', flowsToCsv(project), 'text/csv')}>
+            <button type="button" role="menuitem" onClick={() => exportFile('-flows.csv', 'text/csv', (m) => m.flowsToCsv(project))}>
               Protocol flows (CSV)
             </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('-firewall-rules.csv', rulesToCsv(project), 'text/csv')}>
+            <button type="button" role="menuitem" onClick={() => exportFile('-firewall-rules.csv', 'text/csv', (m) => m.rulesToCsv(project))}>
               Firewall rules (CSV)
             </button>
           </div>
