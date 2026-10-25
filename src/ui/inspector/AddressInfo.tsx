@@ -1,7 +1,6 @@
 import { TriangleAlert } from 'lucide-react';
-import { useMemo } from 'react';
-import { addressReport } from '../../model/ipam';
 import type { Device } from '../../model/schema';
+import { useAddressReport } from '../../store/derived';
 import { useProject } from '../../store/useProject';
 
 export function IssueList({ issues }: { issues: string[] }) {
@@ -21,7 +20,7 @@ export function IssueList({ issues }: { issues: string[] }) {
 /** Which planned network each of a device's addresses is in, plus any addressing warnings. */
 export function AddressInfo({ device }: { device: Device }) {
   const project = useProject((s) => s.project);
-  const report = useMemo(() => addressReport(project), [project]);
+  const report = useAddressReport();
   const addresses = report.addresses.get(device.id) ?? [];
   const issues = (report.issues.get(device.id) ?? []).map((i) => i.message);
   if (addresses.length === 0 || (project.networks.length === 0 && issues.length === 0)) return null;

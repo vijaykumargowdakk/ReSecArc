@@ -8,20 +8,20 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3).
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 (M18–M26) is in progress.
 
 No analysis features have been built, and none are planned.
 
 Work is committed on feature branches and merged into `main` with merge commits, then pushed to `origin` (github.com/vijaykumargowdakk/conduitot). Before each push, sweep history for retired names and confirm no AI attribution lines.
 
 ## Dev loop
-- Install: `npm ci`
+- Install: `npm ci` (browser tests also need `npx playwright install chromium` once)
 - Dev server: `npm run dev`
 - Type check: `npm run typecheck`
 - Lint: `npm run lint`
 - Tests: `npm test`
 - Production build: `npm run build`
-- CI (run before pushing): `npm run ci`
+- CI (run before pushing): `npm run ci`, then `npm run e2e`
 - Regenerate file map: `python filemap_watcher.py --once`
 
 ## Milestones
@@ -45,6 +45,15 @@ Work is committed on feature branches and merged into `main` with merge commits,
 | M15 | IP and VLAN planning | Networks (CIDR, VLAN, zone, site), IP plan table, duplicate/invalid/out-of-subnet address warnings | Warnings shown in inspector and inventory ✅ |
 | M16 | Revisions and change diff | Named revisions saved in the project file, compare any revision with the current design, highlight changes on the canvas | Diff lists added/removed/changed items ✅ |
 | M17 | Share by link, more CSV import | Whole project compressed into the link's #fragment, open-shared-project banner, CSV import of flows and firewall rules | A shared link opens the same project ✅ |
+| M18 | Safety net and speed | Playwright end-to-end tests with axe checks in CI, code splitting, visible-only rendering, shared derived data, 1,000-device benchmark | e2e green in CI; startup bundle within budget ✅ (546 kB, was 617 kB) |
+| M19 | Schema v4 | Link ports/VLANs/network, waypoints, locking, device tags and custom fields | v3 files open; revisions diff the new fields |
+| M20 | Ports, bend points, layers, locking | Link interface editing and Links tab, polyline edges, layer toggles, lock | Ports shown on canvas; layers persist per browser |
+| M21 | Custom fields and tags | Field definitions, editing, bulk edit, inventory columns, tag filter, search, CSV | Round-trips through CSV |
+| M22 | Command palette, tour, history panel | Action registry, first-run tour, named undo steps | Every toolbar action reachable from the palette |
+| M23 | Outline view, keyboard connections | Accessible tree view of the design, connect devices on the canvas by keyboard | Keyboard-only connection e2e passes |
+| M24 | Touch, text size, language | Coarse-pointer targets, long-press menus, text size setting, English/Hindi interface | Tablet e2e passes; dictionaries match |
+| M25 | Report, draw.io, merge | Static SVG renderer, full HTML/PDF report, draw.io export, merge sites from another project | Report includes every site |
+| M26 | Works offline | Installable app with offline precache and update prompt | Edits work with the network off |
 
 ## Documentation
 - `README.md` is the full guide: purpose, features, architecture and data-flow diagrams (Mermaid, checked with Mermaid 11 in light and dark themes), and the development guide. Screenshots are in `docs/images/`; retake them when the UI changes noticeably.

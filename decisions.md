@@ -159,3 +159,14 @@
 **Decision:** Positions and sizes in project files must lie within ±1,000,000, and each stub-placement and area-shifting loop has an explicit cap on its iterations.
 **Why:** An automated security review found that a crafted file or share link with a huge coordinate (e.g. 1e300) could make `y += 48` leave `y` unchanged, freezing the tab. Bounding the inputs keeps the arithmetic exact; capping the loops guarantees they end regardless.
 **User input:** None (security fix).
+
+## 2026-10-25 — v0.4 roadmap (M18–M26)
+**Decision:** v0.4 adds browser tests with accessibility checks and speed work first (M18), then schema v4 (M19), ports/bend points/layers/locking (M20), custom fields and tags (M21), command palette/tour/history panel (M22), outline view and keyboard connections (M23), touch/text size/Hindi (M24), full report/draw.io/merge (M25) and offline support (M26). Security analysis items from the original scope stay out.
+**Why:** Make the tool easier, more accessible and more capable; protect the larger changes with end-to-end tests before making them.
+**User input:** Owner selected every proposed item and approved the plan.
+
+## 2026-10-25 — Browser tests, accessibility gate and startup bundle budget (M18)
+**Decision:** Playwright tests run against the production build (`vite preview`) in a separate CI job. They cover the main flows, axe WCAG 2.1 A/AA scans of every main view and dialog in all three themes (any violation fails), and a benchmark with 1,000 generated devices. The Inventory, dialogs, CSV and Markdown writers, image export and four of the five templates now load on demand. The startup bundle went from 617 kB to 546 kB (169 kB gzipped), and `scripts/check-bundle.mjs` fails CI above 575 kB. The 350 kB target in the plan was dropped: React, React DOM, React Flow with its d3 helpers, and zod alone come to about 380 kB, so 350 kB would mean replacing core libraries. Sites with more than 300 nodes draw only the visible part, and export temporarily draws everything so files stay complete. Site framing now uses bounds computed from known node sizes, because unmeasured (undrawn) nodes would be ignored by `fitView`. The minimum zoom is now 5% so large sites fit on screen. The address report and conduit list are computed once per change and shared.
+**Other fixes found by the new tests:** buttons in information banners had too little contrast in the dark theme. Replacing an unedited design (New, Open, shared link) no longer asks for confirmation; only edited work does.
+**Why:** Later v0.4 milestones change the file format and the canvas heavily, so they need an automated safety net first.
+**User input:** Approved in the v0.4 plan.

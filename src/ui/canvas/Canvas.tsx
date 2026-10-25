@@ -24,6 +24,7 @@ import { moveArea, removeArea } from '../../model/structure';
 import { announce } from '../../store/announcer';
 import { useComparison } from '../../store/compare';
 import { flowColorMode, useTheme } from '../../store/theme';
+import { useRenderAll } from '../exportDiagram';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { Legend } from './Legend';
@@ -41,6 +42,9 @@ export function parseDeviceKind(payload: string): { type: DeviceType; variant: s
   if (!type.success || !variantInfo(type.data, variant)) return null;
   return { type: type.data, variant };
 }
+
+/** Above this many nodes, only the visible part of the site is drawn. */
+const VIRTUALIZE_ABOVE = 300;
 
 const DROP_OFFSET = { x: NODE_WIDTH / 2, y: NODE_HEIGHT / 2 };
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -86,8 +90,9 @@ export function Canvas() {
   const snapToGrid = useProject((s) => s.snapToGrid);
   const flowProtocol = useProject((s) => s.flowProtocol);
   const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
-  const { screenToFlowPosition, setCenter, fitView } = useReactFlow();
+  const { screenToFlowPosition, setCenter, fitView, fitBounds } = useReactFlow();
   const theme = useTheme((s) => s.theme);
+  const renderAll = useRenderAll((s) => s.all);
   const dragging = useRef(false);
 
   const dimmed = useMemo(() => dimmedIds(project, filter), [project, filter]);
@@ -106,12 +111,24 @@ export function Canvas() {
   // Frame the newly shown site (devices, areas, notes and stubs), unless a search result is about to be centred instead.
   const latestView = useRef(view);
   latestView.current = view;
+  // Bounds come from known node sizes rather than measured ones: when only visible nodes are drawn,
+  // most of a newly opened site has not been measured yet.
   useEffect(() => {
     if (useProject.getState().focus) return;
-    const ids = latestView.current.nodes.map((n) => ({ id: n.id }));
-    const frame = requestAnimationFrame(() => fitView({ padding: 0.1, nodes: ids.length ? ids : undefined, duration: reducedMotion() ? 0 : 250 }));
+    const nodes = latestView.current.nodes;
+    const frame = requestAnimationFrame(() => {
+      if (nodes.length === 0) {
+        fitView({ padding: 0.1, duration: reducedMotion() ? 0 : 250 });
+        return;
+      }
+      const xs = nodes.flatMap((n) => [n.position.x, n.position.x + (n.width ?? NODE_WIDTH)]);
+      const ys = nodes.flatMap((n) => [n.position.y, n.position.y + (n.height ?? NODE_HEIGHT)]);
+      const x = Math.min(...xs);
+      const y = Math.min(...ys);
+      fitBounds({ x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y }, { padding: 0.1, duration: reducedMotion() ? 0 : 250 });
+    });
     return () => cancelAnimationFrame(frame);
-  }, [siteId, fitView]);
+  }, [siteId, fitView, fitBounds]);
 
   useEffect(() => {
     if (!focus) return;
@@ -281,6 +298,7 @@ export function Canvas() {
         onNodeContextMenu={onNodeContextMenu}
         onPaneClick={() => setMenu(null)}
         onMoveStart={() => setMenu(null)}
+        onlyRenderVisibleElements={!renderAll && nodes.length > VIRTUALIZE_ABOVE}
         snapToGrid={snapToGrid}
         snapGrid={[25, 25]}
         onSelectionChange={onSelectionChange}
@@ -288,7 +306,7 @@ export function Canvas() {
         isValidConnection={(c) => c.source !== c.target}
         connectionMode={ConnectionMode.Loose}
         deleteKeyCode={['Delete', 'Backspace']}
-        minZoom={0.2}
+        minZoom={0.05}
         colorMode={flowColorMode(theme)}
         ariaLabelConfig={{ 'node.a11yDescription.default': 'Press Enter or Space to select. Use arrow keys to move the selection. Press Delete to remove it.' }}
       >

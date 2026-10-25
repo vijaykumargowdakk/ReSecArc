@@ -12,7 +12,13 @@
 | papaparse | 5.x | MIT | CSV import and export |
 | html-to-image | 1.11.11 (pinned) | MIT | Diagram export to SVG and PNG |
 
-Build and test tooling (Vite, TypeScript, Vitest, ESLint) is used only in development and is not shipped in the bundle.
+Build and test tooling is used only in development and is not shipped in the bundle:
+
+| Package | Licence | Used for |
+|---------|---------|----------|
+| Vite, TypeScript, Vitest, ESLint | MIT / Apache-2.0 | Build, type checking, unit tests, linting |
+| @playwright/test | Apache-2.0 | Browser tests |
+| @axe-core/playwright (axe-core) | MPL-2.0 | Accessibility scans in browser tests |
 
 ## Original assets
 

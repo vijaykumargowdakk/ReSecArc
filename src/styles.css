@@ -385,6 +385,20 @@ button:focus-visible {
   flex: 1;
 }
 
+.notice .button {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+}
+
+.notice .button:hover {
+  border-color: var(--accent);
+}
+
 .notice ul {
   margin: 0;
   padding-left: 18px;

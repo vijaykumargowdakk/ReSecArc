@@ -2,11 +2,12 @@ import { ArrowDownUp, Crosshair, Download, Trash2, TriangleAlert, Upload } from 
 import { useMemo, useState } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../model/catalog';
 import { addressesToCsv, addressRows, devicesToCsv, endpointName, flowsToCsv, rulesToCsv } from '../model/csv';
-import { addressReport, addressSortKey, deviceAddresses } from '../model/ipam';
+import { addressSortKey, deviceAddresses } from '../model/ipam';
 import { removeDevice, updateDevice } from '../model/ops';
 import { flowLabel, getProtocol } from '../model/protocols';
 import { laneTop, levelLabel, PURDUE_LANES } from '../model/purdue';
 import type { Asset, Device, PurdueLevel } from '../model/schema';
+import { useAddressReport } from '../store/derived';
 import { NO_SELECTION, useProject } from '../store/useProject';
 import { downloadText, slug } from './download';
 import { DeviceIcon } from './icons';
@@ -34,8 +35,8 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
   const zoneName = useMemo(() => new Map(project.zones.map((z) => [z.id, z.name])), [project.zones]);
   const siteName = useMemo(() => new Map(project.sites.map((s) => [s.id, s.name])), [project.sites]);
   const deviceName = useMemo(() => new Map(project.devices.map((d) => [d.id, d.label])), [project.devices]);
-  const report = useMemo(() => addressReport(project), [project]);
-  const addresses = useMemo(() => (tab === 'addresses' ? addressRows(project) : []), [project, tab]);
+  const report = useAddressReport();
+  const addresses = useMemo(() => (tab === 'addresses' ? addressRows(project, report) : []), [project, report, tab]);
 
   const devices = useMemo(() => {
     const sortValue = (d: Device, key: SortKey): string | number => {

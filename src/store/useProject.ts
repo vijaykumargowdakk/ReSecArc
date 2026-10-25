@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { loadTemplate } from '../examples/templates';
+import { loadDemo } from '../examples/templates/demo';
 import { NO_FILTER, type Filter } from '../model/filter';
 import { extractFragment, pasteFragment, type Fragment } from '../model/ops';
 import type { Project } from '../model/schema';
@@ -54,8 +54,13 @@ interface ProjectState {
   toggleSnap: () => void;
 }
 
+/** True once the user has changed the loaded project; replacing it should then be confirmed. */
+export function hasEdits(): boolean {
+  return useProject.getState().history.past.length > 0;
+}
+
 export function demoProject(): Project {
-  return loadTemplate('water-treatment');
+  return loadDemo();
 }
 
 const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((id, i) => id === b[i]);

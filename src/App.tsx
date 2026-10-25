@@ -1,25 +1,27 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { Network, Table2, X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { decodeShare, isShareFragment } from './model/share';
 import type { Project } from './model/schema';
 import { useAnnouncer } from './store/announcer';
 import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './store/autosave';
 import { useCompare, useComparison } from './store/compare';
-import { NO_SELECTION, useProject } from './store/useProject';
+import { hasEdits, NO_SELECTION, useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
 import { TidyButton } from './ui/canvas/TidyButton';
 import { Inspector } from './ui/inspector/Inspector';
-import { Inventory } from './ui/Inventory';
 import { FilterBar } from './ui/FilterBar';
-import { HelpDialog } from './ui/HelpDialog';
 import { Palette } from './ui/Palette';
-import { SearchDialog } from './ui/SearchDialog';
-import { ShareDialog } from './ui/ShareDialog';
 import { SiteTabs } from './ui/SiteTabs';
-import { TemplateGallery } from './ui/TemplateGallery';
 import { Toolbar } from './ui/Toolbar';
 import { useShortcuts } from './ui/useShortcuts';
+
+// Views and dialogs that are not needed on first paint load on demand.
+const Inventory = lazy(() => import('./ui/Inventory').then((m) => ({ default: m.Inventory })));
+const HelpDialog = lazy(() => import('./ui/HelpDialog').then((m) => ({ default: m.HelpDialog })));
+const SearchDialog = lazy(() => import('./ui/SearchDialog').then((m) => ({ default: m.SearchDialog })));
+const ShareDialog = lazy(() => import('./ui/ShareDialog').then((m) => ({ default: m.ShareDialog })));
+const TemplateGallery = lazy(() => import('./ui/TemplateGallery').then((m) => ({ default: m.TemplateGallery })));
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -61,8 +63,7 @@ export function App() {
   }, []);
 
   const openShared = (project: Project) => {
-    const edited = useProject.getState().history.past.length > 0;
-    if (edited && !window.confirm(`Open “${project.name}” from the link and replace the design you are working on?`)) return;
+    if (hasEdits() && !window.confirm(`Open “${project.name}” from the link and replace the design you are working on?`)) return;
     load(project);
     setShared(null);
     clearShareFragment();
@@ -197,27 +198,31 @@ export function App() {
             {view === 'diagram' ? (
               <Canvas />
             ) : (
-              <Inventory
-                onShowDevice={(id) => {
-                  setView('diagram');
-                  focusDevice(id);
-                }}
-                onShowFlow={(id) => {
-                  const flow = useProject.getState().project.flows.find((f) => f.id === id);
-                  if (!flow) return;
-                  setView('diagram');
-                  focusDevice(flow.source);
-                  select({ ...NO_SELECTION, flows: [id] });
-                }}
-              />
+              <Suspense fallback={<p className="muted inventory__loading">Loading inventory…</p>}>
+                <Inventory
+                  onShowDevice={(id) => {
+                    setView('diagram');
+                    focusDevice(id);
+                  }}
+                  onShowFlow={(id) => {
+                    const flow = useProject.getState().project.flows.find((f) => f.id === id);
+                    if (!flow) return;
+                    setView('diagram');
+                    focusDevice(flow.source);
+                    select({ ...NO_SELECTION, flows: [id] });
+                  }}
+                />
+              </Suspense>
             )}
           </section>
           <Inspector />
         </main>
-        {searching && <SearchDialog onClose={() => setSearching(false)} />}
-        {choosingTemplate && <TemplateGallery onClose={() => setChoosingTemplate(false)} />}
-        {helping && <HelpDialog onClose={() => setHelping(false)} />}
-        {sharing && <ShareDialog onClose={() => setSharing(false)} />}
+        <Suspense fallback={null}>
+          {searching && <SearchDialog onClose={() => setSearching(false)} />}
+          {choosingTemplate && <TemplateGallery onClose={() => setChoosingTemplate(false)} />}
+          {helping && <HelpDialog onClose={() => setHelping(false)} />}
+          {sharing && <ShareDialog onClose={() => setSharing(false)} />}
+        </Suspense>
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           <span key={seq}>{announcement}</span>
         </div>

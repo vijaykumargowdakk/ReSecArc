@@ -4,7 +4,7 @@ import { loadTemplate, TEMPLATES } from '../examples/templates';
 import { emptyProject } from '../model/ops';
 import { getProtocol } from '../model/protocols';
 import type { Project } from '../model/schema';
-import { useProject } from '../store/useProject';
+import { hasEdits, useProject } from '../store/useProject';
 
 /** Tiny map of the first site: one dot per device, coloured by zone. */
 function Preview({ project }: { project: Project }) {
@@ -34,7 +34,6 @@ function Preview({ project }: { project: Project }) {
 }
 
 export function TemplateGallery({ onClose }: { onClose: () => void }) {
-  const current = useProject((s) => s.project);
   const load = useProject((s) => s.load);
   const dialog = useRef<HTMLDialogElement>(null);
   const templates = useMemo(() => TEMPLATES.map((t) => ({ ...t, project: loadTemplate(t.id) })), []);
@@ -44,7 +43,7 @@ export function TemplateGallery({ onClose }: { onClose: () => void }) {
   }, []);
 
   const start = (project: Project) => {
-    if (current.devices.length > 0 && !window.confirm('Replace the current architecture? Unsaved changes will be lost.')) return;
+    if (hasEdits() && !window.confirm('Replace the current architecture? Unsaved changes will be lost.')) return;
     load(project);
     onClose();
   };
