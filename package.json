@@ -1,7 +1,7 @@
 {
   "name": "conduitot",
-  "version": "0.1.0",
-  "description": "Browser-based designer for OT network architectures: Purdue levels, IEC 62443 zones, Modbus/DNP3 flows and firewall rules.",
+  "version": "0.3.0",
+  "description": "Browser-based designer for OT network architectures: Purdue levels, IEC 62443 zones, industrial protocol flows, firewall rules, IP plans and revisions.",
   "private": true,
   "license": "UNLICENSED",
   "type": "module",

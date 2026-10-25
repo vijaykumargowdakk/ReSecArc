@@ -10,7 +10,8 @@ import type { CanvasEdge } from './edges';
 import type { CanvasNode } from './nodes';
 
 export const COLLAPSED_AREA = { width: 210, height: 72 };
-const PORTAL_GAP = 60;
+const PORTAL_GAP = 80;
+const PORTAL_ROW = 48;
 
 export type DiffMark = 'added' | 'changed';
 export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean; diff?: DiffMark };
@@ -105,17 +106,22 @@ export function buildView(
     });
   }
 
+  // Stubs for devices on other sites go in a column right of everything on this site, level with
+  // the local end of their connection, so they never sit on top of a device or an area.
+  const rightEdge = Math.max(0, ...nodes.map((n) => n.position.x + (n.width ?? NODE_WIDTH)));
+  const portalX = rightEdge + PORTAL_GAP;
   const portals = new Map<string, CanvasNode>();
   const portalFor = (remoteId: string, localAnchor: string): string => {
     const id = portalId(remoteId);
     if (!portals.has(id)) {
       const device = deviceById.get(remoteId)!;
       const near = anchorPos.get(localAnchor) ?? { x: 0, y: 0 };
-      const stacked = [...portals.values()].filter((p) => p.position.x === near.x + NODE_WIDTH + PORTAL_GAP).length;
+      let y = near.y;
+      while ([...portals.values()].some((p) => Math.abs(p.position.y - y) < PORTAL_ROW)) y += PORTAL_ROW;
       portals.set(id, {
         id,
         type: 'portal',
-        position: { x: near.x + NODE_WIDTH + PORTAL_GAP, y: near.y + stacked * 48 },
+        position: { x: portalX, y },
         data: { device, siteName: siteName.get(device.siteId) ?? '' },
         selectable: false,
         ariaLabel: `${device.label} on site ${siteName.get(device.siteId) ?? ''}. Activate to go there.`,

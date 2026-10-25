@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { loadTemplate } from '../examples/templates';
 import { buildView, portalId } from '../ui/canvas/view';
 import { NO_SELECTION } from '../store/useProject';
 import { areaAt, boundsOf } from './areas';
 import { dimmedIds, NO_FILTER } from './filter';
 import { addDevice, addFlow, addLink, createDevice, defaultFlow, emptyProject, moveDevice, updateDevice } from './ops';
-import { laneTop } from './purdue';
+import { laneTop, NODE_WIDTH } from './purdue';
 import { searchDevices } from './search';
 import type { Project } from './schema';
 import { addArea, addSite, canRemoveSite, createArea, moveArea, moveDevicesToSite, removeArea, removeSite, updateArea } from './structure';
@@ -118,6 +119,19 @@ describe('canvas view', () => {
     expect(ids(v.nodes.filter((n) => n.type === 'portal'))).toEqual([portalId('rtu')]);
     const wan = v.edges.find((e) => e.id === 'f-scada-rtu')!;
     expect([wan.source, wan.target]).toEqual(['scada', portalId('rtu')]);
+  });
+
+  it('places stubs to the right of every device on the site, without stacking them', () => {
+    const p = loadTemplate('pipeline');
+    for (const site of p.sites) {
+      const v = buildView(p, site.id, NO_SELECTION, new Set());
+      const devices = v.nodes.filter((n) => n.type === 'device');
+      const stubs = v.nodes.filter((n) => n.type === 'portal');
+      const right = Math.max(...devices.map((d) => d.position.x + NODE_WIDTH));
+      for (const s of stubs) expect(s.position.x, site.name).toBeGreaterThan(right);
+      const ys = stubs.map((s) => s.position.y).sort((a, b) => a - b);
+      for (let i = 1; i < ys.length; i++) expect(ys[i] - ys[i - 1], site.name).toBeGreaterThanOrEqual(48);
+    }
   });
 
   it('collapses an area into one node and merges its edges', () => {
