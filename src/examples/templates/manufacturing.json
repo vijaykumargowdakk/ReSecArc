@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "name": "Assembly Line 3 (fictional demo)",
   "sites": [
     {
@@ -751,7 +751,7 @@
     {
       "id": "area-cell-a",
       "siteId": "site-main",
-      "name": "Cell A \u2013 welding",
+      "name": "Cell A – welding",
       "color": "#f59e0b",
       "rect": {
         "x": 110,
@@ -764,7 +764,7 @@
     {
       "id": "area-cell-b",
       "siteId": "site-main",
-      "name": "Cell B \u2013 packaging",
+      "name": "Cell B – packaging",
       "color": "#8b5cf6",
       "rect": {
         "x": 860,
@@ -774,5 +774,33 @@
       },
       "collapsed": false
     }
-  ]
+  ],
+  "notes": [],
+  "networks": [
+    {
+      "id": "net-ops",
+      "name": "Plant operations",
+      "cidr": "10.20.0.0/23",
+      "vlan": 20,
+      "zoneId": "zone-ops",
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-cell-a",
+      "name": "Cell A",
+      "cidr": "10.21.0.0/24",
+      "vlan": 21,
+      "zoneId": "zone-cell-a",
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-cell-b",
+      "name": "Cell B",
+      "cidr": "10.22.0.0/24",
+      "vlan": 22,
+      "zoneId": "zone-cell-b",
+      "siteId": "site-main"
+    }
+  ],
+  "revisions": []
 }

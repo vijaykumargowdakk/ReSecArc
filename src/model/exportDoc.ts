@@ -32,6 +32,23 @@ export function projectToMarkdown(project: Project, generatedAt = new Date()): s
     ),
   );
 
+  if (project.networks.length) {
+    const site = new Map(project.sites.map((s) => [s.id, s.name]));
+    out.push('## Networks\n');
+    out.push(
+      table(
+        ['Network', 'Subnet', 'VLAN', 'Zone', 'Site'],
+        project.networks.map((n) => [
+          n.name,
+          n.cidr,
+          n.vlan ?? '',
+          n.zoneId ? (zone.get(n.zoneId) ?? '') : '',
+          n.siteId ? (site.get(n.siteId) ?? '') : 'all sites',
+        ]),
+      ),
+    );
+  }
+
   out.push('## Conduits\n');
   out.push(
     table(

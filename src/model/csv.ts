@@ -2,6 +2,7 @@
 import Papa from 'papaparse';
 import { DEVICE_CATALOG, kindLabel } from './catalog';
 import { addDevice, createDevice, emptyAsset } from './ops';
+import { addressReport, addressSortKey } from './ipam';
 import { flowLabel, getProtocol } from './protocols';
 import { laneTop, levelLabel, NODE_WIDTH, PURDUE_LANES } from './purdue';
 import { deviceTypeSchema, type Device, type DeviceType, type Project, type PurdueLevel, type RuleEndpoint } from './schema';
@@ -76,6 +77,48 @@ export function flowsToCsv(project: Project): string {
         .join('; '),
     ]),
   });
+}
+
+/** One row per device address: the IP plan as a table. */
+export function addressesToCsv(project: Project): string {
+  return unparse({
+    fields: ['address', 'device', 'site', 'network', 'subnet', 'vlan', 'zone', 'warnings'],
+    data: addressRows(project).map((r) => [r.address, r.device, r.site, r.network, r.subnet, r.vlan, r.zone, r.warnings.join('; ')]),
+  });
+}
+
+export interface AddressRow {
+  deviceId: string;
+  address: string;
+  device: string;
+  site: string;
+  network: string;
+  subnet: string;
+  vlan: number | '';
+  zone: string;
+  warnings: string[];
+}
+
+/** Every device address with its network, sorted numerically; shared by the inventory and the CSV export. */
+export function addressRows(project: Project): AddressRow[] {
+  const report = addressReport(project);
+  const zone = names(project.zones);
+  const site = names(project.sites);
+  return project.devices
+    .flatMap((d) =>
+      (report.addresses.get(d.id) ?? []).map((a) => ({
+        deviceId: d.id,
+        address: a.address,
+        device: d.label,
+        site: site.get(d.siteId) ?? '',
+        network: a.network ? a.network.name || a.network.cidr : '',
+        subnet: a.network?.cidr ?? '',
+        vlan: a.network?.vlan ?? ('' as const),
+        zone: d.zoneId ? (zone.get(d.zoneId) ?? '') : '',
+        warnings: (report.issues.get(d.id) ?? []).filter((i) => i.address === a.address).map((i) => i.message),
+      })),
+    )
+    .sort((a, b) => addressSortKey(a.address) - addressSortKey(b.address) || a.device.localeCompare(b.device));
 }
 
 export function endpointName(project: Project, ep: RuleEndpoint): string {

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "name": "Northfield 132/33 kV Substation (fictional demo)",
   "sites": [
     {
@@ -553,5 +553,33 @@
       "targetSL": 3
     }
   ],
-  "areas": []
+  "areas": [],
+  "notes": [],
+  "networks": [
+    {
+      "id": "net-wan",
+      "name": "Utility WAN hand-off",
+      "cidr": "172.16.40.0/29",
+      "vlan": null,
+      "zoneId": null,
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-station",
+      "name": "Station LAN",
+      "cidr": "10.40.0.0/24",
+      "vlan": 100,
+      "zoneId": "zone-station",
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-bay",
+      "name": "Process bus",
+      "cidr": "10.40.1.0/24",
+      "vlan": 101,
+      "zoneId": "zone-bay",
+      "siteId": "site-main"
+    }
+  ],
+  "revisions": []
 }

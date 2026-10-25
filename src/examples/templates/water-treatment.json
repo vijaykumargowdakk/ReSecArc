@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites": [
     {
@@ -740,5 +740,53 @@
       "targetSL": 3
     }
   ],
-  "areas": []
+  "areas": [],
+  "notes": [
+    {
+      "id": "note-demo",
+      "siteId": "site-main",
+      "text": "Fictional demo plant.\nAddresses follow the IP plan in the Networks section.",
+      "position": {
+        "x": 1000,
+        "y": 20
+      },
+      "width": 260,
+      "color": "#64748b"
+    }
+  ],
+  "networks": [
+    {
+      "id": "net-ent",
+      "name": "Enterprise LAN",
+      "cidr": "10.10.4.0/24",
+      "vlan": 10,
+      "zoneId": "zone-enterprise",
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-dmz",
+      "name": "Industrial DMZ",
+      "cidr": "10.30.0.0/24",
+      "vlan": 30,
+      "zoneId": "zone-dmz",
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-ops",
+      "name": "Operations LAN",
+      "cidr": "10.40.1.0/24",
+      "vlan": 40,
+      "zoneId": "zone-operations",
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-ctl",
+      "name": "Control LAN",
+      "cidr": "10.50.2.0/24",
+      "vlan": 50,
+      "zoneId": "zone-control",
+      "siteId": "site-main"
+    }
+  ],
+  "revisions": []
 }

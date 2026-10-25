@@ -20,6 +20,7 @@ import { NO_SELECTION, useProject } from '../../store/useProject';
 import { DevicePicker } from '../DevicePicker';
 import { removeNote } from '../../model/notes';
 import { moveDevicesToSite } from '../../model/structure';
+import { AddressInfo } from './AddressInfo';
 import { AreaInspector } from './AreaInspector';
 import { BulkInspector } from './BulkInspector';
 import { Field, IntInput, Section, Select, TextInput, Toggle } from '../form';
@@ -143,6 +144,7 @@ function DeviceInspector({ device }: { device: Device }) {
             </Field>
           ))}
         </div>
+        <AddressInfo device={device} />
         <Field label="Notes">
           <textarea rows={3} value={device.asset.notes} onChange={(e) => setAsset({ notes: e.target.value })} />
         </Field>

@@ -101,6 +101,15 @@ Free text on one site's canvas: `{ id, siteId, text, position: { x, y }, width, 
 
 An IPv4 subnet: `{ id, name, cidr, vlan, zoneId, siteId }`. `cidr` is a string such as `10.10.1.0/24`. `vlan` is 1–4094 or `null`. `zoneId` is the security zone the subnet belongs to, or `null`. `siteId` is `null` for a network that spans every site.
 
+A device's `asset.ip` may hold several addresses separated by commas, semicolons or spaces. Each address is matched to the most specific network on the device's site. Problems are shown as warnings and never stop a file from saving or opening:
+
+- a malformed CIDR, or one with host bits set;
+- overlapping subnets, or the same VLAN id on two different subnets, on the same site;
+- a malformed device address, or a network or broadcast address;
+- an address outside every network planned for the site;
+- an address whose network belongs to a different zone than the device;
+- two devices with the same address on the same site, or anywhere inside a network that spans every site.
+
 ## Revision
 
 A named copy of the design at a point in time: `{ id, name, createdAt, design }`. `createdAt` is an ISO 8601 timestamp. `design` holds every top-level field above except `schemaVersion` and `revisions`, so revisions do not nest.

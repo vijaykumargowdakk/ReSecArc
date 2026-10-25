@@ -24,6 +24,13 @@ Everything runs in the browser. There is no server, no account and no telemetry.
 - **Firewall rules:** ordered, first-match allow/deny rules per firewall, with source and destination given as any, a zone or a device, plus a default action.
 - **Zones and conduits:** IEC 62443 zones with a trust flag and target security level. The conduits between zones are listed automatically.
 - **Text notes** on the canvas for legends, remarks or open questions.
+- **IP and VLAN planning:** IPv4 networks with a subnet, VLAN, zone and site. Each device address shows the network it falls in. Warnings flag:
+  - duplicate addresses;
+  - malformed addresses, and network or broadcast addresses;
+  - addresses outside every planned network;
+  - addresses whose network belongs to a different zone than the device;
+  - overlapping subnets and reused VLAN ids.
+  A device can list several addresses, one per interface.
 
 ### Working at scale
 - **Sites:** one tab per site, each with its own lanes. Connections to another site appear as clickable stubs.
@@ -41,9 +48,9 @@ Everything runs in the browser. There is no server, no account and no telemetry.
 - **Autosave** to your browser, with an offer to restore unsaved work the next time you open the app.
 
 ### Inventory and export
-- An **Inventory** view with sortable, inline-editable tables of devices, protocol flows and firewall rules.
+- An **Inventory** view with sortable, inline-editable tables of devices, protocol flows and firewall rules, plus an **IP plan** listing every address with its network, VLAN and warnings.
 - **CSV import** of devices. Each rejected row is listed with the reason.
-- **CSV export** of devices, flows and firewall rules. Cells that a spreadsheet would treat as formulas are escaped.
+- **CSV export** of devices, flows, firewall rules and the IP plan. Cells that a spreadsheet would treat as formulas are escaped.
 - **Diagram export** as SVG or PNG, or print to PDF.
 - An **architecture document** in Markdown covering zones, conduits, devices, flows and firewall rules for every site.
 

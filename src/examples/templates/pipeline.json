@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "name": "Westridge Gas Pipeline (fictional demo)",
   "sites": [
     {
@@ -737,5 +737,41 @@
       "targetSL": 3
     }
   ],
-  "areas": []
+  "areas": [],
+  "notes": [],
+  "networks": [
+    {
+      "id": "net-cc",
+      "name": "Control centre SCADA",
+      "cidr": "10.1.0.0/24",
+      "vlan": 110,
+      "zoneId": "zone-scada",
+      "siteId": "site-cc"
+    },
+    {
+      "id": "net-wan",
+      "name": "Operational WAN",
+      "cidr": "10.255.0.0/16",
+      "vlan": null,
+      "zoneId": "zone-wan",
+      "siteId": null
+    },
+    {
+      "id": "net-cs1",
+      "name": "Compressor station control",
+      "cidr": "10.11.0.0/24",
+      "vlan": 111,
+      "zoneId": "zone-station",
+      "siteId": "site-cs1"
+    },
+    {
+      "id": "net-bv7",
+      "name": "Block valve control",
+      "cidr": "10.17.0.0/24",
+      "vlan": 117,
+      "zoneId": "zone-station",
+      "siteId": "site-bv7"
+    }
+  ],
+  "revisions": []
 }
