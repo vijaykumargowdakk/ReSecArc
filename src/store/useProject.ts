@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import demo from '../examples/demo-water-treatment.json';
 import { parseProject } from '../model/io';
 import { extractFragment, pasteFragment, type Fragment } from '../model/ops';
+import { NO_FILTER, type Filter } from '../model/filter';
 import type { Project } from '../model/schema';
 import { commit, initHistory, redo, undo, type History } from './history';
 
@@ -9,8 +10,9 @@ export interface Selection {
   devices: string[];
   links: string[];
   flows: string[];
+  areas: string[];
 }
-export const NO_SELECTION: Selection = { devices: [], links: [], flows: [] };
+export const NO_SELECTION: Selection = { devices: [], links: [], flows: [], areas: [] };
 export type ConnectMode = 'link' | 'flow';
 
 const PASTE_OFFSET = { x: 40, y: 40 };
@@ -24,6 +26,11 @@ interface ProjectState {
   flowProtocol: string;
   snapToGrid: boolean;
   clipboard: Fragment | null;
+  /** The site shown on the canvas. */
+  activeSiteId: string;
+  filter: Filter;
+  /** A device the canvas should centre on once it is rendered. */
+  focus: { deviceId: string; nonce: number } | null;
   /** Applies a pure operation from model/ops. Edits sharing a `coalesceKey` in quick succession undo as one step. */
   apply: (op: (project: Project) => Project, coalesceKey?: string) => void;
   undo: () => void;
@@ -35,6 +42,11 @@ interface ProjectState {
   copy: () => void;
   paste: () => void;
   duplicate: () => void;
+  setActiveSite: (siteId: string) => void;
+  /** Switches to the device's site, selects it and centres the canvas on it. */
+  focusDevice: (deviceId: string) => void;
+  clearFocus: () => void;
+  setFilter: (filter: Filter) => void;
   setConnectMode: (mode: ConnectMode) => void;
   setFlowProtocol: (protocol: string) => void;
   toggleSnap: () => void;
@@ -48,7 +60,7 @@ export function demoProject(): Project {
 
 const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((id, i) => id === b[i]);
 const sameSelection = (a: Selection, b: Selection) =>
-  sameIds(a.devices, b.devices) && sameIds(a.links, b.links) && sameIds(a.flows, b.flows);
+  sameIds(a.devices, b.devices) && sameIds(a.links, b.links) && sameIds(a.flows, b.flows) && sameIds(a.areas, b.areas);
 
 /** Drops ids that no longer exist, e.g. after undo removes a selected device. */
 function pruneSelection(selection: Selection, project: Project): Selection {
@@ -56,25 +68,34 @@ function pruneSelection(selection: Selection, project: Project): Selection {
   const d = has(project.devices);
   const l = has(project.links);
   const f = has(project.flows);
+  const a = has(project.areas);
   const next = {
     devices: selection.devices.filter((id) => d.has(id)),
     links: selection.links.filter((id) => l.has(id)),
     flows: selection.flows.filter((id) => f.has(id)),
+    areas: selection.areas.filter((id) => a.has(id)),
   };
   return sameSelection(next, selection) ? selection : next;
 }
+
+const validSite = (project: Project, siteId: string) =>
+  project.sites.some((s) => s.id === siteId) ? siteId : project.sites[0].id;
 
 const initial = demoProject();
 
 export const useProject = create<ProjectState>((set, get) => {
   const setHistory = (history: History) =>
-    set((s) => ({ history, project: history.present, selection: pruneSelection(s.selection, history.present) }));
+    set((s) => ({
+      history,
+      project: history.present,
+      selection: pruneSelection(s.selection, history.present),
+      activeSiteId: validSite(history.present, s.activeSiteId),
+    }));
 
   const pasteInto = (fragment: Fragment) => {
     const { project, history } = get();
     if (fragment.devices.length === 0) return;
-    const siteId = fragment.devices[0].siteId;
-    const result = pasteFragment(project, fragment, PASTE_OFFSET, project.sites.some((s) => s.id === siteId) ? siteId : project.sites[0].id);
+    const result = pasteFragment(project, fragment, PASTE_OFFSET, get().activeSiteId);
     setHistory(commit(history, result.project));
     set({ selection: { ...NO_SELECTION, devices: result.deviceIds } });
   };
@@ -87,6 +108,9 @@ export const useProject = create<ProjectState>((set, get) => {
     flowProtocol: 'modbus',
     snapToGrid: false,
     clipboard: null,
+    activeSiteId: initial.sites[0].id,
+    filter: NO_FILTER,
+    focus: null,
     apply: (op, coalesceKey) => {
       const { history } = get();
       const next = commit(history, op(history.present), coalesceKey);
@@ -94,11 +118,23 @@ export const useProject = create<ProjectState>((set, get) => {
     },
     undo: () => setHistory(undo(get().history)),
     redo: () => setHistory(redo(get().history)),
-    load: (project) => set({ project, history: initHistory(project), selection: NO_SELECTION }),
+    load: (project) =>
+      set({ project, history: initHistory(project), selection: NO_SELECTION, activeSiteId: project.sites[0].id, filter: NO_FILTER }),
     select: (selection) => {
       if (!sameSelection(selection, get().selection)) set({ selection });
     },
-    selectAll: () => set((s) => ({ selection: { ...NO_SELECTION, devices: s.project.devices.map((d) => d.id) } })),
+    selectAll: () =>
+      set((s) => ({ selection: { ...NO_SELECTION, devices: s.project.devices.filter((d) => d.siteId === s.activeSiteId).map((d) => d.id) } })),
+    setActiveSite: (siteId) => {
+      if (siteId !== get().activeSiteId) set({ activeSiteId: validSite(get().project, siteId), selection: NO_SELECTION });
+    },
+    focusDevice: (deviceId) => {
+      const device = get().project.devices.find((d) => d.id === deviceId);
+      if (!device) return;
+      set({ activeSiteId: device.siteId, selection: { ...NO_SELECTION, devices: [deviceId] }, focus: { deviceId, nonce: Date.now() } });
+    },
+    clearFocus: () => set({ focus: null }),
+    setFilter: (filter) => set({ filter }),
     copy: () => {
       const { project, selection } = get();
       if (selection.devices.length) set({ clipboard: extractFragment(project, selection.devices) });

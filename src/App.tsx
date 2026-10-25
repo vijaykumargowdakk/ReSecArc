@@ -1,11 +1,14 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './store/autosave';
 import { useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
 import { Inspector } from './ui/inspector/Inspector';
+import { FilterBar } from './ui/FilterBar';
 import { Palette } from './ui/Palette';
+import { SearchDialog } from './ui/SearchDialog';
+import { SiteTabs } from './ui/SiteTabs';
 import { Toolbar } from './ui/Toolbar';
 import { useShortcuts } from './ui/useShortcuts';
 
@@ -16,14 +19,16 @@ export function App() {
   // Read once: a pending snapshot must be restored or discarded before autosave may overwrite it.
   const [pending, setPending] = useState<Snapshot | null>(readAutosave);
   const load = useProject((s) => s.load);
-  useShortcuts();
+  const [searching, setSearching] = useState(false);
+  const openSearch = useCallback(() => setSearching(true), []);
+  useShortcuts(openSearch);
 
   useEffect(() => (pending ? undefined : startAutosave()), [pending]);
 
   return (
     <ReactFlowProvider>
       <div className="app">
-        <Toolbar onErrors={setErrors} />
+        <Toolbar onErrors={setErrors} onSearch={openSearch} />
         {pending && (
           <div className="notice notice--info" role="status">
             <p>
@@ -66,9 +71,16 @@ export function App() {
         )}
         <main className="workspace">
           <Palette />
-          <Canvas />
+          <section className="canvas-column" aria-label="Diagram">
+            <div className="canvas-bar">
+              <SiteTabs />
+              <FilterBar />
+            </div>
+            <Canvas />
+          </section>
           <Inspector />
         </main>
+        {searching && <SearchDialog onClose={() => setSearching(false)} />}
       </div>
     </ReactFlowProvider>
   );

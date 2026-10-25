@@ -84,3 +84,8 @@
 **Decision:** Added EtherNet/IP, PROFINET, OPC UA, IEC 60870-5-104, IEC 61850 MMS and GOOSE, BACnet, S7, MQTT and a free-form custom protocol alongside Modbus and DNP3. Each has its own roles, settings, default ports (some follow a setting such as TLS), colour and dash pattern. A toolbar picker sets the protocol for newly drawn flows, and a canvas legend lists the protocols in use.
 **Why:** Real plants mix protocols. Dash patterns plus a legend keep flows distinguishable without relying on colour.
 **User input:** Approved in the v0.2 plan.
+
+## 2026-10-25 — Sites, areas, search and filters
+**Decision:** Each site gets its own tab and Purdue lanes; links or flows to another site appear as clickable stubs. Areas are dashed frames that own the devices whose centre falls inside them, move their members along, and can collapse into one node with member edges merged onto it. Ctrl+K or "/" searches every site by name, kind, IP, vendor, model or notes. Zone/type/level/protocol filters dim non-matching items instead of hiding them. The site-to-canvas mapping is a pure, tested function (`src/ui/canvas/view.ts`).
+**Why:** Real estates span several sites and hundreds of devices. Dimming keeps context and layout readable; collapsing hides detail without losing connectivity.
+**User input:** Approved in the v0.2 plan.

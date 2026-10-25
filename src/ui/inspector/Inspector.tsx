@@ -18,6 +18,8 @@ import { laneTop, levelLabel, PURDUE_LANES } from '../../model/purdue';
 import type { Asset, Device, Flow, Link, PurdueLevel, RemoteService } from '../../model/schema';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { DevicePicker } from '../DevicePicker';
+import { moveDevicesToSite } from '../../model/structure';
+import { AreaInspector } from './AreaInspector';
 import { BulkInspector } from './BulkInspector';
 import { Field, IntInput, Section, Select, TextInput, Toggle } from '../form';
 import { FirewallRules } from './FirewallRules';
@@ -67,6 +69,7 @@ function DeviceInspector({ device }: { device: Device }) {
   const project = useProject((s) => s.project);
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
+  const focusDevice = useProject((s) => s.focusDevice);
   const info = DEVICE_CATALOG[device.type];
   const patch = (p: Partial<Omit<Device, 'id' | 'type'>>) =>
     apply((q) => updateDevice(q, device.id, p), `device:${device.id}:${Object.keys(p).join(',')}`);
@@ -106,6 +109,18 @@ function DeviceInspector({ device }: { device: Device }) {
             }}
           />
         </Field>
+        {project.sites.length > 1 && (
+          <Field label="Site">
+            <Select
+              value={device.siteId}
+              options={project.sites.map((s) => ({ value: s.id, label: s.name }))}
+              onChange={(siteId) => {
+                apply((q) => moveDevicesToSite(q, [device.id], siteId));
+                focusDevice(device.id);
+              }}
+            />
+          </Field>
+        )}
         <Field label="Security zone">
           <Select
             value={device.zoneId ?? ''}
@@ -324,7 +339,7 @@ export function Inspector() {
   const selection = useProject((s) => s.selection);
   const select = useProject((s) => s.select);
   const apply = useProject((s) => s.apply);
-  const count = selection.devices.length + selection.links.length + selection.flows.length;
+  const count = selection.devices.length + selection.links.length + selection.flows.length + selection.areas.length;
 
   let body = <ProjectPanel />;
   if (selection.devices.length > 1) {
@@ -333,7 +348,9 @@ export function Inspector() {
     const device = project.devices.find((d) => d.id === selection.devices[0]);
     const link = project.links.find((l) => l.id === selection.links[0]);
     const flow = project.flows.find((f) => f.id === selection.flows[0]);
+    const area = project.areas.find((a) => a.id === selection.areas[0]);
     if (device) body = <DeviceInspector key={device.id} device={device} />;
+    else if (area) body = <AreaInspector key={area.id} area={area} />;
     else if (link) body = <LinkInspector key={link.id} link={link} />;
     else if (flow) body = <FlowInspector key={flow.id} flow={flow} />;
   } else if (count > 1) {

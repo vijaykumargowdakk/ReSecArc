@@ -7,11 +7,14 @@ import {
   AlignStartVertical,
   AlignHorizontalDistributeCenter,
   AlignVerticalDistributeCenter,
+  Group,
   Trash2,
 } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { alignDevices, bulkUpdateDevices, distributeDevices, removeDevice, type AlignMode } from '../../model/ops';
+import { boundsOf } from '../../model/areas';
 import type { Device } from '../../model/schema';
+import { addArea, AREA_COLORS, createArea, moveDevicesToSite } from '../../model/structure';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { Field, Section, Select } from '../form';
 
@@ -68,6 +71,35 @@ export function BulkInspector({ ids }: { ids: string[] }) {
             onChange={(v) => v !== MIXED && apply((p) => bulkUpdateDevices(p, ids, { criticality: v as Device['criticality'] }))}
           />
         </Field>
+      </Section>
+
+      <Section title="Organise">
+        <button
+          type="button"
+          className="button"
+          onClick={() => {
+            const area = createArea(
+              devices[0].siteId,
+              boundsOf(devices.filter((d) => d.siteId === devices[0].siteId).map((d) => d.position)),
+              `Area ${project.areas.length + 1}`,
+              AREA_COLORS[project.areas.length % AREA_COLORS.length],
+            );
+            apply((p) => addArea(p, area));
+            select({ ...NO_SELECTION, areas: [area.id] });
+          }}
+        >
+          <Group size={16} />
+          Group into area
+        </button>
+        {project.sites.length > 1 && (
+          <Field label="Move to site">
+            <Select
+              value={common(devices, 'siteId')}
+              options={[...(common(devices, 'siteId') === MIXED ? [mixed] : []), ...project.sites.map((s) => ({ value: s.id, label: s.name }))]}
+              onChange={(siteId) => siteId !== MIXED && apply((p) => moveDevicesToSite(p, ids, siteId))}
+            />
+          </Field>
+        )}
       </Section>
 
       <Section title="Arrange">
