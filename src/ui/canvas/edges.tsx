@@ -1,4 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, useInternalNode, type Edge, type EdgeProps, type InternalNode } from '@xyflow/react';
+import type { CSSProperties } from 'react';
 import { flowLabel, getProtocol } from '../../model/protocols';
 import type { FlowEdgeData, LinkEdgeData } from './view';
 
@@ -76,9 +77,9 @@ export function FlowEdge({ id, source, target, data, selected, markerEnd }: Edge
         <div
           className={`flow-label${state}`}
           style={{
-            color,
+            '--protocol-color': color,
             transform: `translate(-50%, -50%) translate(${(start.x + end.x) / 2}px, ${(start.y + end.y) / 2}px)`,
-          }}
+          } as CSSProperties}
         >
           {flowLabel(data.flow.protocol, data.flow.settings)}
         </div>

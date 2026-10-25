@@ -1,12 +1,14 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { Network, Table2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { useAnnouncer } from './store/announcer';
 import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './store/autosave';
 import { NO_SELECTION, useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
 import { Inspector } from './ui/inspector/Inspector';
 import { Inventory } from './ui/Inventory';
 import { FilterBar } from './ui/FilterBar';
+import { HelpDialog } from './ui/HelpDialog';
 import { Palette } from './ui/Palette';
 import { SearchDialog } from './ui/SearchDialog';
 import { SiteTabs } from './ui/SiteTabs';
@@ -27,14 +29,27 @@ export function App() {
   const focusDevice = useProject((s) => s.focusDevice);
   const select = useProject((s) => s.select);
   const openSearch = useCallback(() => setSearching(true), []);
-  useShortcuts(openSearch);
+  const [helping, setHelping] = useState(false);
+  const openHelp = useCallback(() => setHelping(true), []);
+  const [drawer, setDrawer] = useState<'palette' | 'inspector' | null>(null);
+  const announcement = useAnnouncer((s) => s.message);
+  const seq = useAnnouncer((s) => s.seq);
+  useShortcuts(openSearch, openHelp);
 
   useEffect(() => (pending ? undefined : startAutosave()), [pending]);
 
   return (
     <ReactFlowProvider>
       <div className="app">
-        <Toolbar onErrors={setErrors} onSearch={openSearch} onNew={() => setChoosingTemplate(true)} diagramVisible={view === 'diagram'} />
+        <Toolbar
+          onErrors={setErrors}
+          onSearch={openSearch}
+          onNew={() => setChoosingTemplate(true)}
+          onHelp={openHelp}
+          diagramVisible={view === 'diagram'}
+          drawer={drawer}
+          onDrawer={(d) => setDrawer((current) => (current === d ? null : d))}
+        />
         {pending && (
           <div className="notice notice--info" role="status">
             <p>
@@ -75,7 +90,7 @@ export function App() {
             </button>
           </div>
         )}
-        <main className="workspace">
+        <main className={`workspace${drawer ? ` drawer-${drawer}` : ''}`}>
           <Palette />
           <section className="canvas-column" aria-label={view === 'diagram' ? 'Diagram' : 'Inventory'}>
             <div className="canvas-bar">
@@ -112,6 +127,10 @@ export function App() {
         </main>
         {searching && <SearchDialog onClose={() => setSearching(false)} />}
         {choosingTemplate && <TemplateGallery onClose={() => setChoosingTemplate(false)} />}
+        {helping && <HelpDialog onClose={() => setHelping(false)} />}
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          <span key={seq}>{announcement}</span>
+        </div>
       </div>
     </ReactFlowProvider>
   );

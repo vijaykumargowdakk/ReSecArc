@@ -1,7 +1,8 @@
 // Turns the project into what the canvas shows for one site: visible devices, area frames,
 // collapsed areas standing in for their members, and stubs for devices on other sites.
 import { MarkerType } from '@xyflow/react';
-import { NODE_WIDTH } from '../../model/purdue';
+import { kindLabel } from '../../model/catalog';
+import { levelLabel, NODE_WIDTH } from '../../model/purdue';
 import { getProtocol } from '../../model/protocols';
 import type { Area, Device, Flow, Link, Project, Zone } from '../../model/schema';
 import type { Selection } from '../../store/useProject';
@@ -71,6 +72,12 @@ export function buildView(
       data: { device: d, zone: d.zoneId ? (zoneById.get(d.zoneId) ?? null) : null, dimmed: dimmed.has(d.id) },
       selected: sel.devices.has(d.id),
       className: dimmed.has(d.id) ? 'is-dimmed' : undefined,
+      ariaLabel: [
+        `${d.label}, ${kindLabel(d.type, d.variant)}`,
+        `level ${levelLabel(d.purdueLevel).slice(1)}`,
+        d.zoneId ? `zone ${zoneById.get(d.zoneId)?.name ?? ''}` : 'no zone',
+        `${d.criticality} criticality`,
+      ].join(', '),
     });
     anchorPos.set(d.id, d.position);
   }
@@ -88,6 +95,7 @@ export function buildView(
         position: { x: near.x + NODE_WIDTH + PORTAL_GAP, y: near.y + stacked * 48 },
         data: { device, siteName: siteName.get(device.siteId) ?? '' },
         selectable: false,
+        ariaLabel: `${device.label} on site ${siteName.get(device.siteId) ?? ''}. Activate to go there.`,
       });
     }
     return id;

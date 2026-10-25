@@ -25,11 +25,22 @@ export const DEVICE_COLUMNS = [
 
 const names = (list: { id: string; name: string }[]) => new Map(list.map((x) => [x.id, x.name]));
 
+/**
+ * Every export escapes cells that a spreadsheet would treat as a formula (leading = + - @ tab or CR),
+ * so names or notes from a shared project file cannot run when the CSV is opened.
+ */
+function unparse(table: { fields: string[]; data: unknown[][] }): string {
+  return Papa.unparse(table, { escapeFormulae: true });
+}
+
+/** Undoes the formula escape added on export, so exported files re-import unchanged. */
+const unescapeFormula = (v: string) => (/^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v);
+
 export function devicesToCsv(project: Project): string {
   const zone = names(project.zones);
   const site = names(project.sites);
   const area = names(project.areas);
-  return Papa.unparse({
+  return unparse({
     fields: [...DEVICE_COLUMNS],
     data: project.devices.map((d) => [
       d.label,
@@ -52,7 +63,7 @@ export function devicesToCsv(project: Project): string {
 
 export function flowsToCsv(project: Project): string {
   const device = new Map(project.devices.map((d) => [d.id, d.label]));
-  return Papa.unparse({
+  return unparse({
     fields: ['source', 'target', 'protocol', 'port', 'summary', 'settings'],
     data: project.flows.map((f) => [
       device.get(f.source) ?? f.source,
@@ -74,7 +85,7 @@ export function endpointName(project: Project, ep: RuleEndpoint): string {
 }
 
 export function rulesToCsv(project: Project): string {
-  return Papa.unparse({
+  return unparse({
     fields: ['firewall', 'order', 'action', 'source', 'destination', 'protocol', 'port', 'note'],
     data: project.devices.flatMap((fw) =>
       (fw.firewall?.rules ?? []).map((r, i) => [
@@ -135,7 +146,7 @@ export function parseDeviceCsv(project: Project, text: string, defaultSiteId: st
 
   return parsed.data.map((row, i) => {
     const errors: string[] = [];
-    const get = (col: string) => (row[col] ?? '').trim();
+    const get = (col: string) => unescapeFormula((row[col] ?? '').trim());
     const name = get('name');
     if (!name) errors.push('name is required');
 

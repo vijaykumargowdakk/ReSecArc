@@ -99,3 +99,13 @@
 **Decision:** Added a Diagram/Inventory switch. The inventory has sortable, inline-editable device, flow and firewall-rule tables; edits go through the same undoable operations. Devices import from CSV (types and kinds by id or label, zones and sites by name) with a preview that lists each rejected row and its reason. The Export menu downloads the diagram as SVG/PNG (html-to-image, pinned to 1.11.11 as React Flow recommends), prints it to PDF through a print stylesheet, and writes a Markdown architecture record and CSV tables.
 **Why:** Most plants already keep an asset list in a spreadsheet. Importing it, and exporting documentation, makes the tool fit existing workflows.
 **User input:** Approved in the v0.2 plan.
+
+## 2026-10-25 — Accessibility, themes and narrow layout
+**Decision:** Every colour is a CSS token with light, dark (also used automatically when the system prefers it) and high-contrast values. The choice is stored per browser. Arrow-key moves are committed as single undo steps; devices have accessible names; a live region announces adds, deletes, undo and redo; `?` lists all shortcuts; reduced motion disables animations. Below 900px wide the palette and properties panel become slide-over drawers. Lighthouse accessibility scores 100 in the light and dark themes.
+**Why:** Operators and engineers use the tool in many environments, including control rooms and on laptops; it must work with keyboards and screen readers.
+**User input:** Approved in the v0.2 plan.
+
+## 2026-10-25 — CSV exports escape spreadsheet formulas
+**Decision:** All CSV exports escape cells that begin with = + - @ tab or carriage return. Import removes the escape again, so round-trips are exact.
+**Why:** An automated security review flagged formula injection: a device name from a shared project file could otherwise run as a formula when the CSV is opened in a spreadsheet.
+**User input:** None (security fix).

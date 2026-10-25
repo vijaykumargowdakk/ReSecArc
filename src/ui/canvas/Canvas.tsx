@@ -13,13 +13,15 @@ import {
   type Node,
   type NodeChange,
 } from '@xyflow/react';
-import { useCallback, useEffect, useMemo, useState, type DragEvent, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import { variantInfo } from '../../model/catalog';
 import { dimmedIds } from '../../model/filter';
 import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink } from '../../model/ops';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../../model/purdue';
 import { deviceTypeSchema, type DeviceType } from '../../model/schema';
 import { moveArea, removeArea } from '../../model/structure';
+import { announce } from '../../store/announcer';
+import { flowColorMode, useTheme } from '../../store/theme';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { Legend } from './Legend';
@@ -38,6 +40,7 @@ export function parseDeviceKind(payload: string): { type: DeviceType; variant: s
 }
 
 const DROP_OFFSET = { x: NODE_WIDTH / 2, y: NODE_HEIGHT / 2 };
+const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const nodeTypes = { device: DeviceNode, lane: LaneNode, area: AreaNode, portal: PortalNode };
 const edgeTypes = { link: LinkEdge, flow: FlowEdge };
@@ -81,6 +84,8 @@ export function Canvas() {
   const flowProtocol = useProject((s) => s.flowProtocol);
   const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
   const { screenToFlowPosition, setCenter, fitView } = useReactFlow();
+  const theme = useTheme((s) => s.theme);
+  const dragging = useRef(false);
 
   const dimmed = useMemo(() => dimmedIds(project, filter), [project, filter]);
   const view = useMemo(() => buildView(project, siteId, selection, dimmed), [project, siteId, selection, dimmed]);
@@ -97,7 +102,7 @@ export function Canvas() {
   useEffect(() => {
     if (useProject.getState().focus) return;
     const ids = useProject.getState().project.devices.filter((d) => d.siteId === siteId).map((d) => ({ id: d.id }));
-    const frame = requestAnimationFrame(() => fitView({ padding: 0.1, nodes: ids.length ? ids : undefined, duration: 250 }));
+    const frame = requestAnimationFrame(() => fitView({ padding: 0.1, nodes: ids.length ? ids : undefined, duration: reducedMotion() ? 0 : 250 }));
     return () => cancelAnimationFrame(frame);
   }, [siteId, fitView]);
 
@@ -105,13 +110,25 @@ export function Canvas() {
     if (!focus) return;
     const node = nodes.find((n) => n.id === focus.deviceId);
     if (!node?.measured) return;
-    setCenter(node.position.x + NODE_WIDTH / 2, node.position.y + NODE_HEIGHT / 2, { zoom: 1.2, duration: 400 });
+    setCenter(node.position.x + NODE_WIDTH / 2, node.position.y + NODE_HEIGHT / 2, { zoom: 1.2, duration: reducedMotion() ? 0 : 400 });
     clearFocus();
   }, [focus, nodes, setCenter, clearFocus]);
 
-  const onNodesChange = useCallback((changes: NodeChange<CanvasNode>[]) => {
-    setNodes((nds) => applyNodeChanges(changes, nds));
-  }, []);
+  const onNodesChange = useCallback(
+    (changes: NodeChange<CanvasNode>[]) => {
+      setNodes((nds) => applyNodeChanges(changes, nds));
+      // Arrow-key moves arrive as non-drag position changes; mouse drags are committed on drag stop.
+      if (dragging.current) return;
+      const moved = changes.flatMap((c) => (c.type === 'position' && c.position && c.dragging === false ? [{ id: c.id, position: c.position }] : []));
+      if (moved.length === 0) return;
+      const areaIds = new Set(useProject.getState().project.areas.map((a) => a.id));
+      apply(
+        (p) => moved.reduce((q, m) => (areaIds.has(m.id) ? moveArea(q, m.id, m.position) : moveDevice(q, m.id, m.position)), p),
+        `nudge:${moved.map((m) => m.id).join(',')}`,
+      );
+    },
+    [apply],
+  );
 
   const onEdgesChange = useCallback((changes: EdgeChange<CanvasEdge>[]) => {
     setEdges((eds) => applyEdgeChanges(changes, eds));
@@ -134,6 +151,7 @@ export function Canvas() {
 
   const onNodeDragStop = useCallback(
     (_event: unknown, _node: CanvasNode, dragged: CanvasNode[]) => {
+      dragging.current = false;
       apply((p) => {
         const areas = dragged.filter((n) => n.type === 'area');
         const carried = new Set(areas.flatMap((n) => (n.type === 'area' ? n.data.members.map((d) => d.id) : [])));
@@ -156,6 +174,8 @@ export function Canvas() {
         }, afterEdges);
       });
       select(NO_SELECTION);
+      const count = delNodes.filter((n) => n.type === 'device').length;
+      announce(count ? `Deleted ${count} device${count === 1 ? '' : 's'}` : 'Deleted selection');
     },
     [apply, select],
   );
@@ -190,6 +210,7 @@ export function Canvas() {
     (c: Connection) => {
       if (connectMode === 'link') apply((p) => addLink(p, c.source, c.target));
       else apply((p) => addFlow(p, defaultFlow(flowProtocol, c.source, c.target)));
+      announce(`${connectMode === 'link' ? 'Link' : 'Flow'} added`);
     },
     [apply, connectMode, flowProtocol],
   );
@@ -208,6 +229,7 @@ export function Canvas() {
       const at = screenToFlowPosition({ x: event.clientX, y: event.clientY });
       const device = createDevice(kind.type, { x: at.x - DROP_OFFSET.x, y: at.y - DROP_OFFSET.y }, { siteId, variant: kind.variant });
       apply((p) => addDevice(p, device));
+      announce(`${device.label} added`);
     },
     [apply, screenToFlowPosition, siteId],
   );
@@ -221,6 +243,9 @@ export function Canvas() {
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeDragStart={() => {
+          dragging.current = true;
+        }}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onDelete={onDelete}
@@ -236,6 +261,8 @@ export function Canvas() {
         connectionMode={ConnectionMode.Loose}
         deleteKeyCode={['Delete', 'Backspace']}
         minZoom={0.2}
+        colorMode={flowColorMode(theme)}
+        ariaLabelConfig={{ 'node.a11yDescription.default': 'Press Enter or Space to select. Use arrow keys to move the selection. Press Delete to remove it.' }}
       >
         <Background gap={25} size={1} />
         <Controls showInteractive={false} />

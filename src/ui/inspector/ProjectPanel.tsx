@@ -75,7 +75,7 @@ export function ProjectPanel() {
                   aria-label={`Colour for ${zone.name}`}
                   onChange={(e) => patchZone(zone.id, { color: e.target.value })}
                 />
-                <TextInput value={zone.name} onChange={(name) => patchZone(zone.id, { name })} />
+                <TextInput value={zone.name} ariaLabel="Zone name" onChange={(name) => patchZone(zone.id, { name })} />
                 <button type="button" className="icon-button danger" title="Delete zone" onClick={() => deleteZone(zone)}>
                   <Trash2 size={14} />
                 </button>
