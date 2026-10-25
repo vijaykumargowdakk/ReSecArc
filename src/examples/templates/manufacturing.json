@@ -1,0 +1,778 @@
+{
+  "schemaVersion": 2,
+  "name": "Assembly Line 3 (fictional demo)",
+  "sites": [
+    {
+      "id": "site-main",
+      "name": "Plant floor"
+    }
+  ],
+  "devices": [
+    {
+      "id": "cloud",
+      "type": "internet",
+      "variant": "cloud",
+      "label": "Analytics cloud",
+      "purdueLevel": 5,
+      "siteId": "site-main",
+      "zoneId": "zone-ent",
+      "areaId": null,
+      "criticality": "low",
+      "position": {
+        "x": 900,
+        "y": 37
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "mes",
+      "type": "workstation",
+      "variant": "desktop",
+      "label": "Production planner",
+      "purdueLevel": 4,
+      "siteId": "site-main",
+      "zoneId": "zone-ent",
+      "areaId": null,
+      "criticality": "low",
+      "position": {
+        "x": 400,
+        "y": 187
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "fw",
+      "type": "firewall",
+      "variant": "ngfw",
+      "label": "Plant firewall",
+      "purdueLevel": 3.5,
+      "siteId": "site-main",
+      "zoneId": null,
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 650,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      },
+      "firewall": {
+        "defaultAction": "deny",
+        "rules": [
+          {
+            "id": "rule-mqtt",
+            "src": {
+              "kind": "device",
+              "id": "edge"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "cloud"
+            },
+            "protocol": "mqtt",
+            "port": 8883,
+            "action": "allow",
+            "note": "Telemetry to the analytics cloud"
+          },
+          {
+            "id": "rule-mes",
+            "src": {
+              "kind": "zone",
+              "id": "zone-ent"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "hist"
+            },
+            "protocol": "https",
+            "port": 443,
+            "action": "allow",
+            "note": "Planners read production reports"
+          }
+        ]
+      }
+    },
+    {
+      "id": "edge",
+      "type": "gateway",
+      "variant": "edge",
+      "label": "IIoT edge gateway",
+      "purdueLevel": 3.5,
+      "siteId": "site-main",
+      "zoneId": "zone-ops",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 900,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.20.0.30",
+        "notes": ""
+      }
+    },
+    {
+      "id": "opc",
+      "type": "scada",
+      "variant": "opc",
+      "label": "OPC UA aggregation server",
+      "purdueLevel": 3,
+      "siteId": "site-main",
+      "zoneId": "zone-ops",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 400,
+        "y": 487
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.20.1.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "hist",
+      "type": "historian",
+      "variant": "site",
+      "label": "Line historian",
+      "purdueLevel": 3,
+      "siteId": "site-main",
+      "zoneId": "zone-ops",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 650,
+        "y": 487
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.20.1.20",
+        "notes": ""
+      }
+    },
+    {
+      "id": "ews",
+      "type": "ews",
+      "variant": "laptop",
+      "label": "Controls engineer laptop",
+      "purdueLevel": 3,
+      "siteId": "site-main",
+      "zoneId": "zone-ops",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 900,
+        "y": 487
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.20.1.50",
+        "notes": ""
+      }
+    },
+    {
+      "id": "core",
+      "type": "switch",
+      "variant": "l3",
+      "label": "Line switch",
+      "purdueLevel": 2,
+      "siteId": "site-main",
+      "zoneId": "zone-ops",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 650,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "hmi-a",
+      "type": "hmi",
+      "variant": "panel",
+      "label": "Cell A operator panel",
+      "purdueLevel": 2,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-a",
+      "areaId": "area-cell-a",
+      "criticality": "medium",
+      "position": {
+        "x": 150,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.21.0.5",
+        "notes": ""
+      }
+    },
+    {
+      "id": "hmi-b",
+      "type": "hmi",
+      "variant": "panel",
+      "label": "Cell B operator panel",
+      "purdueLevel": 2,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-b",
+      "areaId": "area-cell-b",
+      "criticality": "medium",
+      "position": {
+        "x": 1100,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.22.0.5",
+        "notes": ""
+      }
+    },
+    {
+      "id": "plc-a",
+      "type": "plc",
+      "variant": "modular",
+      "label": "Cell A PLC",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-a",
+      "areaId": "area-cell-a",
+      "criticality": "high",
+      "position": {
+        "x": 150,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.21.0.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "rio-a",
+      "type": "plc",
+      "variant": "remote-io",
+      "label": "Cell A remote I/O",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-a",
+      "areaId": "area-cell-a",
+      "criticality": "high",
+      "position": {
+        "x": 400,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "robot-1",
+      "type": "machine",
+      "variant": "robot",
+      "label": "Welding robot 1",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-a",
+      "areaId": "area-cell-a",
+      "criticality": "high",
+      "position": {
+        "x": 150,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "robot-2",
+      "type": "machine",
+      "variant": "robot",
+      "label": "Welding robot 2",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-a",
+      "areaId": "area-cell-a",
+      "criticality": "high",
+      "position": {
+        "x": 400,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "plc-b",
+      "type": "plc",
+      "variant": "compact",
+      "label": "Cell B PLC",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-b",
+      "areaId": "area-cell-b",
+      "criticality": "high",
+      "position": {
+        "x": 900,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.22.0.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "packer",
+      "type": "machine",
+      "variant": "skid",
+      "label": "Case packer",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-b",
+      "areaId": "area-cell-b",
+      "criticality": "high",
+      "position": {
+        "x": 1150,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "conv",
+      "type": "actuator",
+      "variant": "vfd",
+      "label": "Conveyor drive",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-b",
+      "areaId": "area-cell-b",
+      "criticality": "high",
+      "position": {
+        "x": 900,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "scale",
+      "type": "sensor",
+      "variant": "generic",
+      "label": "Checkweigher",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-cell-b",
+      "areaId": "area-cell-b",
+      "criticality": "medium",
+      "position": {
+        "x": 1150,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "link-mes-fw",
+      "source": "mes",
+      "target": "fw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cloud-fw",
+      "source": "cloud",
+      "target": "fw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-core",
+      "source": "fw",
+      "target": "core",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-edge",
+      "source": "fw",
+      "target": "edge",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-core-opc",
+      "source": "core",
+      "target": "opc",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-core-hist",
+      "source": "core",
+      "target": "hist",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-core-ews",
+      "source": "core",
+      "target": "ews",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-core-hmi-a",
+      "source": "core",
+      "target": "hmi-a",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-core-hmi-b",
+      "source": "core",
+      "target": "hmi-b",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-core-plc-a",
+      "source": "core",
+      "target": "plc-a",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-core-plc-b",
+      "source": "core",
+      "target": "plc-b",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-plc-a-rio-a",
+      "source": "plc-a",
+      "target": "rio-a",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-plc-a-robot-1",
+      "source": "plc-a",
+      "target": "robot-1",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-rio-a-robot-2",
+      "source": "rio-a",
+      "target": "robot-2",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-plc-b-packer",
+      "source": "plc-b",
+      "target": "packer",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-plc-b-conv",
+      "source": "plc-b",
+      "target": "conv",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-packer-scale",
+      "source": "packer",
+      "target": "scale",
+      "medium": "ethernet"
+    }
+  ],
+  "flows": [
+    {
+      "id": "flow-plc-a-rio-a-profinet",
+      "source": "plc-a",
+      "target": "rio-a",
+      "protocol": "profinet",
+      "port": null,
+      "settings": {
+        "realtime": "rt",
+        "conformance": "B",
+        "security": false
+      }
+    },
+    {
+      "id": "flow-plc-a-robot-1-profinet",
+      "source": "plc-a",
+      "target": "robot-1",
+      "protocol": "profinet",
+      "port": null,
+      "settings": {
+        "realtime": "irt",
+        "conformance": "C",
+        "security": false
+      }
+    },
+    {
+      "id": "flow-plc-a-robot-2-profinet",
+      "source": "plc-a",
+      "target": "robot-2",
+      "protocol": "profinet",
+      "port": null,
+      "settings": {
+        "realtime": "irt",
+        "conformance": "C",
+        "security": false
+      }
+    },
+    {
+      "id": "flow-plc-b-packer-enip",
+      "source": "plc-b",
+      "target": "packer",
+      "protocol": "enip",
+      "port": 2222,
+      "settings": {
+        "messaging": "implicit",
+        "cipSecurity": false
+      }
+    },
+    {
+      "id": "flow-plc-b-conv-enip",
+      "source": "plc-b",
+      "target": "conv",
+      "protocol": "enip",
+      "port": 2222,
+      "settings": {
+        "messaging": "implicit",
+        "cipSecurity": false
+      }
+    },
+    {
+      "id": "flow-hmi-a-plc-a-s7",
+      "source": "hmi-a",
+      "target": "plc-a",
+      "protocol": "s7",
+      "port": 102,
+      "settings": {
+        "variant": "classic",
+        "access": "read-write"
+      }
+    },
+    {
+      "id": "flow-hmi-b-plc-b-enip",
+      "source": "hmi-b",
+      "target": "plc-b",
+      "protocol": "enip",
+      "port": 44818,
+      "settings": {
+        "messaging": "explicit",
+        "cipSecurity": false
+      }
+    },
+    {
+      "id": "flow-opc-plc-a-opcua",
+      "source": "opc",
+      "target": "plc-a",
+      "protocol": "opcua",
+      "port": 4840,
+      "settings": {
+        "securityMode": "signandencrypt",
+        "userAuth": "certificate"
+      }
+    },
+    {
+      "id": "flow-opc-plc-b-opcua",
+      "source": "opc",
+      "target": "plc-b",
+      "protocol": "opcua",
+      "port": 4840,
+      "settings": {
+        "securityMode": "signandencrypt",
+        "userAuth": "certificate"
+      }
+    },
+    {
+      "id": "flow-hist-opc-opcua",
+      "source": "hist",
+      "target": "opc",
+      "protocol": "opcua",
+      "port": 4840,
+      "settings": {
+        "securityMode": "sign",
+        "userAuth": "username"
+      }
+    },
+    {
+      "id": "flow-edge-cloud-mqtt",
+      "source": "edge",
+      "target": "cloud",
+      "protocol": "mqtt",
+      "port": 8883,
+      "settings": {
+        "tls": true,
+        "clientAuth": "certificate"
+      }
+    },
+    {
+      "id": "flow-edge-opc-opcua",
+      "source": "edge",
+      "target": "opc",
+      "protocol": "opcua",
+      "port": 4840,
+      "settings": {
+        "securityMode": "signandencrypt",
+        "userAuth": "certificate"
+      }
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone-ent",
+      "name": "Enterprise",
+      "color": "#64748b",
+      "trusted": false,
+      "targetSL": 1
+    },
+    {
+      "id": "zone-ops",
+      "name": "Plant operations",
+      "color": "#0ea5e9",
+      "trusted": true,
+      "targetSL": 2
+    },
+    {
+      "id": "zone-cell-a",
+      "name": "Cell A",
+      "color": "#f59e0b",
+      "trusted": true,
+      "targetSL": 2
+    },
+    {
+      "id": "zone-cell-b",
+      "name": "Cell B",
+      "color": "#8b5cf6",
+      "trusted": true,
+      "targetSL": 2
+    }
+  ],
+  "areas": [
+    {
+      "id": "area-cell-a",
+      "siteId": "site-main",
+      "name": "Cell A \u2013 welding",
+      "color": "#f59e0b",
+      "rect": {
+        "x": 110,
+        "y": 560,
+        "width": 540,
+        "height": 470
+      },
+      "collapsed": false
+    },
+    {
+      "id": "area-cell-b",
+      "siteId": "site-main",
+      "name": "Cell B \u2013 packaging",
+      "color": "#8b5cf6",
+      "rect": {
+        "x": 860,
+        "y": 560,
+        "width": 520,
+        "height": 470
+      },
+      "collapsed": false
+    }
+  ]
+}

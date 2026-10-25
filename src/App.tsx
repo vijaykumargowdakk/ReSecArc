@@ -9,6 +9,7 @@ import { FilterBar } from './ui/FilterBar';
 import { Palette } from './ui/Palette';
 import { SearchDialog } from './ui/SearchDialog';
 import { SiteTabs } from './ui/SiteTabs';
+import { TemplateGallery } from './ui/TemplateGallery';
 import { Toolbar } from './ui/Toolbar';
 import { useShortcuts } from './ui/useShortcuts';
 
@@ -20,6 +21,7 @@ export function App() {
   const [pending, setPending] = useState<Snapshot | null>(readAutosave);
   const load = useProject((s) => s.load);
   const [searching, setSearching] = useState(false);
+  const [choosingTemplate, setChoosingTemplate] = useState(false);
   const openSearch = useCallback(() => setSearching(true), []);
   useShortcuts(openSearch);
 
@@ -28,7 +30,7 @@ export function App() {
   return (
     <ReactFlowProvider>
       <div className="app">
-        <Toolbar onErrors={setErrors} onSearch={openSearch} />
+        <Toolbar onErrors={setErrors} onSearch={openSearch} onNew={() => setChoosingTemplate(true)} />
         {pending && (
           <div className="notice notice--info" role="status">
             <p>
@@ -81,6 +83,7 @@ export function App() {
           <Inspector />
         </main>
         {searching && <SearchDialog onClose={() => setSearching(false)} />}
+        {choosingTemplate && <TemplateGallery onClose={() => setChoosingTemplate(false)} />}
       </div>
     </ReactFlowProvider>
   );

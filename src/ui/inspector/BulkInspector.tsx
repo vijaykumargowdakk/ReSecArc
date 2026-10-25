@@ -7,11 +7,13 @@ import {
   AlignStartVertical,
   AlignHorizontalDistributeCenter,
   AlignVerticalDistributeCenter,
+  BookmarkPlus,
   Group,
   Trash2,
 } from 'lucide-react';
 import type { ReactElement } from 'react';
-import { alignDevices, bulkUpdateDevices, distributeDevices, removeDevice, type AlignMode } from '../../model/ops';
+import { alignDevices, bulkUpdateDevices, distributeDevices, extractFragment, removeDevice, type AlignMode } from '../../model/ops';
+import { useBlocks } from '../../store/blocks';
 import { boundsOf } from '../../model/areas';
 import type { Device } from '../../model/schema';
 import { addArea, AREA_COLORS, createArea, moveDevicesToSite } from '../../model/structure';
@@ -39,6 +41,7 @@ export function BulkInspector({ ids }: { ids: string[] }) {
   const project = useProject((s) => s.project);
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
+  const saveBlock = useBlocks((s) => s.save);
   const devices = project.devices.filter((d) => ids.includes(d.id));
   const mixed = { value: MIXED, label: 'Mixed' };
 
@@ -90,6 +93,20 @@ export function BulkInspector({ ids }: { ids: string[] }) {
         >
           <Group size={16} />
           Group into area
+        </button>
+        <button
+          type="button"
+          className="button"
+          onClick={() => {
+            const name = window.prompt('Name this block', `${devices.length}-device block`);
+            if (name === null) return;
+            if (!saveBlock(name.trim() || 'Untitled block', extractFragment(project, ids))) {
+              window.alert('This browser did not allow the block to be saved.');
+            }
+          }}
+        >
+          <BookmarkPlus size={16} />
+          Save as reusable block
         </button>
         {project.sites.length > 1 && (
           <Field label="Move to site">

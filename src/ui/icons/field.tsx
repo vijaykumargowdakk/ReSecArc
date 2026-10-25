@@ -65,6 +65,26 @@ const vibration = (
   </>
 );
 
+const mergingUnit = (
+  <>
+    <rect x="9" y="4" width="17" height="16" rx="1.5" {...fill} />
+    <path d="M12 9h3l1.5-2 2 4 1.5-2h3M12 15h11" />
+    <circle cx="5.5" cy="24.5" r="3" {...fill} />
+    <circle cx="5.5" cy="24.5" r="1" />
+    <path d="M2 24.5h1M8.5 24.5H12V20M16 20v9M20 20v9" />
+  </>
+);
+
+const breaker = (
+  <>
+    <path d="M16 2v6M16 24v6" />
+    <rect x="8" y="8" width="16" height="16" rx="1.5" {...fill} />
+    <path d="M16 20.5 12.5 12" strokeWidth="2" />
+    <circle cx="16" cy="20.5" r="1.2" fill="currentColor" stroke="none" />
+    <path d="M14.5 11.5h3" />
+  </>
+);
+
 const valveBody = (
   <>
     <path d="M2 22h5M25 22h5" />
@@ -125,10 +145,12 @@ export const FIELD_ICONS: IconSet = {
   'sensor:level': level,
   'sensor:analyser': analyser,
   'sensor:vibration': vibration,
+  'sensor:merging-unit': mergingUnit,
   actuator: controlValve,
   'actuator:control-valve': controlValve,
   'actuator:onoff-valve': onOffValve,
   'actuator:motor': motor,
   'actuator:pump': pump,
   'actuator:vfd': vfd,
+  'actuator:breaker': breaker,
 };

@@ -1,0 +1,557 @@
+{
+  "schemaVersion": 2,
+  "name": "Northfield 132/33 kV Substation (fictional demo)",
+  "sites": [
+    {
+      "id": "site-main",
+      "name": "Northfield substation"
+    }
+  ],
+  "devices": [
+    {
+      "id": "wan",
+      "type": "internet",
+      "variant": "generic",
+      "label": "Utility WAN (control centre)",
+      "purdueLevel": 5,
+      "siteId": "site-main",
+      "zoneId": "zone-wan",
+      "areaId": null,
+      "criticality": "low",
+      "position": {
+        "x": 600,
+        "y": 37
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "wan-router",
+      "type": "router",
+      "variant": "vpn",
+      "label": "WAN router",
+      "purdueLevel": 4,
+      "siteId": "site-main",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 600,
+        "y": 187
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "172.16.40.1",
+        "notes": ""
+      }
+    },
+    {
+      "id": "fw",
+      "type": "firewall",
+      "variant": "industrial",
+      "label": "Substation firewall",
+      "purdueLevel": 3.5,
+      "siteId": "site-main",
+      "zoneId": null,
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 600,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "172.16.40.2",
+        "notes": ""
+      },
+      "firewall": {
+        "defaultAction": "deny",
+        "rules": [
+          {
+            "id": "rule-104",
+            "src": {
+              "kind": "zone",
+              "id": "zone-wan"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "gw"
+            },
+            "protocol": "iec104",
+            "port": 19998,
+            "action": "allow",
+            "note": "Telecontrol from the control centre over TLS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "hmi",
+      "type": "scada",
+      "variant": "scada",
+      "label": "Station SCADA / HMI",
+      "purdueLevel": 3,
+      "siteId": "site-main",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 350,
+        "y": 487
+      },
+      "services": [
+        {
+          "protocol": "rdp",
+          "port": 3389
+        }
+      ],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.0.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "ews",
+      "type": "ews",
+      "variant": "laptop",
+      "label": "Protection engineering laptop",
+      "purdueLevel": 3,
+      "siteId": "site-main",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 850,
+        "y": 487
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.0.50",
+        "notes": ""
+      }
+    },
+    {
+      "id": "gw",
+      "type": "rtu",
+      "variant": "concentrator",
+      "label": "Station gateway",
+      "purdueLevel": 2,
+      "siteId": "site-main",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 350,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.0.20",
+        "notes": ""
+      }
+    },
+    {
+      "id": "sw",
+      "type": "switch",
+      "variant": "industrial",
+      "label": "Station bus switch",
+      "purdueLevel": 2,
+      "siteId": "site-main",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 600,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "ied-1",
+      "type": "rtu",
+      "variant": "ied",
+      "label": "Feeder 1 protection relay",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-bay",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 250,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.1.11",
+        "notes": ""
+      }
+    },
+    {
+      "id": "ied-2",
+      "type": "rtu",
+      "variant": "ied",
+      "label": "Feeder 2 protection relay",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-bay",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 500,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.1.12",
+        "notes": ""
+      }
+    },
+    {
+      "id": "ied-tx",
+      "type": "rtu",
+      "variant": "ied",
+      "label": "Transformer protection relay",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-bay",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 750,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.40.1.20",
+        "notes": ""
+      }
+    },
+    {
+      "id": "mu-1",
+      "type": "sensor",
+      "variant": "merging-unit",
+      "label": "Feeder 1 merging unit",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-bay",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 250,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cb-1",
+      "type": "actuator",
+      "variant": "breaker",
+      "label": "Feeder 1 breaker",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-bay",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 500,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cb-tx",
+      "type": "actuator",
+      "variant": "breaker",
+      "label": "Transformer breaker",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-bay",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 750,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "link-wan-wan-router",
+      "source": "wan",
+      "target": "wan-router",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-wan-router-fw",
+      "source": "wan-router",
+      "target": "fw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-sw",
+      "source": "fw",
+      "target": "sw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-sw-hmi",
+      "source": "sw",
+      "target": "hmi",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-sw-ews",
+      "source": "sw",
+      "target": "ews",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-sw-gw",
+      "source": "sw",
+      "target": "gw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-sw-ied-1",
+      "source": "sw",
+      "target": "ied-1",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-sw-ied-2",
+      "source": "sw",
+      "target": "ied-2",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-sw-ied-tx",
+      "source": "sw",
+      "target": "ied-tx",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ied-1-mu-1",
+      "source": "ied-1",
+      "target": "mu-1",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ied-2-cb-1",
+      "source": "ied-2",
+      "target": "cb-1",
+      "medium": "serial"
+    },
+    {
+      "id": "link-ied-tx-cb-tx",
+      "source": "ied-tx",
+      "target": "cb-tx",
+      "medium": "serial"
+    }
+  ],
+  "flows": [
+    {
+      "id": "flow-wan-gw-iec104",
+      "source": "wan",
+      "target": "gw",
+      "protocol": "iec104",
+      "port": 19998,
+      "settings": {
+        "tls": true,
+        "controlCommands": true
+      }
+    },
+    {
+      "id": "flow-hmi-ied-1-mms",
+      "source": "hmi",
+      "target": "ied-1",
+      "protocol": "mms",
+      "port": 102,
+      "settings": {
+        "tls": false,
+        "controlCommands": true
+      }
+    },
+    {
+      "id": "flow-gw-ied-1-mms",
+      "source": "gw",
+      "target": "ied-1",
+      "protocol": "mms",
+      "port": 102,
+      "settings": {
+        "tls": false,
+        "controlCommands": false
+      }
+    },
+    {
+      "id": "flow-hmi-ied-2-mms",
+      "source": "hmi",
+      "target": "ied-2",
+      "protocol": "mms",
+      "port": 102,
+      "settings": {
+        "tls": false,
+        "controlCommands": true
+      }
+    },
+    {
+      "id": "flow-gw-ied-2-mms",
+      "source": "gw",
+      "target": "ied-2",
+      "protocol": "mms",
+      "port": 102,
+      "settings": {
+        "tls": false,
+        "controlCommands": false
+      }
+    },
+    {
+      "id": "flow-hmi-ied-tx-mms",
+      "source": "hmi",
+      "target": "ied-tx",
+      "protocol": "mms",
+      "port": 102,
+      "settings": {
+        "tls": false,
+        "controlCommands": true
+      }
+    },
+    {
+      "id": "flow-gw-ied-tx-mms",
+      "source": "gw",
+      "target": "ied-tx",
+      "protocol": "mms",
+      "port": 102,
+      "settings": {
+        "tls": false,
+        "controlCommands": false
+      }
+    },
+    {
+      "id": "flow-ied-1-ied-tx-goose",
+      "source": "ied-1",
+      "target": "ied-tx",
+      "protocol": "goose",
+      "port": null,
+      "settings": {
+        "authenticated": true
+      }
+    },
+    {
+      "id": "flow-ied-tx-ied-2-goose",
+      "source": "ied-tx",
+      "target": "ied-2",
+      "protocol": "goose",
+      "port": null,
+      "settings": {
+        "authenticated": true
+      }
+    },
+    {
+      "id": "flow-ews-ied-tx-mms",
+      "source": "ews",
+      "target": "ied-tx",
+      "protocol": "mms",
+      "port": 102,
+      "settings": {
+        "tls": false,
+        "controlCommands": true
+      }
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone-wan",
+      "name": "Utility WAN",
+      "color": "#94a3b8",
+      "trusted": false,
+      "targetSL": 1
+    },
+    {
+      "id": "zone-station",
+      "name": "Station LAN",
+      "color": "#0ea5e9",
+      "trusted": true,
+      "targetSL": 3
+    },
+    {
+      "id": "zone-bay",
+      "name": "Bay / process",
+      "color": "#16a34a",
+      "trusted": true,
+      "targetSL": 3
+    }
+  ],
+  "areas": []
+}

@@ -1,0 +1,611 @@
+{
+  "schemaVersion": 2,
+  "name": "Harbour View Office Tower (fictional demo)",
+  "sites": [
+    {
+      "id": "site-main",
+      "name": "Harbour View tower"
+    }
+  ],
+  "devices": [
+    {
+      "id": "vendor",
+      "type": "internet",
+      "variant": "vendor",
+      "label": "Maintenance contractor",
+      "purdueLevel": 5,
+      "siteId": "site-main",
+      "zoneId": "zone-corp",
+      "areaId": null,
+      "criticality": "low",
+      "position": {
+        "x": 350,
+        "y": 37
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "fm",
+      "type": "workstation",
+      "variant": "laptop",
+      "label": "Facilities manager",
+      "purdueLevel": 4,
+      "siteId": "site-main",
+      "zoneId": "zone-corp",
+      "areaId": null,
+      "criticality": "low",
+      "position": {
+        "x": 650,
+        "y": 187
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "ra",
+      "type": "jumphost",
+      "variant": "ra-gateway",
+      "label": "Remote-access gateway",
+      "purdueLevel": 3.5,
+      "siteId": "site-main",
+      "zoneId": "zone-bms",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 350,
+        "y": 337
+      },
+      "services": [
+        {
+          "protocol": "https",
+          "port": 443
+        }
+      ],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "fw",
+      "type": "firewall",
+      "variant": "ngfw",
+      "label": "Building firewall",
+      "purdueLevel": 3.5,
+      "siteId": "site-main",
+      "zoneId": null,
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 650,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      },
+      "firewall": {
+        "defaultAction": "deny",
+        "rules": [
+          {
+            "id": "rule-fm",
+            "src": {
+              "kind": "device",
+              "id": "fm"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "web"
+            },
+            "protocol": "https",
+            "port": 443,
+            "action": "allow",
+            "note": "Facilities dashboard"
+          },
+          {
+            "id": "rule-ra",
+            "src": {
+              "kind": "device",
+              "id": "vendor"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "ra"
+            },
+            "protocol": "https",
+            "port": 443,
+            "action": "allow",
+            "note": "Brokered contractor access"
+          },
+          {
+            "id": "rule-ra-bms",
+            "src": {
+              "kind": "device",
+              "id": "ra"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "bms"
+            },
+            "protocol": "rdp",
+            "port": 3389,
+            "action": "allow",
+            "note": "Contractor sessions via the gateway only"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bms",
+      "type": "scada",
+      "variant": "generic",
+      "label": "BMS supervisory server",
+      "purdueLevel": 3,
+      "siteId": "site-main",
+      "zoneId": "zone-bms",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 400,
+        "y": 487
+      },
+      "services": [
+        {
+          "protocol": "rdp",
+          "port": 3389
+        }
+      ],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.60.0.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "web",
+      "type": "hmi",
+      "variant": "web",
+      "label": "BMS web client",
+      "purdueLevel": 3,
+      "siteId": "site-main",
+      "zoneId": "zone-bms",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 650,
+        "y": 487
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "bms-sw",
+      "type": "switch",
+      "variant": "managed",
+      "label": "BMS switch",
+      "purdueLevel": 2,
+      "siteId": "site-main",
+      "zoneId": "zone-bms",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 650,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "bbmd",
+      "type": "gateway",
+      "variant": "converter",
+      "label": "BACnet router (MS/TP)",
+      "purdueLevel": 2,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 950,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.60.1.2",
+        "notes": ""
+      }
+    },
+    {
+      "id": "ahu",
+      "type": "plc",
+      "variant": "compact",
+      "label": "AHU-1 controller",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 250,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.60.1.21",
+        "notes": ""
+      }
+    },
+    {
+      "id": "chiller",
+      "type": "plc",
+      "variant": "compact",
+      "label": "Chiller plant controller",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 500,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.60.1.22",
+        "notes": ""
+      }
+    },
+    {
+      "id": "light",
+      "type": "plc",
+      "variant": "micro",
+      "label": "Lighting controller",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 750,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.60.1.23",
+        "notes": ""
+      }
+    },
+    {
+      "id": "vav",
+      "type": "plc",
+      "variant": "micro",
+      "label": "Floor 12 VAV controllers",
+      "purdueLevel": 1,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 1000,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "temp",
+      "type": "sensor",
+      "variant": "temperature",
+      "label": "Supply air temperature",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 150,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "fan",
+      "type": "actuator",
+      "variant": "vfd",
+      "label": "Supply fan drive",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 400,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cwv",
+      "type": "actuator",
+      "variant": "control-valve",
+      "label": "Chilled water valve",
+      "purdueLevel": 0,
+      "siteId": "site-main",
+      "zoneId": "zone-field",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 650,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "link-vendor-fw",
+      "source": "vendor",
+      "target": "fw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fm-fw",
+      "source": "fm",
+      "target": "fw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-ra",
+      "source": "fw",
+      "target": "ra",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-bms-sw",
+      "source": "fw",
+      "target": "bms-sw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bms-sw-bms",
+      "source": "bms-sw",
+      "target": "bms",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bms-sw-web",
+      "source": "bms-sw",
+      "target": "web",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bms-sw-ahu",
+      "source": "bms-sw",
+      "target": "ahu",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bms-sw-chiller",
+      "source": "bms-sw",
+      "target": "chiller",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bms-sw-light",
+      "source": "bms-sw",
+      "target": "light",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bms-sw-bbmd",
+      "source": "bms-sw",
+      "target": "bbmd",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bbmd-vav",
+      "source": "bbmd",
+      "target": "vav",
+      "medium": "serial"
+    },
+    {
+      "id": "link-ahu-temp",
+      "source": "ahu",
+      "target": "temp",
+      "medium": "serial"
+    },
+    {
+      "id": "link-ahu-fan",
+      "source": "ahu",
+      "target": "fan",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-chiller-cwv",
+      "source": "chiller",
+      "target": "cwv",
+      "medium": "serial"
+    }
+  ],
+  "flows": [
+    {
+      "id": "flow-bms-ahu-bacnet",
+      "source": "bms",
+      "target": "ahu",
+      "protocol": "bacnet",
+      "port": 47808,
+      "settings": {
+        "secureConnect": false,
+        "access": "read-write"
+      }
+    },
+    {
+      "id": "flow-bms-chiller-bacnet",
+      "source": "bms",
+      "target": "chiller",
+      "protocol": "bacnet",
+      "port": 47808,
+      "settings": {
+        "secureConnect": false,
+        "access": "read-write"
+      }
+    },
+    {
+      "id": "flow-bms-light-bacnet",
+      "source": "bms",
+      "target": "light",
+      "protocol": "bacnet",
+      "port": 47808,
+      "settings": {
+        "secureConnect": false,
+        "access": "read-write"
+      }
+    },
+    {
+      "id": "flow-bms-bbmd-bacnet",
+      "source": "bms",
+      "target": "bbmd",
+      "protocol": "bacnet",
+      "port": 47808,
+      "settings": {
+        "secureConnect": false,
+        "access": "read-write"
+      }
+    },
+    {
+      "id": "flow-bbmd-vav-bacnet",
+      "source": "bbmd",
+      "target": "vav",
+      "protocol": "bacnet",
+      "port": 47808,
+      "settings": {
+        "secureConnect": false,
+        "access": "read-write"
+      }
+    },
+    {
+      "id": "flow-fm-web-custom",
+      "source": "fm",
+      "target": "web",
+      "protocol": "custom",
+      "port": 443,
+      "settings": {
+        "name": "HTTPS dashboard",
+        "transport": "tcp",
+        "encrypted": true
+      }
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone-corp",
+      "name": "Tenant / corporate",
+      "color": "#64748b",
+      "trusted": false,
+      "targetSL": 1
+    },
+    {
+      "id": "zone-bms",
+      "name": "Building management",
+      "color": "#0ea5e9",
+      "trusted": true,
+      "targetSL": 2
+    },
+    {
+      "id": "zone-field",
+      "name": "Field controllers",
+      "color": "#16a34a",
+      "trusted": true,
+      "targetSL": 2
+    }
+  ],
+  "areas": []
+}
