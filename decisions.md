@@ -44,3 +44,18 @@
 **Decision:** This build covers the editor, zones, flows, firewall rules, save/load, docs and CI. No analysis features have been built.
 **Why:** The owner will decide the scope of any further features separately.
 **User input:** Owner asked to proceed with the buildable parts.
+
+## 2026-10-25 — Proprietary licence: all rights reserved
+**Decision:** Replaced the MIT licence with an all-rights-reserved notice. Any use, copying, modification, rebuild or distribution needs written permission from the owner. `package.json` declares `UNLICENSED`.
+**Why:** The owner wants complete ownership, with others asking permission first.
+**User input:** Owner asked for a licence that gives them full ownership and requires permission for any use.
+
+## 2026-10-25 — GitHub Pages deploy is manual
+**Decision:** The Pages workflow runs only via workflow_dispatch.
+**Why:** It fails until Pages is enabled in the repository settings, and the owner decides when a public demo goes live.
+**User input:** None.
+
+## 2026-10-25 — Review hook limited to edited files
+**Decision:** The Stop review hook now reviews only the files in `.claude/.pending-review`. It never blocks because a conversation or plan looks unfinished, and it exits immediately when `stop_hook_active` is true.
+**Why:** It had blocked a turn nine times in a row by judging plan completeness, which is outside its purpose.
+**User input:** Owner asked for the best fix.
