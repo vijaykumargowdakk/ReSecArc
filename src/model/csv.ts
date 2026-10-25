@@ -35,7 +35,7 @@ function unparse(table: { fields: string[]; data: unknown[][] }): string {
 }
 
 /** Undoes the formula escape added on export, so exported files re-import unchanged. */
-const unescapeFormula = (v: string) => (/^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v);
+export const unescapeFormula = (v: string) => (/^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v);
 
 export function devicesToCsv(project: Project): string {
   const zone = names(project.zones);
@@ -152,7 +152,7 @@ export interface ImportRow {
   errors: string[];
 }
 
-const norm = (s: string) => s.trim().toLowerCase();
+export const norm = (s: string) => s.trim().toLowerCase();
 
 function findType(raw: string): DeviceType | null {
   const parsed = deviceTypeSchema.safeParse(norm(raw));

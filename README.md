@@ -54,9 +54,10 @@ Everything runs in the browser. There is no server, no account and no telemetry.
 
 ### Inventory and export
 - An **Inventory** view with sortable, inline-editable tables of devices, protocol flows and firewall rules, plus an **IP plan** listing every address with its network, VLAN and warnings.
-- **CSV import** of devices. Each rejected row is listed with the reason.
+- **CSV import** of devices, protocol flows and firewall rules, in the same columns the exports write, so an exported table can be edited in a spreadsheet and read back. Each rejected row is listed with the reason. Rule import can replace a firewall's rules or add to them.
 - **CSV export** of devices, flows, firewall rules and the IP plan. Cells that a spreadsheet would treat as formulas are escaped.
 - **Diagram export** as SVG or PNG, or print to PDF.
+- **Share as a link:** the whole design is compressed into the link's `#` fragment, which browsers never send to a server. The person who opens it is asked before anything is replaced. Revisions are left out unless you include them.
 - An **architecture document** in Markdown covering zones, conduits, devices, flows and firewall rules for every site.
 
 ### Accessibility
@@ -87,6 +88,7 @@ Open the printed local URL. The fictional *Riverbend Water Treatment* plant load
 |------|--------|
 | Ctrl + K or / | Find a device |
 | Ctrl + Z / Ctrl + Shift + Z | Undo / redo |
+| Double-click a note | Edit it in place (Ctrl + Enter to finish) |
 | Ctrl + C / Ctrl + V / Ctrl + D | Copy / paste / duplicate selected devices |
 | Ctrl + A | Select every device on the site |
 | Delete or Backspace | Delete the selection |
