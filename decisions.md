@@ -89,3 +89,8 @@
 **Decision:** Each site gets its own tab and Purdue lanes; links or flows to another site appear as clickable stubs. Areas are dashed frames that own the devices whose centre falls inside them, move their members along, and can collapse into one node with member edges merged onto it. Ctrl+K or "/" searches every site by name, kind, IP, vendor, model or notes. Zone/type/level/protocol filters dim non-matching items instead of hiding them. The site-to-canvas mapping is a pure, tested function (`src/ui/canvas/view.ts`).
 **Why:** Real estates span several sites and hundreds of devices. Dimming keeps context and layout readable; collapsing hides detail without losing connectivity.
 **User input:** Approved in the v0.2 plan.
+
+## 2026-10-25 — Template gallery and reusable blocks
+**Decision:** "New" now opens a gallery: a blank canvas or one of five fictional templates (water treatment, substation, manufacturing line, office building, multi-site pipeline). Together the templates use every protocol, sites and areas. The separate Demo button is gone. Multi-device selections can be saved as named blocks (per browser) and inserted from the palette. Added protection relay (IED), merging unit and circuit breaker variants for the substation template.
+**Why:** Starting from a realistic reference architecture is faster than a blank page, and blocks make repeated cells quick to build.
+**User input:** Approved in the v0.2 plan.

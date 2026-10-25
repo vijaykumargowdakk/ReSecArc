@@ -97,6 +97,16 @@ const concentrator = (
   </>
 );
 
+const ied = (
+  <>
+    <rect x="6" y="3" width="20" height="26" rx="1.5" {...fill} />
+    <rect x="9" y="6" width="14" height="6" rx="0.6" />
+    <path d="M11 9h3l1-1.5 1.5 3 1-1.5h3" />
+    <Leds x={10} y={16} n={4} gap={2.6} />
+    <path d="M10 20.5h12M10 24h8" />
+  </>
+);
+
 const safetyPlc = (
   <>
     {compactPlc}
@@ -166,6 +176,7 @@ export const CONTROL_ICONS: IconSet = {
   'rtu:field': fieldRtu,
   'rtu:substation': substationRtu,
   'rtu:concentrator': concentrator,
+  'rtu:ied': ied,
   sis: safetyPlc,
   'sis:safety-plc': safetyPlc,
   'sis:esd': esd,

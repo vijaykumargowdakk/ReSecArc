@@ -1,10 +1,9 @@
-import { Cable, Download, Factory, FilePlus2, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
+import { Cable, Download, FilePlus2, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { parseProject, serializeProject } from '../model/io';
 import { PROTOCOLS } from '../model/protocols';
-import { emptyProject } from '../model/ops';
 import { useAutosaveStatus } from '../store/autosave';
-import { demoProject, useProject, type ConnectMode } from '../store/useProject';
+import { useProject, type ConnectMode } from '../store/useProject';
 
 const clock = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
 
@@ -16,7 +15,15 @@ function fileName(projectName: string): string {
   return `${slug || 'architecture'}.conduitot.json`;
 }
 
-export function Toolbar({ onErrors, onSearch }: { onErrors: (errors: string[]) => void; onSearch: () => void }) {
+export function Toolbar({
+  onErrors,
+  onSearch,
+  onNew,
+}: {
+  onErrors: (errors: string[]) => void;
+  onSearch: () => void;
+  onNew: () => void;
+}) {
   const project = useProject((s) => s.project);
   const load = useProject((s) => s.load);
   const connectMode = useProject((s) => s.connectMode);
@@ -127,7 +134,7 @@ export function Toolbar({ onErrors, onSearch }: { onErrors: (errors: string[]) =
       </div>
 
       <div className="toolbar__group">
-        <button type="button" className="button" onClick={() => replace(emptyProject(), 'Start a new architecture and discard the current one?')}>
+        <button type="button" className="button" onClick={onNew} title="Start from a template or a blank canvas">
           <FilePlus2 size={16} />
           New
         </button>
@@ -138,10 +145,6 @@ export function Toolbar({ onErrors, onSearch }: { onErrors: (errors: string[]) =
         <button type="button" className="button" onClick={save}>
           <Download size={16} />
           Save
-        </button>
-        <button type="button" className="button" onClick={() => replace(demoProject(), 'Load the demo plant and discard the current architecture?')}>
-          <Factory size={16} />
-          Demo
         </button>
         <span className={`autosave${autosave.failed ? ' is-failed' : ''}`} aria-live="polite">
           {autosave.failed ? 'Not saved in browser' : autosave.savedAt ? `Saved in browser ${clock.format(autosave.savedAt)}` : ''}

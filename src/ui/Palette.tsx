@@ -1,9 +1,10 @@
-import { ChevronRight } from 'lucide-react';
+import { Boxes, ChevronRight, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { DEVICE_CATALOG, PALETTE_GROUPS } from '../model/catalog';
 import { addDevice, createDevice } from '../model/ops';
 import { laneTop } from '../model/purdue';
 import type { DeviceType } from '../model/schema';
+import { useBlocks } from '../store/blocks';
 import { useProject } from '../store/useProject';
 import { DEVICE_DND_MIME } from './canvas/Canvas';
 import { DeviceIcon } from './icons';
@@ -46,6 +47,9 @@ export function Palette() {
   const count = useProject((s) => s.project.devices.length);
   const siteId = useProject((s) => s.activeSiteId);
   const [open, setOpen] = useState<Set<DeviceType>>(() => new Set());
+  const blocks = useBlocks((s) => s.blocks);
+  const removeBlock = useBlocks((s) => s.remove);
+  const insertFragment = useProject((s) => s.insertFragment);
 
   // Keyboard and click alternative to dragging: drop into the type's default lane.
   const addToDefaultLane = (type: DeviceType, variant: string) => {
@@ -108,6 +112,32 @@ export function Palette() {
           </ul>
         </div>
       ))}
+      <div className="palette__group">
+        <h3>Your blocks</h3>
+        {blocks.length === 0 ? (
+          <p className="palette__hint">Select several devices and choose “Save as reusable block” to reuse them here.</p>
+        ) : (
+          <ul>
+            {blocks.map((b) => (
+              <li key={b.id} className="palette__row">
+                <button type="button" className="palette__item" onClick={() => insertFragment(b.fragment)} title={`Insert ${b.fragment.devices.length} devices`}>
+                  <Boxes size={22} />
+                  <span>{b.name}</span>
+                </button>
+                <button
+                  type="button"
+                  className="palette__toggle"
+                  aria-label={`Delete block ${b.name}`}
+                  title="Delete block"
+                  onClick={() => window.confirm(`Delete the block “${b.name}”?`) && removeBlock(b.id)}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </aside>
   );
 }

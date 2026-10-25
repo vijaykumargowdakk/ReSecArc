@@ -1,8 +1,7 @@
 import { create } from 'zustand';
-import demo from '../examples/demo-water-treatment.json';
-import { parseProject } from '../model/io';
-import { extractFragment, pasteFragment, type Fragment } from '../model/ops';
+import { loadTemplate } from '../examples/templates';
 import { NO_FILTER, type Filter } from '../model/filter';
+import { extractFragment, pasteFragment, type Fragment } from '../model/ops';
 import type { Project } from '../model/schema';
 import { commit, initHistory, redo, undo, type History } from './history';
 
@@ -42,6 +41,8 @@ interface ProjectState {
   copy: () => void;
   paste: () => void;
   duplicate: () => void;
+  /** Inserts a saved block onto the active site. */
+  insertFragment: (fragment: Fragment) => void;
   setActiveSite: (siteId: string) => void;
   /** Switches to the device's site, selects it and centres the canvas on it. */
   focusDevice: (deviceId: string) => void;
@@ -53,9 +54,7 @@ interface ProjectState {
 }
 
 export function demoProject(): Project {
-  const result = parseProject(JSON.stringify(demo));
-  if (!result.ok) throw new Error(`Bundled demo project is invalid:\n${result.errors.join('\n')}`);
-  return result.project;
+  return loadTemplate('water-treatment');
 }
 
 const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((id, i) => id === b[i]);
@@ -147,6 +146,7 @@ export const useProject = create<ProjectState>((set, get) => {
       const { project, selection } = get();
       if (selection.devices.length) pasteInto(extractFragment(project, selection.devices));
     },
+    insertFragment: (fragment) => pasteInto(fragment),
     setConnectMode: (connectMode) => set({ connectMode }),
     setFlowProtocol: (flowProtocol) => set({ flowProtocol, connectMode: 'flow' }),
     toggleSnap: () => set((s) => ({ snapToGrid: !s.snapToGrid })),

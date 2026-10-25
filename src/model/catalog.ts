@@ -43,6 +43,7 @@ export const DEVICE_CATALOG: Record<DeviceType, DeviceTypeInfo> = {
       { id: 'field', label: 'Field RTU', description: 'Pole- or kiosk-mounted unit at a remote site' },
       { id: 'substation', label: 'Substation RTU', description: 'Gathers bay data inside a substation' },
       { id: 'concentrator', label: 'Data concentrator', description: 'Aggregates several IEDs or RTUs upstream' },
+      { id: 'ied', label: 'Protection relay (IED)', description: 'Intelligent electronic device protecting a bay' },
     ],
   },
   sis: {
@@ -82,6 +83,7 @@ export const DEVICE_CATALOG: Record<DeviceType, DeviceTypeInfo> = {
       { id: 'level', label: 'Level', description: 'Level transmitter' },
       { id: 'analyser', label: 'Analyser', description: 'Process analyser' },
       { id: 'vibration', label: 'Vibration', description: 'Vibration monitor' },
+      { id: 'merging-unit', label: 'Merging unit', description: 'Digitises current and voltage transformer signals' },
     ],
   },
   actuator: {
@@ -96,6 +98,7 @@ export const DEVICE_CATALOG: Record<DeviceType, DeviceTypeInfo> = {
       { id: 'motor', label: 'Motor', description: 'Electric motor' },
       { id: 'pump', label: 'Pump', description: 'Pump and drive' },
       { id: 'vfd', label: 'Variable-speed drive', description: 'Motor drive' },
+      { id: 'breaker', label: 'Circuit breaker', description: 'Switchgear that opens and closes a power circuit' },
     ],
   },
   hmi: {

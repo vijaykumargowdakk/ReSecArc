@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import demo from '../examples/demo-water-treatment.json';
+import demo from '../examples/templates/water-treatment.json';
 import { deriveConduits } from './conduits';
 import { parseProject, referenceErrors, serializeProject } from './io';
 import {

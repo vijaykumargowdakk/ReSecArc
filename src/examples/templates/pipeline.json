@@ -1,0 +1,741 @@
+{
+  "schemaVersion": 2,
+  "name": "Westridge Gas Pipeline (fictional demo)",
+  "sites": [
+    {
+      "id": "site-cc",
+      "name": "Control centre"
+    },
+    {
+      "id": "site-cs1",
+      "name": "Compressor station 1"
+    },
+    {
+      "id": "site-bv7",
+      "name": "Block valve 7"
+    }
+  ],
+  "devices": [
+    {
+      "id": "corp",
+      "type": "workstation",
+      "variant": "desktop",
+      "label": "Gas control analyst",
+      "purdueLevel": 4,
+      "siteId": "site-cc",
+      "zoneId": "zone-corp",
+      "areaId": null,
+      "criticality": "low",
+      "position": {
+        "x": 300,
+        "y": 187
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cc-fw",
+      "type": "firewall",
+      "variant": "ngfw",
+      "label": "Control centre firewall",
+      "purdueLevel": 3.5,
+      "siteId": "site-cc",
+      "zoneId": null,
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 600,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      },
+      "firewall": {
+        "defaultAction": "deny",
+        "rules": [
+          {
+            "id": "rule-dnp3",
+            "src": {
+              "kind": "device",
+              "id": "scada"
+            },
+            "dst": {
+              "kind": "zone",
+              "id": "zone-wan"
+            },
+            "protocol": "dnp3",
+            "port": 20000,
+            "action": "allow",
+            "note": "Polling field sites over the WAN"
+          },
+          {
+            "id": "rule-hist",
+            "src": {
+              "kind": "device",
+              "id": "cc-hist"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "hist"
+            },
+            "protocol": "opcua",
+            "port": 4840,
+            "action": "allow",
+            "note": "Business replica reads operations data"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cc-hist",
+      "type": "historian",
+      "variant": "replica",
+      "label": "Business historian replica",
+      "purdueLevel": 3.5,
+      "siteId": "site-cc",
+      "zoneId": "zone-corp",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 900,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "scada",
+      "type": "scada",
+      "variant": "scada",
+      "label": "Pipeline SCADA server",
+      "purdueLevel": 3,
+      "siteId": "site-cc",
+      "zoneId": "zone-scada",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 350,
+        "y": 487
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.1.0.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "hist",
+      "type": "historian",
+      "variant": "site",
+      "label": "Operations historian",
+      "purdueLevel": 3,
+      "siteId": "site-cc",
+      "zoneId": "zone-scada",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 650,
+        "y": 487
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.1.0.20",
+        "notes": ""
+      }
+    },
+    {
+      "id": "console",
+      "type": "hmi",
+      "variant": "station",
+      "label": "Controller console",
+      "purdueLevel": 2,
+      "siteId": "site-cc",
+      "zoneId": "zone-scada",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 350,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cc-router",
+      "type": "router",
+      "variant": "vpn",
+      "label": "WAN headend router",
+      "purdueLevel": 2,
+      "siteId": "site-cc",
+      "zoneId": "zone-wan",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 900,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.255.0.1",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cs-router",
+      "type": "router",
+      "variant": "vpn",
+      "label": "Station WAN router",
+      "purdueLevel": 3.5,
+      "siteId": "site-cs1",
+      "zoneId": "zone-wan",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 350,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.255.1.1",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cs-fw",
+      "type": "firewall",
+      "variant": "industrial",
+      "label": "Station firewall",
+      "purdueLevel": 3.5,
+      "siteId": "site-cs1",
+      "zoneId": null,
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 650,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      },
+      "firewall": {
+        "defaultAction": "deny",
+        "rules": [
+          {
+            "id": "rule-in",
+            "src": {
+              "kind": "device",
+              "id": "scada"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "cs-plc"
+            },
+            "protocol": "dnp3",
+            "port": 20000,
+            "action": "allow",
+            "note": "Only the control centre master"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cs-hmi",
+      "type": "hmi",
+      "variant": "panel",
+      "label": "Station HMI",
+      "purdueLevel": 2,
+      "siteId": "site-cs1",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 350,
+        "y": 637
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cs-plc",
+      "type": "plc",
+      "variant": "pac",
+      "label": "Station controller",
+      "purdueLevel": 1,
+      "siteId": "site-cs1",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 600,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.11.0.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cs-esd",
+      "type": "sis",
+      "variant": "esd",
+      "label": "Station ESD",
+      "purdueLevel": 1,
+      "siteId": "site-cs1",
+      "zoneId": "zone-sis",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 900,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "comp",
+      "type": "machine",
+      "variant": "skid",
+      "label": "Compressor unit 1",
+      "purdueLevel": 0,
+      "siteId": "site-cs1",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 350,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cs-pt",
+      "type": "sensor",
+      "variant": "pressure",
+      "label": "Discharge pressure",
+      "purdueLevel": 0,
+      "siteId": "site-cs1",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 600,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "cs-sdv",
+      "type": "actuator",
+      "variant": "onoff-valve",
+      "label": "Station shutdown valve",
+      "purdueLevel": 0,
+      "siteId": "site-cs1",
+      "zoneId": "zone-sis",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 900,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "bv-router",
+      "type": "router",
+      "variant": "cellular",
+      "label": "Cellular router",
+      "purdueLevel": 3.5,
+      "siteId": "site-bv7",
+      "zoneId": "zone-wan",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 450,
+        "y": 337
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.255.7.1",
+        "notes": ""
+      }
+    },
+    {
+      "id": "bv-rtu",
+      "type": "rtu",
+      "variant": "field",
+      "label": "Block valve RTU",
+      "purdueLevel": 1,
+      "siteId": "site-bv7",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 450,
+        "y": 787
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "10.17.0.10",
+        "notes": ""
+      }
+    },
+    {
+      "id": "bv-pt",
+      "type": "sensor",
+      "variant": "pressure",
+      "label": "Line pressure",
+      "purdueLevel": 0,
+      "siteId": "site-bv7",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "medium",
+      "position": {
+        "x": 300,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    },
+    {
+      "id": "bv-valve",
+      "type": "actuator",
+      "variant": "onoff-valve",
+      "label": "Mainline block valve",
+      "purdueLevel": 0,
+      "siteId": "site-bv7",
+      "zoneId": "zone-station",
+      "areaId": null,
+      "criticality": "high",
+      "position": {
+        "x": 600,
+        "y": 937
+      },
+      "services": [],
+      "asset": {
+        "vendor": "",
+        "model": "",
+        "firmware": "",
+        "serial": "",
+        "ip": "",
+        "notes": ""
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "link-corp-cc-fw",
+      "source": "corp",
+      "target": "cc-fw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cc-fw-cc-hist",
+      "source": "cc-fw",
+      "target": "cc-hist",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cc-fw-scada",
+      "source": "cc-fw",
+      "target": "scada",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cc-fw-hist",
+      "source": "cc-fw",
+      "target": "hist",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-scada-console",
+      "source": "scada",
+      "target": "console",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cc-fw-cc-router",
+      "source": "cc-fw",
+      "target": "cc-router",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cs-router-cs-fw",
+      "source": "cs-router",
+      "target": "cs-fw",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cs-fw-cs-hmi",
+      "source": "cs-fw",
+      "target": "cs-hmi",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cs-fw-cs-plc",
+      "source": "cs-fw",
+      "target": "cs-plc",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cs-plc-comp",
+      "source": "cs-plc",
+      "target": "comp",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cs-plc-cs-pt",
+      "source": "cs-plc",
+      "target": "cs-pt",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cs-esd-cs-sdv",
+      "source": "cs-esd",
+      "target": "cs-sdv",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cs-plc-cs-esd",
+      "source": "cs-plc",
+      "target": "cs-esd",
+      "medium": "serial"
+    },
+    {
+      "id": "link-bv-router-bv-rtu",
+      "source": "bv-router",
+      "target": "bv-rtu",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-bv-rtu-bv-pt",
+      "source": "bv-rtu",
+      "target": "bv-pt",
+      "medium": "serial"
+    },
+    {
+      "id": "link-bv-rtu-bv-valve",
+      "source": "bv-rtu",
+      "target": "bv-valve",
+      "medium": "serial"
+    },
+    {
+      "id": "link-cc-router-cs-router",
+      "source": "cc-router",
+      "target": "cs-router",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-cc-router-bv-router",
+      "source": "cc-router",
+      "target": "bv-router",
+      "medium": "wireless"
+    }
+  ],
+  "flows": [
+    {
+      "id": "flow-scada-cs-plc-dnp3",
+      "source": "scada",
+      "target": "cs-plc",
+      "protocol": "dnp3",
+      "port": 20000,
+      "settings": {
+        "transport": "tcp",
+        "secureAuthentication": true,
+        "tls": false,
+        "controlCommands": true
+      }
+    },
+    {
+      "id": "flow-scada-bv-rtu-dnp3",
+      "source": "scada",
+      "target": "bv-rtu",
+      "protocol": "dnp3",
+      "port": 20000,
+      "settings": {
+        "transport": "tcp",
+        "secureAuthentication": true,
+        "tls": false,
+        "controlCommands": true
+      }
+    },
+    {
+      "id": "flow-cs-hmi-cs-plc-modbus",
+      "source": "cs-hmi",
+      "target": "cs-plc",
+      "protocol": "modbus",
+      "port": 502,
+      "settings": {
+        "variant": "tcp",
+        "access": "read-write",
+        "authentication": false
+      }
+    },
+    {
+      "id": "flow-hist-scada-opcua",
+      "source": "hist",
+      "target": "scada",
+      "protocol": "opcua",
+      "port": 4840,
+      "settings": {
+        "securityMode": "signandencrypt",
+        "userAuth": "certificate"
+      }
+    },
+    {
+      "id": "flow-cc-hist-hist-opcua",
+      "source": "cc-hist",
+      "target": "hist",
+      "protocol": "opcua",
+      "port": 4840,
+      "settings": {
+        "securityMode": "sign",
+        "userAuth": "username"
+      }
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone-corp",
+      "name": "Corporate",
+      "color": "#64748b",
+      "trusted": false,
+      "targetSL": 1
+    },
+    {
+      "id": "zone-scada",
+      "name": "SCADA control centre",
+      "color": "#0ea5e9",
+      "trusted": true,
+      "targetSL": 3
+    },
+    {
+      "id": "zone-wan",
+      "name": "Operational WAN",
+      "color": "#8b5cf6",
+      "trusted": false,
+      "targetSL": 2
+    },
+    {
+      "id": "zone-station",
+      "name": "Station control",
+      "color": "#16a34a",
+      "trusted": true,
+      "targetSL": 3
+    },
+    {
+      "id": "zone-sis",
+      "name": "Station safety",
+      "color": "#dc2626",
+      "trusted": true,
+      "targetSL": 3
+    }
+  ],
+  "areas": []
+}

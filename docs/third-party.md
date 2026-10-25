@@ -15,7 +15,7 @@ Build and test tooling (Vite, TypeScript, Vitest, ESLint) is used only in develo
 ## Original assets
 
 - **Device icons** (`src/ui/icons/`, about 70 two-tone silhouettes) and the **favicon** (`public/favicon.svg`) were drawn for this project. They do not reproduce any vendor's logo or product artwork.
-- **Demo project** (`src/examples/demo-water-treatment.json`): *Riverbend Water Treatment* is fictional. Its devices, names and rules do not describe any real facility.
+- **Templates** (`src/examples/templates/`): the water treatment plant, substation, manufacturing line, office tower and pipeline are fictional. Their devices, names, addresses and rules do not describe any real facility.
 
 ## Standards terminology
 
