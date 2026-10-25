@@ -74,3 +74,8 @@
 **Decision:** Replaced the line icons with original two-tone device silhouettes (`src/ui/icons/`): a base icon per type and a specific icon for every variant, about 70 in all. Nodes show the icon with no tile, plus a lettered criticality badge. The palette expands each type into its variants. `?gallery` shows every icon for review.
 **Why:** Recognisable hardware shapes are faster to read than abstract glyphs. Drawing them in-house avoids licensing and trademark issues.
 **User input:** Owner chose "Device silhouettes".
+
+## 2026-10-25 — Undo history, multi-select and per-browser autosave
+**Decision:** Undo/redo is a pure snapshot history (`src/store/history.ts`, 100 steps). Rapid edits to the same field coalesce into one step within 600ms, and multi-deletes go through React Flow's `onDelete` so they are a single step. Selection is now `{ devices, links, flows }` and is owned by the store; the canvas mirrors it. Autosave writes to `localStorage` one second after the last edit and only starts after a pending snapshot has been restored or discarded, so it never overwrites unsaved work the user hasn't seen.
+**Why:** Large diagrams need safe experimentation and bulk editing. Autosave guards against lost work without needing an account or server.
+**User input:** Approved in the v0.2 plan.
