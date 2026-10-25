@@ -8,9 +8,9 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is in progress: M18–M22 are done; **M23 (outline view and keyboard connections) is next** and will be started in a new session. The approved v0.4 plan is summarised in the milestone table below; M24 no longer includes translation.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is in progress: M18–M22 are done; **M23 (outline view and keyboard connections) is underway**. After M23, **M24 and M25 (security checks and attack paths) come next, ahead of the rest of v0.4**. The approved v0.4 plan is summarised in the milestone table below; M26 (touch and text size) no longer includes translation.
 
-No analysis features have been built, and none are planned.
+Security analysis is now in scope, but nothing is built yet. M24 adds design checks that cite IEC 62443, plus the owner's company policy rules. M25 adds possible attack paths labelled with MITRE ATT&CK for ICS, and an export in MITRE's Attack Flow format. The full plan, with file names, rules, ATT&CK mapping, tests and verification, is in [`docs/roadmap/security-analysis.md`](docs/roadmap/security-analysis.md).
 
 Work is committed on feature branches and merged into `main` with merge commits, then pushed to `origin` (github.com/vijaykumargowdakk/conduitot). Before each push, sweep history for retired names and confirm no AI attribution lines.
 
@@ -51,9 +51,11 @@ Work is committed on feature branches and merged into `main` with merge commits,
 | M21 | Custom fields and tags | Field definitions, editing, bulk edit, inventory columns, tag filter, search, CSV | Round-trips through CSV ✅ |
 | M22 | Command palette, tour, history panel | Action registry, first-run tour, named undo steps | Every toolbar action reachable from the palette ✅ |
 | M23 | Outline view, keyboard connections | Accessible tree view of the design, connect devices on the canvas by keyboard | Keyboard-only connection e2e passes |
-| M24 | Touch and text size | Coarse-pointer targets, long-press menus, text size setting (no translation: dropped by the owner) | Tablet e2e passes; text size persists |
-| M25 | Report, draw.io, merge | Static SVG renderer, full HTML/PDF report, draw.io export, merge sites from another project | Report includes every site |
-| M26 | Works offline | Installable app with offline precache and update prompt | Edits work with the network off |
+| M24 | Security checks and company policies | Schema v5 (policy rules, disabled checks), built-in checks citing IEC 62443 clauses (direct IT↔OT, unprotected zone boundary, firewall default-allow / any-any, insecure protocol across zones, remote access to L0–L2, safety system separation, device without zone), "IEC 62443 communication violation" and "Company policy violation" findings, Security panel, red links and badges on the canvas. Plan: `docs/roadmap/security-analysis.md` | Demo plus an Office workstation → Pump station RTU link shows the IEC 62443 finding; v4 files open |
+| M25 | Attack paths and MITRE Attack Flow export | Possible attack paths from entry points to critical OT devices, honouring firewall rules; each step labelled with MITRE ATT&CK for ICS tactics and techniques generated from MITRE's data; path highlight on the canvas; STIX 2.1 Attack Flow export. Plan: `docs/roadmap/security-analysis.md` | The office → RTU path appears with ATT&CK labels; a firewall deny rule removes it; the export passes the Attack Flow schema |
+| M26 | Touch and text size | Coarse-pointer targets, long-press menus, text size setting (no translation: dropped by the owner) | Tablet e2e passes; text size persists |
+| M27 | Report, draw.io, merge | Static SVG renderer, full HTML/PDF report including security findings and attack paths, draw.io export, merge sites from another project | Report includes every site |
+| M28 | Works offline | Installable app with offline precache and update prompt | Edits work with the network off |
 
 ## Documentation
 - `README.md` is the full guide: purpose, features, architecture and data-flow diagrams (Mermaid, checked with Mermaid 11 in light and dark themes), and the development guide. Screenshots are in `docs/images/`; retake them when the UI changes noticeably.

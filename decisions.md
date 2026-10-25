@@ -226,3 +226,34 @@ Also fixed:
 - **Contrast fixes:** the search dialog's "Esc" hint and the command group labels.
 **Why:** Faster access to every action, safer experimentation, and a guided start for new users.
 **User input:** Approved in the v0.4 plan. The owner asked to stop after M22 and start M23 in a new session.
+
+## 2026-10-25 — Security analysis added to the roadmap as M24–M25, right after M23
+**Decision:** Security analysis is now in scope. It reverses "Analysis features left out of this build" and the line in the v0.4 roadmap entry that kept the original scope's security analysis items out.
+- **M24, security checks and company policies:**
+  - schema v5 with `policies` and `disabledChecks`;
+  - built-in checks that cite IEC 62443 clauses, e.g. a direct IT-to-OT link with no boundary device is an "IEC 62443 communication violation";
+  - user-defined rules that report "Company policy violation".
+- **M25, attack paths:**
+  - possible attack paths from entry points to critical OT devices, honouring firewall rules;
+  - each step labelled with MITRE ATT&CK for ICS tactics and techniques, generated from MITRE's published data;
+  - an export in MITRE's Attack Flow format (STIX 2.1 extension).
+- **Order:** both come straight after M23. The milestones after them are renumbered: touch and text size is now M26, report/draw.io/merge M27 (it gains the security sections), offline M28. Where earlier entries say "M24", meaning translation or touch, that milestone is now M26.
+- **Wording rules:**
+  - findings say "violates" or "relates to IEC 62443", never "compliant";
+  - clauses are cited by number only, because the standard is paid;
+  - ATT&CK IDs are never typed by hand.
+- **Plan:** the full plan is in `docs/roadmap/security-analysis.md`. Nothing is built yet.
+
+**Why:** A collaborator's feedback. Their example was a line drawn from Office workstation (L4) straight to Pump station RTU (L1) on the water-treatment demo: the tool should warn that this breaks IEC 62443. They also said that the people who will accept or reject the product expect MITRE ATT&CK attack flows to be used by name. Finding attack paths is graph reachability either way; the ATT&CK labels and the Attack Flow export make that visible.
+
+**User input:**
+- The collaborator, in paraphrase:
+  - add OT architecture security checks with IEC 62443 and MITRE ATT&CK for ICS;
+  - "company policy" was only an example, and the warning should name the IEC 62443 standard;
+  - MITRE is for identifying possible attack paths.
+- The owner chose:
+  - checks and attack paths together, with the Attack Flow export;
+  - company policy rules as well;
+  - this work goes after M23 and ahead of the rest of v0.4.
+
+  The owner asked for the plan to be recorded in detail now and built later.
