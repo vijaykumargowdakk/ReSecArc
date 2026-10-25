@@ -11,6 +11,10 @@ export default defineConfig(
     files: ['**/*.{ts,tsx}'],
     languageOptions: { ecmaVersion: 2022, globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
-    rules: { ...reactHooks.configs.recommended.rules },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      // Leaving a property out with `{ id: _id, ...rest }` is intentional.
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+    },
   },
 );

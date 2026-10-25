@@ -2498,3 +2498,80 @@ textarea {
   font-family: var(--mono);
   font-size: 12px;
 }
+
+/* Bend points, port names and locks */
+.waypoint {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--panel);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  cursor: grab;
+  pointer-events: all;
+}
+
+.waypoint:active {
+  cursor: grabbing;
+}
+
+.port-label {
+  position: absolute;
+  padding: 0 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.port-label.is-dimmed {
+  opacity: 0.22;
+}
+
+.lock-badge {
+  position: absolute;
+  top: -7px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--ink-soft);
+}
+
+.lock-badge--note {
+  right: 6px;
+}
+
+.note {
+  position: relative;
+}
+
+.layers-menu .filter__menu {
+  right: 0;
+  left: auto;
+}
+
+@media print {
+  .waypoint {
+    display: none;
+  }
+}
+
+.layers-menu {
+  flex: none;
+  margin-bottom: 6px;
+}
+
+.legend {
+  user-select: none;
+}

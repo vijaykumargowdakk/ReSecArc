@@ -206,6 +206,46 @@ export function networkSummaries(project: Project, report: AddressReport = addre
   });
 }
 
+/**
+ * Warnings for links tied to a planned network: an end device that has addresses but none in that
+ * network, or VLANs on the link that do not include the network's VLAN. Devices without any address
+ * (unmanaged switches, field devices) are not flagged.
+ */
+export function linkIssues(project: Project, report: AddressReport = addressReport(project)): Map<string, string[]> {
+  const issues = new Map<string, string[]>();
+  const network = new Map(project.networks.map((n) => [n.id, n]));
+  const device = new Map(project.devices.map((d) => [d.id, d]));
+  for (const link of project.links) {
+    const net = link.networkId ? network.get(link.networkId) : undefined;
+    if (!net) continue;
+    const name = net.name || net.cidr;
+    const found: string[] = [];
+    for (const end of [link.source, link.target]) {
+      const addresses = report.addresses.get(end) ?? [];
+      if (addresses.length > 0 && !addresses.some((a) => a.network?.id === net.id)) {
+        found.push(`${device.get(end)?.label ?? end} has no address in ${name} (${net.cidr})`);
+      }
+    }
+    if (net.vlan !== null && link.vlans.length > 0 && !link.vlans.includes(net.vlan)) {
+      found.push(`${name} is on VLAN ${net.vlan}, which this link does not carry (${link.vlans.join(', ')})`);
+    }
+    if (found.length) issues.set(link.id, found);
+  }
+  return issues;
+}
+
+/** Parses "10, 20 30-32" into sorted, distinct VLAN ids; returns null if any part is invalid. */
+export function parseVlans(text: string): number[] | null {
+  const out = new Set<number>();
+  for (const part of text.split(/[\s,;]+/).filter(Boolean)) {
+    const range = /^(\d+)-(\d+)$/.exec(part);
+    const [lo, hi] = range ? [Number(range[1]), Number(range[2])] : [Number(part), Number(part)];
+    if (!Number.isInteger(lo) || !Number.isInteger(hi) || lo < 1 || hi > 4094 || lo > hi || hi - lo > 4093) return null;
+    for (let v = lo; v <= hi; v++) out.add(v);
+  }
+  return out.size > 200 ? null : [...out].sort((a, b) => a - b);
+}
+
 /** Sort key for addresses: numeric for valid IPv4, after all valid ones otherwise. */
 export function addressSortKey(address: string): number {
   return parseIpv4(address) ?? Number.MAX_SAFE_INTEGER;

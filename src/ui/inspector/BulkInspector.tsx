@@ -74,6 +74,15 @@ export function BulkInspector({ ids }: { ids: string[] }) {
             onChange={(v) => v !== MIXED && apply((p) => bulkUpdateDevices(p, ids, { criticality: v as Device['criticality'] }))}
           />
         </Field>
+        <div className="button-row">
+          <button type="button" className="button" onClick={() => apply((p) => bulkUpdateDevices(p, ids, { locked: true }))}>
+            Lock all
+          </button>
+          <button type="button" className="button" onClick={() => apply((p) => bulkUpdateDevices(p, ids, { locked: false }))}>
+            Unlock all
+          </button>
+          {devices.some((d) => d.locked) && <span className="muted">{devices.filter((d) => d.locked).length} locked</span>}
+        </div>
       </Section>
 
       <Section title="Organise">

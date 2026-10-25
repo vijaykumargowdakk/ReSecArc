@@ -25,6 +25,7 @@ export function AreaInspector({ area }: { area: Area }) {
           </Field>
         </div>
         <Toggle label="Collapsed into a single node" checked={area.collapsed} onChange={(collapsed) => patch({ collapsed })} />
+        <Toggle label="Locked (cannot be moved or resized)" checked={area.locked} onChange={(locked) => patch({ locked })} />
       </Section>
       <Section title={`Devices (${members.length})`}>
         {members.length === 0 && <p className="empty">Drag devices into the frame to add them.</p>}

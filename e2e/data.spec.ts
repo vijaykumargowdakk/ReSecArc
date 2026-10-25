@@ -28,7 +28,7 @@ test('rejects a broken file and keeps the current design', async ({ page }) => {
 test('restores unsaved work after a reload', async ({ page }) => {
   await deviceNode(page, 'Filtration PLC').click();
   await page.getByRole('textbox', { name: 'Name', exact: true }).fill('Renamed PLC');
-  await expect(page.locator('.autosave')).toContainText('Saved in browser');
+  await expect(page.locator('.autosave')).toContainText('Saved');
   await page.reload();
   await page.getByRole('button', { name: 'Restore' }).click();
   await expect(deviceNode(page, 'Renamed PLC')).toBeVisible();

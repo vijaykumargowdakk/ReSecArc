@@ -2,7 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { NOTE_COLORS, NOTE_WIDTHS, removeNote, updateNote } from '../../model/notes';
 import type { Note } from '../../model/schema';
 import { NO_SELECTION, useProject } from '../../store/useProject';
-import { Field, Section, Select } from '../form';
+import { Field, Section, Select, Toggle } from '../form';
 
 export function NoteInspector({ note }: { note: Note }) {
   const apply = useProject((s) => s.apply);
@@ -22,6 +22,7 @@ export function NoteInspector({ note }: { note: Note }) {
         <Field label="Width">
           <Select value={String(note.width)} options={widths} onChange={(v) => patch({ width: Number(v) })} />
         </Field>
+        <Toggle label="Locked (cannot be moved)" checked={note.locked} onChange={(locked) => patch({ locked })} />
         <fieldset className="color-choices">
           <legend className="field__label">Colour</legend>
           {NOTE_COLORS.map((c) => (

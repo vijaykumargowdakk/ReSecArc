@@ -8,6 +8,7 @@ import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './sto
 import { useCompare, useComparison } from './store/compare';
 import { hasEdits, NO_SELECTION, useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
+import { LayersMenu } from './ui/canvas/LayersMenu';
 import { TidyButton } from './ui/canvas/TidyButton';
 import { Inspector } from './ui/inspector/Inspector';
 import { FilterBar } from './ui/FilterBar';
@@ -193,6 +194,7 @@ export function App() {
               </div>
               {view === 'diagram' && <SiteTabs />}
               {view === 'diagram' && <TidyButton />}
+              {view === 'diagram' && <LayersMenu />}
               {view === 'diagram' && <FilterBar />}
             </div>
             {view === 'diagram' ? (
@@ -204,12 +206,13 @@ export function App() {
                     setView('diagram');
                     focusDevice(id);
                   }}
-                  onShowFlow={(id) => {
-                    const flow = useProject.getState().project.flows.find((f) => f.id === id);
-                    if (!flow) return;
+                  onShowEdge={(kind, id) => {
+                    const { project } = useProject.getState();
+                    const edge = kind === 'link' ? project.links.find((l) => l.id === id) : project.flows.find((f) => f.id === id);
+                    if (!edge) return;
                     setView('diagram');
-                    focusDevice(flow.source);
-                    select({ ...NO_SELECTION, flows: [id] });
+                    focusDevice(edge.source);
+                    select({ ...NO_SELECTION, [kind === 'link' ? 'links' : 'flows']: [id] });
                   }}
                 />
               </Suspense>

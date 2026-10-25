@@ -3,9 +3,10 @@
 // rejected rows are reported with the reason; nothing is imported until the user confirms.
 import Papa from 'papaparse';
 import { norm, unescapeFormula } from './csv';
-import { addFlow, newId } from './ops';
+import { parseVlans } from './ipam';
+import { addFlow, addLink, newId, updateLink } from './ops';
 import { defaultPortFor, defaultSettings, PROTOCOLS, ruleProtocolOptions, settingsErrors, type Settings } from './protocols';
-import type { FirewallRule, Flow, Project, RuleEndpoint } from './schema';
+import type { FirewallRule, Flow, Link, Project, RuleEndpoint } from './schema';
 
 export const FLOW_COLUMNS = ['source', 'target', 'protocol', 'port', 'settings'] as const;
 export const RULE_COLUMNS = ['firewall', 'order', 'action', 'source', 'destination', 'protocol', 'port', 'note'] as const;
@@ -101,6 +102,57 @@ export function parseFlowCsv(project: Project, text: string): RowResult<Flow>[] 
 
 export function importFlows(project: Project, results: RowResult<Flow>[]): Project {
   return results.reduce((p, r) => (r.value ? addFlow(p, r.value) : p), project);
+}
+
+const MEDIA = ['ethernet', 'serial', 'wireless'] as const;
+
+/** Reads links in the columns of the links export: device names, ports, medium, VLANs and network name. */
+export function parseLinkCsv(project: Project, text: string): RowResult<Link>[] {
+  const device = deviceFinder(project);
+  const networkByName = new Map(project.networks.flatMap((n) => [[norm(n.name), n.id], [norm(n.cidr), n.id]] as [string, string][]));
+  const planned: Link[] = [];
+  return rows(text).map(({ line, get }) => {
+    const errors: string[] = [];
+    const source = device(get('source'), 'source', errors);
+    const target = device(get('target'), 'target', errors);
+    const name = `${get('source') || '?'} ↔ ${get('target') || '?'}`;
+    const medium = (norm(get('medium')) || 'ethernet') as Link['medium'];
+    if (!MEDIA.includes(medium)) errors.push('medium must be ethernet, serial or wireless');
+    const vlans = parseVlans(get('vlans'));
+    if (vlans === null) errors.push(`VLANs "${get('vlans')}" must be numbers from 1 to 4094, e.g. "10 20" or "30-32"`);
+    let networkId: string | null = null;
+    if (get('network')) {
+      networkId = networkByName.get(norm(get('network'))) ?? null;
+      if (!networkId) errors.push(`no network named "${get('network')}"`);
+    }
+    if (source && source === target) errors.push('source and target are the same device');
+    const clash = [...project.links, ...planned].some(
+      (l) => (l.source === source && l.target === target) || (l.source === target && l.target === source),
+    );
+    if (source && target && clash) errors.push(`a link between ${get('source')} and ${get('target')} already exists`);
+    if (errors.length || !source || !target || vlans === null) return { line, name, value: null, errors };
+    const link: Link = {
+      id: newId('link'),
+      source,
+      target,
+      medium,
+      sourcePort: get('source port'),
+      targetPort: get('target port'),
+      vlans,
+      networkId,
+      waypoints: [],
+    };
+    planned.push(link);
+    return { line, name, value: link, errors };
+  });
+}
+
+export function importLinks(project: Project, results: RowResult<Link>[]): Project {
+  return results.reduce((p, r) => {
+    if (!r.value) return p;
+    const { id, source, target, ...rest } = r.value;
+    return updateLink(addLink(p, source, target, id), id, rest);
+  }, project);
 }
 
 export interface ImportedRule {

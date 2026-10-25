@@ -182,3 +182,17 @@
 The v3 → v4 step also upgrades the designs stored in revisions, so old revisions stay comparable. The diff reports port, VLAN, network, tag and custom-field changes; a change to bend points alone is shown as "re-routed" and hidden with moves. A select value that is no longer an option is kept rather than rejected. Copy and paste copies tags, fields and VLANs, and shifts bend points with the paste. The substation and manufacturing templates now carry fictional interface names, VLANs and link networks.
 **Why:** One format bump for every v0.4 data change means one migration.
 **User input:** Approved in the v0.4 plan.
+
+## 2026-10-25 — Ports, bend points, layers and locking (M20)
+**Decision:** Links are edited for ports, VLANs (lists and ranges, validated as typed) and network in the properties panel and a new Links inventory tab, with CSV export and import. Port names are drawn near each end. `linkIssues` warns when an end device with addresses has none in the link's network, or when the link's VLANs leave out the network's VLAN. Devices without addresses are not flagged.
+
+Bend points are added by double-clicking an edge; handles appear on the selected edge, a drag is one undo step, and double-clicking a handle removes it. A bent flow no longer runs offset from its link. Tidy clears bend points on the site it arranges.
+
+The View menu toggles links, flows, flow labels, port names, notes and area frames. It is stored as a browser preference in `src/store/prefs.ts`, not in the file, and collapsed areas stay visible because they stand in for their devices. Locked devices, notes and areas are not draggable, show a lock badge, and are kept in place by Tidy, align and distribute.
+
+Also fixed:
+- loading a project now re-frames the canvas even when the first site keeps the same id;
+- the legend text can no longer be selected by double-clicking;
+- the autosave status was shortened to "Saved 10:52", so the toolbar fits at 1440 px.
+**Why:** Interface-level detail and readable busy diagrams were the main usability gaps for larger plants.
+**User input:** Approved in the v0.4 plan.

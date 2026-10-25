@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { parseVlans } from '../model/ipam';
 
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
@@ -66,6 +67,43 @@ export function IntInput({
         if (valid(raw)) onChange(raw === '' ? null : Number(raw));
       }}
       onBlur={() => setDraft(value === null ? '' : String(value))}
+    />
+  );
+}
+
+/** VLAN list such as "10 20" or "30-32"; reports parsed, sorted ids only when the text is valid. */
+export function VlanInput({
+  value,
+  onChange,
+  ariaLabel,
+  className,
+  placeholder = 'e.g. 10 or 20-22',
+}: {
+  value: number[];
+  onChange: (v: number[]) => void;
+  ariaLabel?: string;
+  className?: string;
+  placeholder?: string;
+}) {
+  const text = value.join(' ');
+  const [draft, setDraft] = useState(text);
+  useEffect(() => setDraft(text), [text]);
+  const parsed = parseVlans(draft);
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={draft}
+      className={className}
+      placeholder={placeholder}
+      aria-label={ariaLabel}
+      aria-invalid={parsed === null}
+      onChange={(e) => {
+        setDraft(e.target.value);
+        const next = parseVlans(e.target.value);
+        if (next) onChange(next);
+      }}
+      onBlur={() => setDraft(text)}
     />
   );
 }
