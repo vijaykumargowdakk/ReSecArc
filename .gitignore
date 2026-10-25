@@ -7,3 +7,4 @@ test-results/
 .claude/.pending-review
 /*.pdf
 claude-project-bootstrap.md
+.playwright-mcp/

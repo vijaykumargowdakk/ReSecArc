@@ -8,7 +8,9 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and Modbus/DNP3 protocol flows, define IEC 62443 zones, and edit firewall rules. Check the milestone table for what is in progress.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and Modbus/DNP3 protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M5 are complete: the editor, save/load, demo project, docs and CI all work.
+
+Next: the owner decides the scope of any further features. No analysis features have been built.
 
 ## Dev loop
 - Install: `npm ci`
@@ -23,15 +25,17 @@ ConduitOT is a browser-based designer for OT network architectures. Users place 
 ## Milestones
 | # | Milestone | Main work | Done when |
 |---|-----------|-----------|-----------|
-| M0 | Clean repository | Fresh history, neutral project notes, .gitignore | One clean bootstrap commit |
-| M1 | Project skeleton and CI | Vite + React + TS, lint, tests, GitHub Actions | `npm run ci` passes |
-| M2 | Architecture canvas | Purdue level lanes, OT device palette, drag-and-drop, network links | Devices can be placed, moved and linked |
-| M3 | Protocol flows and firewalls | Modbus TCP and DNP3 flow properties, firewall allow/deny rule editor | Every property can be edited in the inspector |
-| M4 | Zones and conduits | IEC 62443 zones, device zone assignment, derived conduit list | Zones colour devices and conduits list correctly |
-| M5 | Save/load, demo, docs | JSON save/load with validation, fictional demo project, README and docs | Demo loads from the toolbar and round-trips through save/load |
+| M0 | Clean repository | Fresh history, neutral project notes, .gitignore | One clean bootstrap commit ✅ |
+| M1 | Project skeleton and CI | Vite + React + TS, lint, tests, GitHub Actions | `npm run ci` passes ✅ |
+| M2 | Architecture canvas | Purdue level lanes, OT device palette, drag-and-drop, network links | Devices can be placed, moved and linked ✅ |
+| M3 | Protocol flows and firewalls | Modbus TCP and DNP3 flow properties, firewall allow/deny rule editor | Every property can be edited in the inspector ✅ |
+| M4 | Zones and conduits | IEC 62443 zones, device zone assignment, derived conduit list | Zones colour devices and conduits list correctly ✅ |
+| M5 | Save/load, demo, docs | JSON save/load with validation, fictional demo project, README and docs | Demo loads from the toolbar and round-trips through save/load ✅ |
 
 ## Known issues
-None yet.
+- Desktop-only layout. Below about 900px wide the three panels get cramped; there is no phone layout.
+- `NODE_HEIGHT` in `src/model/purdue.ts` must match the `.device-node` height in `src/styles.css` (64px). If they drift apart, lane detection shifts slightly.
+- Chromium's synthetic drag in Playwright can't drive the palette's HTML5 drag-and-drop. In automated checks, dispatch `DragEvent`s on the canvas pane instead.
 
 ## Action items for the owner
 - Create the GitHub repository (suggested name `conduitot`) and add it as `origin`. GitHub Pages can then serve the demo through the included workflow.

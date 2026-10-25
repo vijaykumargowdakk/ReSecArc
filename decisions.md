@@ -29,3 +29,18 @@
 **Decision:** README and docs cover features, usage, data model and the demo, and nothing else.
 **Why:** Owner preference.
 **User input:** Owner chose "plain product docs".
+
+## 2026-10-25 — Removing a zone or device also removes rules that reference it
+**Decision:** Deleting a zone or device drops every firewall rule whose source or destination points at it. The editor asks for confirmation first.
+**Why:** Silently changing those endpoints to "any" would widen what a rule permits.
+**User input:** None. This is a design choice made while building the rule editor.
+
+## 2026-10-25 — Purdue lanes rendered as locked background nodes
+**Decision:** Each lane is a non-interactive React Flow node with zIndex -1. A device's Purdue level is derived from the lane its centre sits in.
+**Why:** React Flow's viewport portal draws above the nodes. Locked nodes pan and zoom with the canvas and stay underneath everything else.
+**User input:** None.
+
+## 2026-10-25 — Analysis features left out of this build
+**Decision:** This build covers the editor, zones, flows, firewall rules, save/load, docs and CI. No analysis features have been built.
+**Why:** The owner will decide the scope of any further features separately.
+**User input:** Owner asked to proceed with the buildable parts.
