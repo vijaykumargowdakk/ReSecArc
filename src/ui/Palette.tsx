@@ -9,11 +9,12 @@ import { DeviceIcon } from './DeviceIcon';
 export function Palette() {
   const apply = useProject((s) => s.apply);
   const count = useProject((s) => s.project.devices.length);
+  const siteId = useProject((s) => s.project.sites[0].id);
 
   // Keyboard and click alternative to dragging: drop into the type's default lane.
   const addToDefaultLane = (type: DeviceType) => {
     const level = DEVICE_CATALOG[type].defaultLevel;
-    const device = createDevice(type, { x: 240 + (count % 8) * 45, y: laneTop(level) + 37 });
+    const device = createDevice(type, { x: 240 + (count % 8) * 45, y: laneTop(level) + 37 }, { siteId });
     apply((p) => addDevice(p, device));
   };
 

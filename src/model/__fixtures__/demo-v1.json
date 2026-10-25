@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 1,
+  "name": "Riverbend Water Treatment (fictional demo)",
+  "devices": [
+    {
+      "id": "vendor",
+      "type": "internet",
+      "label": "Vendor remote support",
+      "purdueLevel": 5,
+      "zoneId": "zone-external",
+      "criticality": "low",
+      "position": {
+        "x": 600,
+        "y": 37
+      },
+      "services": []
+    },
+    {
+      "id": "office-ws",
+      "type": "workstation",
+      "label": "Office workstation",
+      "purdueLevel": 4,
+      "zoneId": "zone-enterprise",
+      "criticality": "low",
+      "position": {
+        "x": 300,
+        "y": 187
+      },
+      "services": []
+    },
+    {
+      "id": "corp-router",
+      "type": "router",
+      "label": "Corporate router",
+      "purdueLevel": 4,
+      "zoneId": "zone-enterprise",
+      "criticality": "medium",
+      "position": {
+        "x": 600,
+        "y": 187
+      },
+      "services": []
+    },
+    {
+      "id": "jump",
+      "type": "jumphost",
+      "label": "Remote access jump host",
+      "purdueLevel": 3.5,
+      "zoneId": "zone-dmz",
+      "criticality": "medium",
+      "position": {
+        "x": 300,
+        "y": 337
+      },
+      "services": [
+        {
+          "protocol": "https",
+          "port": 443
+        }
+      ]
+    },
+    {
+      "id": "fw-itot",
+      "type": "firewall",
+      "label": "IT/OT firewall",
+      "purdueLevel": 3.5,
+      "zoneId": null,
+      "criticality": "high",
+      "position": {
+        "x": 600,
+        "y": 337
+      },
+      "services": [],
+      "firewall": {
+        "defaultAction": "deny",
+        "rules": [
+          {
+            "id": "rule-portal",
+            "src": {
+              "kind": "zone",
+              "id": "zone-enterprise"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "jump"
+            },
+            "protocol": "https",
+            "port": 443,
+            "action": "allow",
+            "note": "Remote access portal on the jump host"
+          },
+          {
+            "id": "rule-jump-rdp",
+            "src": {
+              "kind": "device",
+              "id": "jump"
+            },
+            "dst": {
+              "kind": "zone",
+              "id": "zone-operations"
+            },
+            "protocol": "rdp",
+            "port": 3389,
+            "action": "allow",
+            "note": "Brokered sessions to operations hosts"
+          },
+          {
+            "id": "rule-historian",
+            "src": {
+              "kind": "zone",
+              "id": "zone-operations"
+            },
+            "dst": {
+              "kind": "device",
+              "id": "historian-dmz"
+            },
+            "protocol": "https",
+            "port": 443,
+            "action": "allow",
+            "note": "Historian replication to the DMZ"
+          }
+        ]
+      }
+    },
+    {
+      "id": "historian-dmz",
+      "type": "historian",
+      "label": "DMZ historian replica",
+      "purdueLevel": 3.5,
+      "zoneId": "zone-dmz",
+      "criticality": "medium",
+      "position": {
+        "x": 900,
+        "y": 337
+      },
+      "services": [
+        {
+          "protocol": "https",
+          "port": 443
+        }
+      ]
+    },
+    {
+      "id": "scada",
+      "type": "scada",
+      "label": "SCADA server",
+      "purdueLevel": 3,
+      "zoneId": "zone-operations",
+      "criticality": "high",
+      "position": {
+        "x": 350,
+        "y": 487
+      },
+      "services": [
+        {
+          "protocol": "rdp",
+          "port": 3389
+        }
+      ]
+    },
+    {
+      "id": "ops-switch",
+      "type": "switch",
+      "label": "Operations switch",
+      "purdueLevel": 3,
+      "zoneId": "zone-operations",
+      "criticality": "medium",
+      "position": {
+        "x": 600,
+        "y": 487
+      },
+      "services": []
+    },
+    {
+      "id": "ews",
+      "type": "ews",
+      "label": "Engineering workstation",
+      "purdueLevel": 3,
+      "zoneId": "zone-operations",
+      "criticality": "high",
+      "position": {
+        "x": 850,
+        "y": 487
+      },
+      "services": [
+        {
+          "protocol": "rdp",
+          "port": 3389
+        }
+      ]
+    },
+    {
+      "id": "historian",
+      "type": "historian",
+      "label": "Site historian",
+      "purdueLevel": 3,
+      "zoneId": "zone-operations",
+      "criticality": "medium",
+      "position": {
+        "x": 1100,
+        "y": 487
+      },
+      "services": []
+    },
+    {
+      "id": "hmi",
+      "type": "hmi",
+      "label": "Filtration HMI",
+      "purdueLevel": 2,
+      "zoneId": "zone-control",
+      "criticality": "medium",
+      "position": {
+        "x": 350,
+        "y": 637
+      },
+      "services": []
+    },
+    {
+      "id": "ctrl-switch",
+      "type": "switch",
+      "label": "Control switch",
+      "purdueLevel": 2,
+      "zoneId": "zone-control",
+      "criticality": "medium",
+      "position": {
+        "x": 600,
+        "y": 637
+      },
+      "services": []
+    },
+    {
+      "id": "plc-filter",
+      "type": "plc",
+      "label": "Filtration PLC",
+      "purdueLevel": 1,
+      "zoneId": "zone-control",
+      "criticality": "high",
+      "position": {
+        "x": 350,
+        "y": 787
+      },
+      "services": []
+    },
+    {
+      "id": "plc-dosing",
+      "type": "plc",
+      "label": "Chemical dosing PLC",
+      "purdueLevel": 1,
+      "zoneId": "zone-control",
+      "criticality": "high",
+      "position": {
+        "x": 600,
+        "y": 787
+      },
+      "services": []
+    },
+    {
+      "id": "sis",
+      "type": "sis",
+      "label": "Dosing safety controller",
+      "purdueLevel": 1,
+      "zoneId": "zone-safety",
+      "criticality": "high",
+      "position": {
+        "x": 850,
+        "y": 787
+      },
+      "services": []
+    },
+    {
+      "id": "rtu-pump",
+      "type": "rtu",
+      "label": "Pump station RTU",
+      "purdueLevel": 1,
+      "zoneId": "zone-control",
+      "criticality": "high",
+      "position": {
+        "x": 1100,
+        "y": 787
+      },
+      "services": []
+    },
+    {
+      "id": "turbidity",
+      "type": "sensor",
+      "label": "Turbidity sensor",
+      "purdueLevel": 0,
+      "zoneId": "zone-control",
+      "criticality": "medium",
+      "position": {
+        "x": 350,
+        "y": 937
+      },
+      "services": []
+    },
+    {
+      "id": "dosing-pump",
+      "type": "actuator",
+      "label": "Dosing pump",
+      "purdueLevel": 0,
+      "zoneId": "zone-control",
+      "criticality": "high",
+      "position": {
+        "x": 600,
+        "y": 937
+      },
+      "services": []
+    },
+    {
+      "id": "level",
+      "type": "sensor",
+      "label": "Reservoir level sensor",
+      "purdueLevel": 0,
+      "zoneId": "zone-control",
+      "criticality": "medium",
+      "position": {
+        "x": 1100,
+        "y": 937
+      },
+      "services": []
+    }
+  ],
+  "links": [
+    {
+      "id": "link-vendor-corp-router",
+      "source": "vendor",
+      "target": "corp-router",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-office-ws-corp-router",
+      "source": "office-ws",
+      "target": "corp-router",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-corp-router-fw-itot",
+      "source": "corp-router",
+      "target": "fw-itot",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-itot-jump",
+      "source": "fw-itot",
+      "target": "jump",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-itot-historian-dmz",
+      "source": "fw-itot",
+      "target": "historian-dmz",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-fw-itot-ops-switch",
+      "source": "fw-itot",
+      "target": "ops-switch",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ops-switch-scada",
+      "source": "ops-switch",
+      "target": "scada",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ops-switch-ews",
+      "source": "ops-switch",
+      "target": "ews",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ops-switch-historian",
+      "source": "ops-switch",
+      "target": "historian",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ops-switch-ctrl-switch",
+      "source": "ops-switch",
+      "target": "ctrl-switch",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ctrl-switch-hmi",
+      "source": "ctrl-switch",
+      "target": "hmi",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ctrl-switch-plc-filter",
+      "source": "ctrl-switch",
+      "target": "plc-filter",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-ctrl-switch-plc-dosing",
+      "source": "ctrl-switch",
+      "target": "plc-dosing",
+      "medium": "ethernet"
+    },
+    {
+      "id": "link-plc-dosing-sis",
+      "source": "plc-dosing",
+      "target": "sis",
+      "medium": "serial"
+    },
+    {
+      "id": "link-ctrl-switch-rtu-pump",
+      "source": "ctrl-switch",
+      "target": "rtu-pump",
+      "medium": "wireless"
+    },
+    {
+      "id": "link-plc-filter-turbidity",
+      "source": "plc-filter",
+      "target": "turbidity",
+      "medium": "serial"
+    },
+    {
+      "id": "link-plc-dosing-dosing-pump",
+      "source": "plc-dosing",
+      "target": "dosing-pump",
+      "medium": "serial"
+    },
+    {
+      "id": "link-rtu-pump-level",
+      "source": "rtu-pump",
+      "target": "level",
+      "medium": "serial"
+    }
+  ],
+  "flows": [
+    {
+      "id": "flow-hmi-filter",
+      "source": "hmi",
+      "target": "plc-filter",
+      "protocol": "modbus",
+      "variant": "tcp",
+      "port": 502,
+      "access": "read-write",
+      "authentication": false
+    },
+    {
+      "id": "flow-hmi-dosing",
+      "source": "hmi",
+      "target": "plc-dosing",
+      "protocol": "modbus",
+      "variant": "tcp",
+      "port": 502,
+      "access": "read-write",
+      "authentication": false
+    },
+    {
+      "id": "flow-scada-filter",
+      "source": "scada",
+      "target": "plc-filter",
+      "protocol": "modbus",
+      "variant": "tcp",
+      "port": 502,
+      "access": "read",
+      "authentication": false
+    },
+    {
+      "id": "flow-scada-rtu",
+      "source": "scada",
+      "target": "rtu-pump",
+      "protocol": "dnp3",
+      "transport": "tcp",
+      "port": 20000,
+      "secureAuthentication": true,
+      "tls": false,
+      "controlCommands": true
+    }
+  ],
+  "zones": [
+    {
+      "id": "zone-external",
+      "name": "External",
+      "color": "#94a3b8",
+      "trusted": false,
+      "targetSL": 1
+    },
+    {
+      "id": "zone-enterprise",
+      "name": "Enterprise",
+      "color": "#64748b",
+      "trusted": false,
+      "targetSL": 1
+    },
+    {
+      "id": "zone-dmz",
+      "name": "Industrial DMZ",
+      "color": "#8b5cf6",
+      "trusted": false,
+      "targetSL": 2
+    },
+    {
+      "id": "zone-operations",
+      "name": "Operations",
+      "color": "#0ea5e9",
+      "trusted": true,
+      "targetSL": 2
+    },
+    {
+      "id": "zone-control",
+      "name": "Control",
+      "color": "#16a34a",
+      "trusted": true,
+      "targetSL": 3
+    },
+    {
+      "id": "zone-safety",
+      "name": "Safety",
+      "color": "#dc2626",
+      "trusted": true,
+      "targetSL": 3
+    }
+  ]
+}

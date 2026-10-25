@@ -1,19 +1,11 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
-import { DEFAULT_PORTS } from '../../model/catalog';
+import { ruleProtocolOptions } from '../../model/protocols';
 import { addRule, moveRule, removeRule, setDefaultAction, updateRule } from '../../model/ops';
-import type { Device, FirewallRule, Project, RuleEndpoint, RuleProtocol } from '../../model/schema';
+import type { Device, FirewallRule, Project, RuleEndpoint } from '../../model/schema';
 import { useProject } from '../../store/useProject';
 import { Field, IntInput, Section, Select, TextInput } from '../form';
 
-const PROTOCOLS: { value: RuleProtocol; label: string }[] = [
-  { value: 'any', label: 'Any protocol' },
-  { value: 'modbus', label: 'Modbus' },
-  { value: 'dnp3', label: 'DNP3' },
-  { value: 'rdp', label: 'RDP' },
-  { value: 'ssh', label: 'SSH' },
-  { value: 'vnc', label: 'VNC' },
-  { value: 'https', label: 'HTTPS' },
-];
+const PROTOCOL_OPTIONS = ruleProtocolOptions();
 
 const ACTIONS = [
   { value: 'allow', label: 'Allow' },
@@ -30,10 +22,8 @@ function decode(value: string): RuleEndpoint {
   return { kind: kind === 'zone' ? 'zone' : 'device', id: rest.join(':') };
 }
 
-function defaultPort(protocol: RuleProtocol): number | null {
-  if (protocol === 'any') return null;
-  if (protocol === 'modbus') return DEFAULT_PORTS.modbus.tcp;
-  return DEFAULT_PORTS[protocol];
+function defaultPort(protocol: string): number | null {
+  return PROTOCOL_OPTIONS.find((o) => o.value === protocol)?.port ?? null;
 }
 
 function EndpointSelect({ value, project, onChange }: { value: RuleEndpoint; project: Project; onChange: (ep: RuleEndpoint) => void }) {
@@ -125,7 +115,7 @@ export function FirewallRules({ device }: { device: Device }) {
               <Field label="Protocol">
                 <Select
                   value={rule.protocol}
-                  options={PROTOCOLS}
+                  options={PROTOCOL_OPTIONS}
                   onChange={(protocol) => update({ ...rule, protocol, port: defaultPort(protocol) })}
                 />
               </Field>

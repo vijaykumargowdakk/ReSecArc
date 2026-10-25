@@ -12,8 +12,6 @@
   --danger: #b42318;
   --danger-soft: #fdecea;
   --allow: #15803d;
-  --modbus: #c2410c;
-  --dnp3: #6d28d9;
   --brand-bg: #0f2a3d;
   --radius: 8px;
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -48,7 +46,8 @@ select {
 
 input[type='text'],
 input[type='number'],
-select {
+select,
+textarea {
   width: 100%;
   min-width: 0;
   padding: 6px 8px;
@@ -341,7 +340,7 @@ button:focus-visible {
 }
 
 .connect-flow .device-node .react-flow__handle {
-  border-color: var(--modbus);
+  border-color: var(--accent);
 }
 
 .link-edge {
@@ -364,15 +363,6 @@ button:focus-visible {
 
 .flow-edge {
   stroke-width: 2px !important;
-  stroke-dasharray: 6 4;
-}
-
-.flow-edge.protocol-modbus {
-  stroke: var(--modbus) !important;
-}
-
-.flow-edge.protocol-dnp3 {
-  stroke: var(--dnp3) !important;
 }
 
 .flow-edge.is-selected {
@@ -389,14 +379,6 @@ button:focus-visible {
   border: 1px solid currentColor;
   pointer-events: none;
   white-space: nowrap;
-}
-
-.flow-label.protocol-modbus {
-  color: var(--modbus);
-}
-
-.flow-label.protocol-dnp3 {
-  color: var(--dnp3);
 }
 
 .flow-label.is-selected {
@@ -533,6 +515,16 @@ button:focus-visible {
 .icon-button.danger:hover {
   background: var(--danger-soft);
   border-color: #f5c2bd;
+}
+
+.asset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+textarea {
+  resize: vertical;
 }
 
 .endpoints {

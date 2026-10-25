@@ -16,17 +16,25 @@ import {
 } from '@xyflow/react';
 import { useCallback, useEffect, useState, type DragEvent } from 'react';
 import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink } from '../../model/ops';
+import { getProtocol } from '../../model/protocols';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, PURDUE_LANES } from '../../model/purdue';
-import { deviceTypeSchema, type Project } from '../../model/schema';
+import { variantInfo } from '../../model/catalog';
+import { deviceTypeSchema, type DeviceType, type Project } from '../../model/schema';
 import { useProject } from '../../store/useProject';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { DeviceNode, LaneNode, type CanvasNode, type LaneFlowNode } from './nodes';
 
 export const DEVICE_DND_MIME = 'application/x-conduitot-device';
+
+/** Drag payload `type` or `type:variant`, validated against the catalog. */
+export function parseDeviceKind(payload: string): { type: DeviceType; variant: string } | null {
+  const [rawType, variant = 'generic'] = payload.split(':');
+  const type = deviceTypeSchema.safeParse(rawType);
+  if (!type.success || !variantInfo(type.data, variant)) return null;
+  return { type: type.data, variant };
+}
 const NODE_WIDTH = 190;
 const DROP_OFFSET = { x: NODE_WIDTH / 2, y: 32 };
-/** Matches --modbus and --dnp3 in styles.css; SVG markers cannot read CSS variables. */
-const PROTOCOL_COLORS = { modbus: '#c2410c', dnp3: '#6d28d9' } as const;
 
 const nodeTypes = { device: DeviceNode, lane: LaneNode };
 const edgeTypes = { link: LinkEdge, flow: FlowEdge };
@@ -80,7 +88,7 @@ function buildEdges(project: Project, prev: CanvasEdge[]): CanvasEdge[] {
     target: flow.target,
     data: { flow },
     selected: selected.has(flow.id),
-    markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color: PROTOCOL_COLORS[flow.protocol] },
+    markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color: getProtocol(flow.protocol)?.color },
   }));
   return [...links, ...flows];
 }
@@ -90,6 +98,7 @@ export function Canvas() {
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
   const connectMode = useProject((s) => s.connectMode);
+  const siteId = project.sites[0].id;
   const { screenToFlowPosition } = useReactFlow();
 
   const [nodes, setNodes] = useState<CanvasNode[]>(() => buildNodes(project, []));
@@ -157,14 +166,14 @@ export function Canvas() {
 
   const onDrop = useCallback(
     (event: DragEvent) => {
-      const type = deviceTypeSchema.safeParse(event.dataTransfer.getData(DEVICE_DND_MIME));
-      if (!type.success) return;
+      const kind = parseDeviceKind(event.dataTransfer.getData(DEVICE_DND_MIME));
+      if (!kind) return;
       event.preventDefault();
       const at = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-      const device = createDevice(type.data, { x: at.x - DROP_OFFSET.x, y: at.y - DROP_OFFSET.y });
+      const device = createDevice(kind.type, { x: at.x - DROP_OFFSET.x, y: at.y - DROP_OFFSET.y }, { siteId, variant: kind.variant });
       apply((p) => addDevice(p, device));
     },
-    [apply, screenToFlowPosition],
+    [apply, screenToFlowPosition, siteId],
   );
 
   return (

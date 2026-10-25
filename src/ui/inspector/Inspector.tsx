@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { DEFAULT_PORTS, DEVICE_CATALOG, FLOW_ROLES } from '../../model/catalog';
+import { DEVICE_CATALOG, REMOTE_SERVICE_PORTS } from '../../model/catalog';
 import {
   countRuleReferences,
   defaultFlow,
@@ -10,8 +10,9 @@ import {
   updateDevice,
   updateLink,
 } from '../../model/ops';
+import { defaultPortFor, getProtocol, PROTOCOLS, type FieldDef, type SettingValue } from '../../model/protocols';
 import { laneTop, levelLabel, PURDUE_LANES } from '../../model/purdue';
-import type { Device, Flow, Link, PurdueLevel, RemoteService } from '../../model/schema';
+import type { Asset, Device, Flow, Link, PurdueLevel, RemoteService } from '../../model/schema';
 import { useProject } from '../../store/useProject';
 import { Field, IntInput, Section, Select, TextInput, Toggle } from '../form';
 import { FirewallRules } from './FirewallRules';
@@ -34,10 +35,14 @@ const MEDIUM = [
   { value: 'serial', label: 'Serial' },
   { value: 'wireless', label: 'Wireless' },
 ] as const;
-const PROTOCOLS = [
-  { value: 'modbus', label: 'Modbus' },
-  { value: 'dnp3', label: 'DNP3' },
-] as const;
+const PROTOCOL_OPTIONS = PROTOCOLS.map((p) => ({ value: p.id, label: p.label }));
+const ASSET_FIELDS: { key: Exclude<keyof Asset, 'notes'>; label: string; placeholder: string }[] = [
+  { key: 'vendor', label: 'Vendor', placeholder: 'Manufacturer' },
+  { key: 'model', label: 'Model', placeholder: 'Model or part number' },
+  { key: 'firmware', label: 'Firmware', placeholder: 'Version' },
+  { key: 'serial', label: 'Serial number', placeholder: '' },
+  { key: 'ip', label: 'IP address', placeholder: 'e.g. 10.0.0.10' },
+];
 
 function useDeviceLabel() {
   const devices = useProject((s) => s.project.devices);
@@ -57,8 +62,10 @@ function DeviceInspector({ device }: { device: Device }) {
   const project = useProject((s) => s.project);
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
+  const info = DEVICE_CATALOG[device.type];
   const patch = (p: Partial<Omit<Device, 'id' | 'type'>>) => apply((q) => updateDevice(q, device.id, p));
   const setServices = (services: RemoteService[]) => patch({ services });
+  const setAsset = (p: Partial<Asset>) => patch({ asset: { ...device.asset, ...p } });
 
   const remove = () => {
     const refs = countRuleReferences(project, 'device', device.id);
@@ -70,10 +77,17 @@ function DeviceInspector({ device }: { device: Device }) {
 
   return (
     <>
-      <Section title={DEVICE_CATALOG[device.type].label}>
-        <p className="muted">{DEVICE_CATALOG[device.type].description}</p>
+      <Section title={info.label}>
+        <p className="muted">{info.variants.find((v) => v.id === device.variant)?.description ?? info.description}</p>
         <Field label="Name">
           <TextInput value={device.label} onChange={(label) => patch({ label })} />
+        </Field>
+        <Field label="Kind">
+          <Select
+            value={device.variant}
+            options={info.variants.map((v) => ({ value: v.id, label: v.label }))}
+            onChange={(variant) => patch({ variant })}
+          />
         </Field>
         <Field label="Purdue level" hint="Changing the level moves the device into that lane.">
           <Select
@@ -97,6 +111,19 @@ function DeviceInspector({ device }: { device: Device }) {
         </Field>
       </Section>
 
+      <Section title="Asset details">
+        <div className="asset-grid">
+          {ASSET_FIELDS.map((f) => (
+            <Field key={f.key} label={f.label}>
+              <TextInput value={device.asset[f.key]} placeholder={f.placeholder} onChange={(v) => setAsset({ [f.key]: v })} />
+            </Field>
+          ))}
+        </div>
+        <Field label="Notes">
+          <textarea rows={3} value={device.asset.notes} onChange={(e) => setAsset({ notes: e.target.value })} />
+        </Field>
+      </Section>
+
       <Section
         title="Remote-access services"
         actions={
@@ -104,7 +131,7 @@ function DeviceInspector({ device }: { device: Device }) {
             type="button"
             className="icon-button"
             title="Add service"
-            onClick={() => setServices([...device.services, { protocol: 'rdp', port: DEFAULT_PORTS.rdp }])}
+            onClick={() => setServices([...device.services, { protocol: 'rdp', port: REMOTE_SERVICE_PORTS.rdp }])}
           >
             <Plus size={16} />
             <span>Service</span>
@@ -119,7 +146,7 @@ function DeviceInspector({ device }: { device: Device }) {
                 value={svc.protocol}
                 options={SERVICE_OPTIONS}
                 onChange={(protocol) =>
-                  setServices(device.services.map((s, j) => (j === i ? { protocol, port: DEFAULT_PORTS[protocol] } : s)))
+                  setServices(device.services.map((s, j) => (j === i ? { protocol, port: REMOTE_SERVICE_PORTS[protocol] } : s)))
                 }
               />
               <IntInput
@@ -177,96 +204,62 @@ function LinkInspector({ link }: { link: Link }) {
   );
 }
 
+function SettingField({ field, value, onChange }: { field: FieldDef; value: SettingValue | undefined; onChange: (v: SettingValue) => void }) {
+  if (field.kind === 'bool') return <Toggle label={field.label} checked={value === true} onChange={onChange} />;
+  if (field.kind === 'enum') {
+    return (
+      <Field label={field.label}>
+        <Select value={String(value ?? field.default)} options={field.options} onChange={onChange} />
+      </Field>
+    );
+  }
+  return (
+    <Field label={field.label}>
+      <TextInput value={String(value ?? '')} onChange={onChange} />
+    </Field>
+  );
+}
+
 function FlowInspector({ flow }: { flow: Flow }) {
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
   const name = useDeviceLabel();
+  const def = getProtocol(flow.protocol);
   const set = (next: Flow) => apply((p) => replaceFlow(p, next));
-  const roles = FLOW_ROLES[flow.protocol];
+
+  const setSetting = (key: string, value: SettingValue) => {
+    if (!def) return;
+    const settings = { ...flow.settings, [key]: value };
+    // Follow the protocol's default port (e.g. 502 → 802 for TLS) unless the user chose a custom one.
+    const port = flow.port === defaultPortFor(def, flow.settings) ? defaultPortFor(def, settings) : flow.port;
+    set({ ...flow, settings, port });
+  };
 
   return (
     <>
       <Section title="Protocol flow">
         <dl className="roles">
-          <dt>{roles.source}</dt>
+          <dt>{def?.roles.source ?? 'Source'}</dt>
           <dd>{name(flow.source)}</dd>
-          <dt>{roles.target}</dt>
+          <dt>{def?.roles.target ?? 'Target'}</dt>
           <dd>{name(flow.target)}</dd>
         </dl>
         <Field label="Protocol">
           <Select
             value={flow.protocol}
-            options={PROTOCOLS}
+            options={PROTOCOL_OPTIONS}
             onChange={(protocol) => protocol !== flow.protocol && set(defaultFlow(protocol, flow.source, flow.target, flow.id))}
           />
         </Field>
-
-        {flow.protocol === 'modbus' ? (
-          <>
-            <Field label="Variant">
-              <Select
-                value={flow.variant}
-                options={[
-                  { value: 'tcp', label: 'Modbus TCP' },
-                  { value: 'tls', label: 'Modbus/TCP Security (TLS)' },
-                ]}
-                onChange={(variant) =>
-                  set({
-                    ...flow,
-                    variant,
-                    port: flow.port === DEFAULT_PORTS.modbus[flow.variant] ? DEFAULT_PORTS.modbus[variant] : flow.port,
-                  })
-                }
-              />
-            </Field>
-            <Field label="Port">
-              <IntInput value={flow.port} min={1} max={65535} onChange={(port) => port !== null && set({ ...flow, port })} />
-            </Field>
-            <Field label="Access">
-              <Select
-                value={flow.access}
-                options={[
-                  { value: 'read', label: 'Read only' },
-                  { value: 'write', label: 'Write only' },
-                  { value: 'read-write', label: 'Read and write' },
-                ]}
-                onChange={(access) => set({ ...flow, access })}
-              />
-            </Field>
-            <Toggle
-              label="Client authentication configured"
-              checked={flow.authentication}
-              onChange={(authentication) => set({ ...flow, authentication })}
-            />
-          </>
-        ) : (
-          <>
-            <Field label="Transport">
-              <Select
-                value={flow.transport}
-                options={[
-                  { value: 'tcp', label: 'TCP' },
-                  { value: 'udp', label: 'UDP' },
-                ]}
-                onChange={(transport) => set({ ...flow, transport })}
-              />
-            </Field>
-            <Field label="Port">
-              <IntInput value={flow.port} min={1} max={65535} onChange={(port) => port !== null && set({ ...flow, port })} />
-            </Field>
-            <Toggle
-              label="Secure Authentication enabled"
-              checked={flow.secureAuthentication}
-              onChange={(secureAuthentication) => set({ ...flow, secureAuthentication })}
-            />
-            <Toggle label="TLS enabled" checked={flow.tls} onChange={(tls) => set({ ...flow, tls })} />
-            <Toggle
-              label="Control commands permitted"
-              checked={flow.controlCommands}
-              onChange={(controlCommands) => set({ ...flow, controlCommands })}
-            />
-          </>
+        {def && def.defaultPort !== null && (
+          <Field label="Port">
+            <IntInput value={flow.port} min={1} max={65535} onChange={(port) => port !== null && set({ ...flow, port })} />
+          </Field>
         )}
+        {def?.defaultPort === null && <p className="muted">{def.label} runs at layer 2 and has no port.</p>}
+        {def?.fields.map((f) => (
+          <SettingField key={f.key} field={f} value={flow.settings[f.key]} onChange={(v) => setSetting(f.key, v)} />
+        ))}
       </Section>
       <div className="panel-actions">
         <DeleteButton

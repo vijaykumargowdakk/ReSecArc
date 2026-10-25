@@ -1,13 +1,15 @@
 // Pure, immutable operations on a Project. The store wraps these; tests call them directly.
-import { DEFAULT_PORTS, DEVICE_CATALOG } from './catalog';
+import { DEVICE_CATALOG } from './catalog';
+import { DEFAULT_SITE } from './migrate';
+import { defaultPortFor, defaultSettings, getProtocol } from './protocols';
 import { levelAtY } from './purdue';
 import {
   SCHEMA_VERSION,
+  type Asset,
   type Device,
   type DeviceType,
   type FirewallRule,
   type Flow,
-  type FlowProtocol,
   type Link,
   type Project,
   type RuleEndpoint,
@@ -19,40 +21,56 @@ export function newId(prefix: string): string {
 }
 
 export function emptyProject(name = 'Untitled architecture'): Project {
-  return { schemaVersion: SCHEMA_VERSION, name, devices: [], links: [], flows: [], zones: [] };
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    name,
+    sites: [{ ...DEFAULT_SITE }],
+    devices: [],
+    links: [],
+    flows: [],
+    zones: [],
+    areas: [],
+  };
 }
 
-export function createDevice(type: DeviceType, position: { x: number; y: number }, id = newId(type)): Device {
+export function emptyAsset(): Asset {
+  return { vendor: '', model: '', firmware: '', serial: '', ip: '', notes: '' };
+}
+
+export interface NewDeviceOptions {
+  siteId: string;
+  variant?: string;
+  id?: string;
+}
+
+export function createDevice(type: DeviceType, position: { x: number; y: number }, opts: NewDeviceOptions): Device {
   const info = DEVICE_CATALOG[type];
+  const variant = opts.variant ?? 'generic';
+  const variantLabel = info.variants.find((v) => v.id === variant && v.id !== 'generic')?.label;
   const device: Device = {
-    id,
+    id: opts.id ?? newId(type),
     type,
-    label: info.label,
+    variant,
+    label: variantLabel ?? info.label,
     purdueLevel: levelAtY(position.y),
+    siteId: opts.siteId,
     zoneId: null,
+    areaId: null,
     criticality: info.defaultCriticality,
     position,
     services: [],
+    asset: emptyAsset(),
   };
   if (type === 'firewall') device.firewall = { defaultAction: 'deny', rules: [] };
   return device;
 }
 
-export function defaultFlow(protocol: FlowProtocol, source: string, target: string, id = newId('flow')): Flow {
-  if (protocol === 'modbus') {
-    return { id, source, target, protocol, variant: 'tcp', port: DEFAULT_PORTS.modbus.tcp, access: 'read', authentication: false };
-  }
-  return {
-    id,
-    source,
-    target,
-    protocol,
-    transport: 'tcp',
-    port: DEFAULT_PORTS.dnp3,
-    secureAuthentication: false,
-    tls: false,
-    controlCommands: false,
-  };
+/** A new flow with the protocol's default settings and port. Throws for an unknown protocol id. */
+export function defaultFlow(protocol: string, source: string, target: string, id = newId('flow')): Flow {
+  const def = getProtocol(protocol);
+  if (!def) throw new Error(`Unknown protocol "${protocol}"`);
+  const settings = defaultSettings(def);
+  return { id, source, target, protocol, port: defaultPortFor(def, settings), settings };
 }
 
 export function addDevice(project: Project, device: Device): Project {

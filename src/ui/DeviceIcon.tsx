@@ -106,6 +106,32 @@ const PATHS: Record<DeviceType, ReactElement> = {
       <path d="M3.5 12h17M12 3.5c2.4 2.4 3.5 5.3 3.5 8.5s-1.1 6.1-3.5 8.5c-2.4-2.4-3.5-5.3-3.5-8.5s1.1-6.1 3.5-8.5Z" />
     </>
   ),
+  gateway: (
+    <>
+      <rect x="3" y="8" width="18" height="8" rx="1.5" />
+      <path d="M7 12h10M14.5 10l2.5 2-2.5 2M9.5 10 7 12l2.5 2" />
+    </>
+  ),
+  wap: (
+    <>
+      <rect x="6" y="15" width="12" height="5" rx="1.5" />
+      <path d="M12 15v-4M8.5 8.5a5 5 0 0 1 7 0M6 6a8.5 8.5 0 0 1 12 0" />
+    </>
+  ),
+  server: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="1.5" />
+      <path d="M8 7h8M8 10.5h8M8 14h8" />
+      <circle cx="12" cy="18" r="0.7" fill="currentColor" />
+    </>
+  ),
+  machine: (
+    <>
+      <path d="M4 20h8M7 20v-4l4-5 4 2" />
+      <circle cx="11" cy="11" r="1.6" />
+      <path d="M15 13l3-4 2 1.5M18 9V6.5" />
+    </>
+  ),
 };
 
 export function DeviceIcon({ type, size = 24 }: { type: DeviceType; size?: number }) {

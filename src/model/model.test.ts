@@ -21,10 +21,12 @@ import {
 import { LANE_HEIGHT, laneTop, levelAtY, PURDUE_LANES } from './purdue';
 import type { Project } from './schema';
 
+const SITE = 'site-main';
+
 function twoDevices(): Project {
   let p = emptyProject();
-  p = addDevice(p, createDevice('hmi', { x: 0, y: laneTop(2) + 37 }, 'hmi'));
-  p = addDevice(p, createDevice('plc', { x: 0, y: laneTop(1) + 37 }, 'plc'));
+  p = addDevice(p, createDevice('hmi', { x: 0, y: laneTop(2) + 37 }, { siteId: SITE, id: 'hmi' }));
+  p = addDevice(p, createDevice('plc', { x: 0, y: laneTop(1) + 37 }, { siteId: SITE, id: 'plc' }));
   return p;
 }
 
@@ -50,9 +52,9 @@ describe('project operations', () => {
   });
 
   it('gives firewalls a default-deny rule set', () => {
-    const fw = createDevice('firewall', { x: 0, y: 0 });
+    const fw = createDevice('firewall', { x: 0, y: 0 }, { siteId: SITE });
     expect(fw.firewall).toEqual({ defaultAction: 'deny', rules: [] });
-    expect(createDevice('plc', { x: 0, y: 0 }).firewall).toBeUndefined();
+    expect(createDevice('plc', { x: 0, y: 0 }, { siteId: SITE }).firewall).toBeUndefined();
   });
 
   it('rejects self, duplicate and reversed duplicate links', () => {
@@ -69,7 +71,7 @@ describe('project operations', () => {
 
   it('removes a device together with its links, flows and rule references', () => {
     let p = twoDevices();
-    p = addDevice(p, createDevice('firewall', { x: 0, y: 0 }, 'fw'));
+    p = addDevice(p, createDevice('firewall', { x: 0, y: 0 }, { siteId: SITE, id: 'fw' }));
     p = addLink(p, 'hmi', 'plc');
     p = addFlow(p, defaultFlow('modbus', 'hmi', 'plc'));
     p = addRule(p, 'fw', { ...newRule('r1'), dst: { kind: 'device', id: 'plc' }, action: 'allow' });
@@ -86,7 +88,7 @@ describe('project operations', () => {
   it('unassigns devices and drops rules when a zone is removed', () => {
     let p = addZone(twoDevices(), { id: 'z', name: 'Control', color: '#16a34a', trusted: true, targetSL: 3 });
     p = { ...p, devices: p.devices.map((d) => ({ ...d, zoneId: 'z' })) };
-    p = addDevice(p, createDevice('firewall', { x: 0, y: 0 }, 'fw'));
+    p = addDevice(p, createDevice('firewall', { x: 0, y: 0 }, { siteId: SITE, id: 'fw' }));
     p = addRule(p, 'fw', { ...newRule('r1'), src: { kind: 'zone', id: 'z' } });
     const after = removeZone(p, 'z');
     expect(after.zones).toEqual([]);
@@ -95,7 +97,7 @@ describe('project operations', () => {
   });
 
   it('reorders rules and ignores moves past either end', () => {
-    let p = addDevice(emptyProject(), createDevice('firewall', { x: 0, y: 0 }, 'fw'));
+    let p = addDevice(emptyProject(), createDevice('firewall', { x: 0, y: 0 }, { siteId: SITE, id: 'fw' }));
     p = addRule(addRule(p, 'fw', newRule('a')), 'fw', newRule('b'));
     const ids = (q: Project) => q.devices[0].firewall?.rules.map((r) => r.id);
     expect(ids(moveRule(p, 'fw', 'b', -1))).toEqual(['b', 'a']);
