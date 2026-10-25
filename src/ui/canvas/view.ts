@@ -116,8 +116,11 @@ export function buildView(
     if (!portals.has(id)) {
       const device = deviceById.get(remoteId)!;
       const near = anchorPos.get(localAnchor) ?? { x: 0, y: 0 };
+      // Each existing stub can push the new one down at most twice, so this always ends.
       let y = near.y;
-      while ([...portals.values()].some((p) => Math.abs(p.position.y - y) < PORTAL_ROW)) y += PORTAL_ROW;
+      for (let step = 0; step <= 2 * portals.size && [...portals.values()].some((p) => Math.abs(p.position.y - y) < PORTAL_ROW); step++) {
+        y += PORTAL_ROW;
+      }
       portals.set(id, {
         id,
         type: 'portal',

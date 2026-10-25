@@ -154,3 +154,8 @@
 **Decision:** Stubs for devices on other sites are drawn in a column to the right of everything on the open site, level with their local device and spaced so they never stack. Framing a site now includes stubs and notes. The water-treatment demo note moved to free space in the L4 lane.
 **Why:** The README screenshots showed stubs drawn on top of devices on the pipeline template's compressor station tab, because each stub sat a fixed distance to the right of its device.
 **User input:** None (found while preparing the README).
+
+## 2026-10-25 — Bounded coordinates and loops
+**Decision:** Positions and sizes in project files must lie within ±1,000,000, and each stub-placement and area-shifting loop has an explicit cap on its iterations.
+**Why:** An automated security review found that a crafted file or share link with a huge coordinate (e.g. 1e300) could make `y += 48` leave `y` unchanged, freezing the tab. Bounding the inputs keeps the arithmetic exact; capping the loops guarantees they end regardless.
+**User input:** None (security fix).
