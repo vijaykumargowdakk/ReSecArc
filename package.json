@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Browser-based designer for OT network architectures: Purdue levels, IEC 62443 zones, Modbus/DNP3 flows and firewall rules.",
   "private": true,
-  "license": "MIT",
+  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "dev": "vite",

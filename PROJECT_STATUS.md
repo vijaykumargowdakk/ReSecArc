@@ -38,5 +38,4 @@ Next: the owner decides the scope of any further features. No analysis features 
 - Chromium's synthetic drag in Playwright can't drive the palette's HTML5 drag-and-drop. In automated checks, dispatch `DragEvent`s on the canvas pane instead.
 
 ## Action items for the owner
-- Create the GitHub repository (suggested name `conduitot`) and add it as `origin`. GitHub Pages can then serve the demo through the included workflow.
-- Confirm the MIT license, or choose a different one.
+- To publish the demo, enable GitHub Pages (**Settings → Pages → Source: GitHub Actions**), then run the "Deploy demo to GitHub Pages" workflow from the Actions tab.

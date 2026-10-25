@@ -56,4 +56,6 @@ The build uses relative asset paths, so `dist/` can be served from any static ho
 
 ## License
 
-[MIT](LICENSE)
+Copyright © 2026 Vijay Kumar Gowda K. All rights reserved.
+
+This is not open-source software. Using, copying, modifying, rebuilding or distributing any part of it requires prior written permission from the copyright holder. See [LICENSE](LICENSE).
