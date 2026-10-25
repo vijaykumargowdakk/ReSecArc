@@ -188,6 +188,7 @@ function DeviceInspector({ device }: { device: Device }) {
 
 function ConnectSection({ device }: { device: Device }) {
   const apply = useProject((s) => s.apply);
+  const flowProtocol = useProject((s) => s.flowProtocol);
   const [mode, setMode] = useState<'link' | 'flow' | null>(null);
   return (
     <Section title="Connect">
@@ -206,7 +207,7 @@ function ConnectSection({ device }: { device: Device }) {
           label={mode === 'link' ? `Link ${device.label} to` : `Flow from ${device.label} to`}
           onPick={(target) => {
             if (mode === 'link') apply((p) => addLink(p, device.id, target));
-            else apply((p) => addFlow(p, defaultFlow('modbus', device.id, target)));
+            else apply((p) => addFlow(p, defaultFlow(flowProtocol, device.id, target)));
             setMode(null);
           }}
         />
@@ -289,12 +290,18 @@ function FlowInspector({ flow }: { flow: Flow }) {
             onChange={(protocol) => protocol !== flow.protocol && set(defaultFlow(protocol, flow.source, flow.target, flow.id))}
           />
         </Field>
-        {def && def.defaultPort !== null && (
-          <Field label="Port">
-            <IntInput value={flow.port} min={1} max={65535} onChange={(port) => port !== null && set({ ...flow, port }, 'port')} />
+        {def && (def.defaultPort !== null || def.portOptional) && (
+          <Field label="Port" hint={def.portOptional ? 'Optional' : undefined}>
+            <IntInput
+              value={flow.port}
+              min={1}
+              max={65535}
+              allowEmpty={def.portOptional}
+              onChange={(port) => (port !== null || def.portOptional) && set({ ...flow, port }, 'port')}
+            />
           </Field>
         )}
-        {def?.defaultPort === null && <p className="muted">{def.label} runs at layer 2 and has no port.</p>}
+        {def && def.defaultPort === null && !def.portOptional && <p className="muted">{def.label} runs at layer 2 and has no port.</p>}
         {def?.fields.map((f) => (
           <SettingField key={f.key} field={f} value={flow.settings[f.key]} onChange={(v) => setSetting(f.key, v)} />
         ))}

@@ -21,6 +21,7 @@ import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_WIDTH, PURDUE_LANES } from '../.
 import { variantInfo } from '../../model/catalog';
 import { deviceTypeSchema, type DeviceType, type Project } from '../../model/schema';
 import { NO_SELECTION, useProject, type Selection } from '../../store/useProject';
+import { Legend } from './Legend';
 import { NodeMenu } from './NodeMenu';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { DeviceNode, LaneNode, type CanvasNode, type LaneFlowNode } from './nodes';
@@ -103,6 +104,7 @@ export function Canvas() {
   const select = useProject((s) => s.select);
   const connectMode = useProject((s) => s.connectMode);
   const snapToGrid = useProject((s) => s.snapToGrid);
+  const flowProtocol = useProject((s) => s.flowProtocol);
   const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
   const siteId = project.sites[0].id;
   const { screenToFlowPosition } = useReactFlow();
@@ -163,9 +165,9 @@ export function Canvas() {
   const onConnect = useCallback(
     (c: Connection) => {
       if (connectMode === 'link') apply((p) => addLink(p, c.source, c.target));
-      else apply((p) => addFlow(p, defaultFlow('modbus', c.source, c.target)));
+      else apply((p) => addFlow(p, defaultFlow(flowProtocol, c.source, c.target)));
     },
-    [apply, connectMode],
+    [apply, connectMode, flowProtocol],
   );
 
   const onDragOver = useCallback((event: DragEvent) => {
@@ -213,6 +215,7 @@ export function Canvas() {
       >
         <Background gap={25} size={1} />
         <Controls showInteractive={false} />
+        <Legend />
         <MiniMap
           pannable
           zoomable

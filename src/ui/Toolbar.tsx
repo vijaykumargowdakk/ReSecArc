@@ -1,6 +1,7 @@
 import { Cable, Download, Factory, FilePlus2, FolderOpen, Grid3x3, Redo2, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { parseProject, serializeProject } from '../model/io';
+import { PROTOCOLS } from '../model/protocols';
 import { emptyProject } from '../model/ops';
 import { useAutosaveStatus } from '../store/autosave';
 import { demoProject, useProject, type ConnectMode } from '../store/useProject';
@@ -20,6 +21,8 @@ export function Toolbar({ onErrors }: { onErrors: (errors: string[]) => void }) 
   const load = useProject((s) => s.load);
   const connectMode = useProject((s) => s.connectMode);
   const setConnectMode = useProject((s) => s.setConnectMode);
+  const flowProtocol = useProject((s) => s.flowProtocol);
+  const setFlowProtocol = useProject((s) => s.setFlowProtocol);
   const canUndo = useProject((s) => s.history.past.length > 0);
   const canRedo = useProject((s) => s.history.future.length > 0);
   const undo = useProject((s) => s.undo);
@@ -102,6 +105,19 @@ export function Toolbar({ onErrors }: { onErrors: (errors: string[]) => void }) 
             {m.label}
           </button>
         ))}
+        <select
+          className="toolbar__select"
+          value={flowProtocol}
+          onChange={(e) => setFlowProtocol(e.target.value)}
+          aria-label="Protocol for new flows"
+          title="Protocol for new flows"
+        >
+          {PROTOCOLS.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="toolbar__group">

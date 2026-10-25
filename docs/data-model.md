@@ -69,6 +69,18 @@ A directed protocol session from `source` to `target`:
 |----------|-------|----------|
 | `modbus` | client → server | `variant` (`tcp`/`tls`), `access` (`read`/`write`/`read-write`), `authentication` |
 | `dnp3` | master → outstation | `transport` (`tcp`/`udp`), `secureAuthentication`, `tls`, `controlCommands` |
+| `enip` | scanner → adapter | `messaging` (`explicit` 44818 / `implicit` 2222), `cipSecurity` |
+| `profinet` | IO controller → IO device (layer 2) | `realtime` (`rt`/`irt`), `conformance` (`A`/`B`/`C`), `security` |
+| `opcua` | client → server | `securityMode` (`none`/`sign`/`signandencrypt`), `userAuth` (`anonymous`/`username`/`certificate`) |
+| `iec104` | controlling → controlled station | `tls` (2404 / 19998), `controlCommands` |
+| `mms` | client → server (IED) | `tls` (102 / 3782), `controlCommands` |
+| `goose` | publisher → subscriber (layer 2) | `authenticated` |
+| `bacnet` | client → device | `secureConnect` (47808 / 443), `access` |
+| `s7` | client → controller | `variant` (`classic`/`plus`), `access` |
+| `mqtt` | client → broker | `tls` (1883 / 8883), `clientAuth` (`none`/`password`/`certificate`) |
+| `custom` | source → destination | `name`, `transport` (`tcp`/`udp`/`l2`/`serial`), `encrypted`; port optional |
+
+Where two ports are listed, the port follows the setting unless the user has typed a different one.
 
 ## Zone
 

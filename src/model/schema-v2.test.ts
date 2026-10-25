@@ -108,3 +108,38 @@ describe('protocol registry', () => {
     expect(referenceErrors(p)).toEqual(['Flow "f1": Modbus needs a port', 'Flow "f2" uses unknown protocol "carrier-pigeon"']);
   });
 });
+
+describe('extended protocols', () => {
+  const port = (id: string, patch: Record<string, string | boolean>) => {
+    const def = getProtocol(id)!;
+    return defaultPortFor(def, { ...defaultSettings(def), ...patch });
+  };
+
+  it('picks ports from settings', () => {
+    expect(port('enip', {})).toBe(44818);
+    expect(port('enip', { messaging: 'implicit' })).toBe(2222);
+    expect(port('iec104', { tls: true })).toBe(19998);
+    expect(port('mms', { tls: true })).toBe(3782);
+    expect(port('bacnet', { secureConnect: true })).toBe(443);
+    expect(port('mqtt', { tls: true })).toBe(8883);
+    expect(port('profinet', {})).toBeNull();
+    expect(port('goose', {})).toBeNull();
+  });
+
+  it('labels flows from their settings', () => {
+    const custom = getProtocol('custom')!;
+    expect(flowLabel('custom', { ...defaultSettings(custom), name: 'Historian sync', encrypted: true })).toBe('Historian sync enc');
+    expect(flowLabel('opcua', { securityMode: 'signandencrypt', userAuth: 'certificate' })).toBe('OPC UA Encrypt');
+    expect(flowLabel('opcua', { securityMode: 'none', userAuth: 'anonymous' })).toBe('OPC UA anon');
+  });
+
+  it('lets custom flows have a port or none, and rejects ports on layer-2 protocols', () => {
+    let p = emptyProject();
+    p = addDevice(p, createDevice('hmi', { x: 0, y: 0 }, { siteId: 'site-main', id: 'h' }));
+    p = addDevice(p, createDevice('plc', { x: 0, y: 0 }, { siteId: 'site-main', id: 'c' }));
+    p = addFlow(p, defaultFlow('custom', 'h', 'c', 'f1'));
+    p = addFlow(p, { ...defaultFlow('custom', 'c', 'h', 'f2'), port: 9000 });
+    p = addFlow(p, { ...defaultFlow('profinet', 'h', 'c', 'f3'), port: 34964 });
+    expect(referenceErrors(p)).toEqual(['Flow "f3": PROFINET is layer 2 and has no port']);
+  });
+});

@@ -159,6 +159,15 @@ button:focus-visible {
   padding: 6px 8px;
 }
 
+.toolbar__select {
+  width: auto;
+  padding: 5px 6px;
+  border: 1px solid #2c4a61;
+  border-radius: 6px;
+  background: #16384f;
+  color: #e6eef5;
+}
+
 .autosave {
   min-width: 0;
   font-size: 11.5px;
@@ -490,6 +499,34 @@ button:focus-visible {
 
 .flow-label.is-selected {
   box-shadow: 0 0 0 2px currentColor;
+}
+
+.legend {
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 11.5px;
+}
+
+.legend ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend__link {
+  stroke: #5b6b7b;
+  stroke-width: 2;
 }
 
 /* Node context menu and device picker */
