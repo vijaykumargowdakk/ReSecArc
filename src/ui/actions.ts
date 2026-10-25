@@ -4,6 +4,7 @@ import type { ReactFlowInstance } from '@xyflow/react';
 import { parseProject, serializeProject } from '../model/io';
 import { tidyLayout } from '../model/layout';
 import { addNote, createNote } from '../model/notes';
+import { countRuleReferences, removeDevice } from '../model/ops';
 import type { Project } from '../model/schema';
 import { announce } from '../store/announcer';
 import { hasEdits, NO_SELECTION, useProject } from '../store/useProject';
@@ -70,6 +71,19 @@ export function addNoteInView(rf: Flow): void {
   apply((p) => addNote(p, note));
   select({ ...NO_SELECTION, notes: [note.id] });
   announce('Note added');
+}
+
+/** Deletes a device and its connections once the user confirms; returns whether it was deleted. */
+export function deleteDeviceAfterConfirm(deviceId: string): boolean {
+  const { project, apply, select } = useProject.getState();
+  const device = project.devices.find((d) => d.id === deviceId);
+  if (!device) return false;
+  const refs = countRuleReferences(project, 'device', device.id);
+  const warning = refs ? `\n\n${refs} firewall rule(s) refer to it and will also be removed.` : '';
+  if (!window.confirm(`Delete "${device.label}" and its connections?${warning}`)) return false;
+  apply((q) => removeDevice(q, device.id));
+  select(NO_SELECTION);
+  return true;
 }
 
 /** Lays out the open site in one undoable step and frames the result. */

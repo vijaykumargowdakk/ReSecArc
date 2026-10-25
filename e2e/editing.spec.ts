@@ -26,7 +26,7 @@ test('connects two devices from the properties panel', async ({ page }) => {
   await deviceNode(page, 'Site historian').click();
   await page.getByRole('button', { name: 'Link to…' }).click();
   await page.getByRole('textbox', { name: /Link Site historian to/ }).fill('Engineering');
-  await page.getByRole('option', { name: /Engineering workstation/ }).click();
+  await page.getByRole('list', { name: /Link Site historian to/ }).getByRole('button', { name: /Engineering workstation/ }).click();
   expect(await links()).toBe(before + 1);
 });
 

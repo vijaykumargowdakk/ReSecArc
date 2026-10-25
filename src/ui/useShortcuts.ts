@@ -3,7 +3,8 @@ import { announce } from '../store/announcer';
 import { useProject } from '../store/useProject';
 import { saveProjectFile } from './actions';
 
-function isTyping(target: EventTarget | null): boolean {
+/** True when a key press is going into a text field, select or editable element. */
+export function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
 }

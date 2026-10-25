@@ -14,10 +14,16 @@ const SHORTCUTS: [string, string][] = [
   ['Tab', 'Move focus between devices on the canvas'],
   ['Enter  or  Space', 'Select the focused device'],
   ['Arrow keys', 'Move selected devices (hold Shift for bigger steps)'],
+  ['L  or  F', 'Start a link or a protocol flow from the focused or selected device'],
+  ['Arrow keys, then Enter', 'While connecting: choose the nearest device in that direction, then connect to it (Esc cancels)'],
   ['Shift + drag', 'Select several devices with a box'],
   ['Ctrl + click', 'Add a device to the selection'],
   ['Right-click a device', 'Duplicate, delete, or connect it to another device'],
   ['Double-click a note', 'Edit it in place; Ctrl + Enter or clicking away finishes, Esc cancels'],
+  ['Outline: arrow keys, Home, End', 'Move through the outline; Right opens an item, Left closes it or goes to its parent'],
+  ['Outline: Enter  or  Space', 'Show the item in the properties panel (Enter also moves focus there)'],
+  ['Outline: L, F, Delete', 'Link the focused device, add a flow from it, or delete it'],
+  ['Outline: a letter', 'Jump to the next item starting with it'],
   ['?', 'Show this help'],
   ['Esc', 'Close dialogs and menus'],
 ];
@@ -51,8 +57,8 @@ export function HelpDialog({ onClose, onTour }: { onClose: () => void; onTour: (
         </button>
       </div>
       <p className="muted help-dialog__note">
-        Everything on the canvas can also be done without a mouse: add devices from the palette with Enter, and connect them from the
-        device panel with “Link to…” or “Flow to…”.
+        Everything on the canvas can also be done without a mouse: add devices from the palette with Enter, connect them with L or F, or
+        use “Link to…” and “Flow to…” in the device panel. The Outline view lists the whole design as a tree.
       </p>
     </dialog>
   );

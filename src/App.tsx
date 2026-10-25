@@ -1,5 +1,5 @@
 import { ReactFlowProvider } from '@xyflow/react';
-import { Network, Table2, X } from 'lucide-react';
+import { ListTree, Network, Table2, X } from 'lucide-react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { decodeShare, isShareFragment } from './model/share';
 import type { Project } from './model/schema';
@@ -16,17 +16,20 @@ import { Palette } from './ui/Palette';
 import { SiteTabs } from './ui/SiteTabs';
 import { Toolbar } from './ui/Toolbar';
 import { usePrefs } from './store/prefs';
-import type { CommandContext } from './ui/commands';
+import type { CommandContext, ViewName } from './ui/commands';
 import { useShortcuts } from './ui/useShortcuts';
 
 // Views and dialogs that are not needed on first paint load on demand.
 const Inventory = lazy(() => import('./ui/Inventory').then((m) => ({ default: m.Inventory })));
+const Outline = lazy(() => import('./ui/Outline').then((m) => ({ default: m.Outline })));
 const HelpDialog = lazy(() => import('./ui/HelpDialog').then((m) => ({ default: m.HelpDialog })));
 const SearchDialog = lazy(() => import('./ui/SearchDialog').then((m) => ({ default: m.SearchDialog })));
 const ShareDialog = lazy(() => import('./ui/ShareDialog').then((m) => ({ default: m.ShareDialog })));
 const CommandPalette = lazy(() => import('./ui/CommandPalette').then((m) => ({ default: m.CommandPalette })));
 const Tour = lazy(() => import('./ui/Tour').then((m) => ({ default: m.Tour })));
 const TemplateGallery = lazy(() => import('./ui/TemplateGallery').then((m) => ({ default: m.TemplateGallery })));
+
+const VIEW_NAMES: Record<ViewName, string> = { diagram: 'Diagram', inventory: 'Inventory', outline: 'Outline' };
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -40,7 +43,7 @@ export function App() {
   const load = useProject((s) => s.load);
   const [searching, setSearching] = useState(false);
   const [choosingTemplate, setChoosingTemplate] = useState(false);
-  const [view, setView] = useState<'diagram' | 'inventory'>('diagram');
+  const [view, setView] = useState<ViewName>('diagram');
   const focusDevice = useProject((s) => s.focusDevice);
   const select = useProject((s) => s.select);
   const openSearch = useCallback(() => setSearching(true), []);
@@ -208,7 +211,7 @@ export function App() {
         )}
         <main className={`workspace${drawer ? ` drawer-${drawer}` : ''}`}>
           <Palette />
-          <section className="canvas-column" aria-label={view === 'diagram' ? 'Diagram' : 'Inventory'}>
+          <section className="canvas-column" aria-label={VIEW_NAMES[view]}>
             <div className="canvas-bar">
               <div className="segmented view-switch" role="tablist" aria-label="View">
                 <button type="button" role="tab" aria-selected={view === 'diagram'} className={view === 'diagram' ? 'is-active' : ''} onClick={() => setView('diagram')}>
@@ -217,15 +220,22 @@ export function App() {
                 <button type="button" role="tab" aria-selected={view === 'inventory'} className={view === 'inventory' ? 'is-active' : ''} onClick={() => setView('inventory')}>
                   <Table2 size={15} /> Inventory
                 </button>
+                <button type="button" role="tab" aria-selected={view === 'outline'} className={view === 'outline' ? 'is-active' : ''} onClick={() => setView('outline')}>
+                  <ListTree size={15} /> Outline
+                </button>
               </div>
               {view === 'diagram' && <SiteTabs />}
               {view === 'diagram' && <TidyButton />}
               {view === 'diagram' && <LayersMenu />}
-              {view === 'diagram' && <FilterBar />}
+              {view !== 'inventory' && <FilterBar />}
             </div>
-            {view === 'diagram' ? (
-              <Canvas />
-            ) : (
+            {view === 'diagram' && <Canvas />}
+            {view === 'outline' && (
+              <Suspense fallback={<p className="muted inventory__loading">Loading outline…</p>}>
+                <Outline />
+              </Suspense>
+            )}
+            {view === 'inventory' && (
               <Suspense fallback={<p className="muted inventory__loading">Loading inventory…</p>}>
                 <Inventory
                   onShowDevice={(id) => {

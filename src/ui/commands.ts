@@ -9,6 +9,7 @@ import { useTheme, type Theme } from '../store/theme';
 import { useProject } from '../store/useProject';
 import { addNoteInView, chooseProjectFile, exportImage, exportText, saveProjectFile, tidyOpenSite } from './actions';
 import type { CanvasEdge } from './canvas/edges';
+import { startKeyboardConnect } from './canvas/useKeyboardConnect';
 import type { CanvasNode } from './canvas/nodes';
 
 export interface Command {
@@ -23,9 +24,11 @@ export interface Command {
   run: () => void;
 }
 
+export type ViewName = 'diagram' | 'inventory' | 'outline';
+
 export interface CommandContext {
-  view: 'diagram' | 'inventory';
-  setView: (view: 'diagram' | 'inventory') => void;
+  view: ViewName;
+  setView: (view: ViewName) => void;
   openSearch: () => void;
   openHelp: () => void;
   openShare: () => void;
@@ -78,7 +81,8 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   }, { keywords: 'snapshot baseline version' });
 
   add('View', 'diagram', 'Show the diagram', () => ctx.setView('diagram'), { enabled: !diagram });
-  add('View', 'inventory', 'Show the inventory', () => ctx.setView('inventory'), { enabled: diagram, keywords: 'table spreadsheet' });
+  add('View', 'inventory', 'Show the inventory', () => ctx.setView('inventory'), { enabled: ctx.view !== 'inventory', keywords: 'table spreadsheet' });
+  add('View', 'outline', 'Show the outline', () => ctx.setView('outline'), { enabled: ctx.view !== 'outline', keywords: 'tree list keyboard screen reader' });
   add('View', 'find', 'Find a device…', ctx.openSearch, { shortcut: 'Ctrl+K', keywords: 'search' });
   add('View', 'fit', 'Fit the diagram to the screen', () => rf.fitView({ padding: 0.1, duration: 250 }), { enabled: diagram, keywords: 'zoom' });
   for (const key of Object.keys(LAYER_LABELS) as (keyof Layers)[]) {
@@ -89,6 +93,17 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
     add('View', `theme-${t.value}`, `Theme: ${t.label}`, () => useTheme.getState().setTheme(t.value), { keywords: 'colour color dark light contrast' });
   }
 
+  const one = selection.devices.length === 1 ? selection.devices[0] : null;
+  add('Connect', 'key-link', 'Link the selected device to another (arrow keys choose)', () => one && startKeyboardConnect('link', one), {
+    shortcut: 'L',
+    enabled: diagram && one !== null,
+    keywords: 'keyboard connect',
+  });
+  add('Connect', 'key-flow', 'Add a flow from the selected device (arrow keys choose)', () => one && startKeyboardConnect('flow', one), {
+    shortcut: 'F',
+    enabled: diagram && one !== null,
+    keywords: 'keyboard connect protocol',
+  });
   add('Connect', 'mode-link', 'Draw new connections as network links', () => useProject.getState().setConnectMode('link'));
   add('Connect', 'mode-flow', 'Draw new connections as protocol flows', () => useProject.getState().setConnectMode('flow'));
   for (const p of PROTOCOLS) {
