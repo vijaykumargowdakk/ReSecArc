@@ -26,8 +26,9 @@ const TEXT: Record<ImportKind, { title: string; noun: string; help: ReactNode }>
     help: (
       <>
         One device per row with a header line. Only <code>name</code> and <code>type</code> are required. Recognised columns:{' '}
-        <code>{DEVICE_COLUMNS.filter((c) => c !== 'area').join(', ')}</code>. Types and kinds may be ids or labels; zones and sites are matched
-        by name. Devices without a site go to the site that is open now.
+        <code>{DEVICE_COLUMNS.filter((c) => c !== 'area').join(', ')}, tags</code>, and <code>field:Name</code> for each custom field. Types and
+        kinds may be ids or labels; zones and sites are matched by name; tags are separated by semicolons. Devices without a site go to the
+        site that is open now.
       </>
     ),
   },

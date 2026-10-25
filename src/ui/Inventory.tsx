@@ -1,8 +1,9 @@
 import { ArrowDownUp, Crosshair, Download, Trash2, TriangleAlert, Upload } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../model/catalog';
 import { addressesToCsv, addressRows, devicesToCsv, endpointName, flowsToCsv, linksToCsv, rulesToCsv } from '../model/csv';
 import { addressSortKey, deviceAddresses } from '../model/ipam';
+import { parseTags, setDeviceField, setTags } from '../model/fields';
 import { removeDevice, updateDevice, updateLink } from '../model/ops';
 import { flowLabel, getProtocol } from '../model/protocols';
 import { laneTop, levelLabel, PURDUE_LANES } from '../model/purdue';
@@ -10,6 +11,7 @@ import type { Asset, Device, PurdueLevel } from '../model/schema';
 import { useAddressReport, useLinkIssues } from '../store/derived';
 import { NO_SELECTION, useProject } from '../store/useProject';
 import { downloadText, slug } from './download';
+import { FieldInput } from './fields';
 import { VlanInput } from './form';
 import { DeviceIcon } from './icons';
 import { ImportDialog } from './ImportDialog';
@@ -21,6 +23,24 @@ const CRITICALITY = ['low', 'medium', 'high'] as const;
 
 function Cell({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
   return <input type="text" className="cell-input" value={value} aria-label={label} onChange={(e) => onChange(e.target.value)} />;
+}
+
+/** Tags as "a; b" text, applied on blur so separators can be typed. */
+function TagsCell({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
+  const text = tags.join('; ');
+  const [draft, setDraft] = useState(text);
+  useEffect(() => setDraft(text), [text]);
+  return (
+    <input
+      type="text"
+      className="cell-input"
+      value={draft}
+      aria-label="Tags, separated by semicolons"
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => (draft === text ? undefined : onChange(parseTags(draft)))}
+      onKeyDown={(e) => e.key === 'Enter' && onChange(parseTags(draft))}
+    />
+  );
 }
 
 export function Inventory({
@@ -171,6 +191,10 @@ export function Inventory({
                 {header('model', 'Model')}
                 {header('firmware', 'Firmware')}
                 {header('criticality', 'Criticality')}
+                <th>Tags</th>
+                {project.fieldDefs.map((f) => (
+                  <th key={f.id}>{f.label}</th>
+                ))}
                 <th>
                   <span className="sr-only">Show</span>
                 </th>
@@ -263,6 +287,20 @@ export function Inventory({
                       ))}
                     </select>
                   </td>
+                  <td>
+                    <TagsCell tags={d.tags} onChange={(tags) => apply((q) => setTags(q, d.id, tags), `device:${d.id}:tags`)} />
+                  </td>
+                  {project.fieldDefs.map((f) => (
+                    <td key={f.id}>
+                      <FieldInput
+                        def={f}
+                        value={d.fields[f.id] ?? ''}
+                        className="cell-input"
+                        ariaLabel={f.label}
+                        onChange={(v) => apply((q) => setDeviceField(q, [d.id], f.id, v), `device:${d.id}:field:${f.id}`)}
+                      />
+                    </td>
+                  ))}
                   <td>
                     <button type="button" className="icon-button" title="Show on diagram" aria-label={`Show ${d.label} on diagram`} onClick={() => onShowDevice(d.id)}>
                       <Crosshair size={14} />

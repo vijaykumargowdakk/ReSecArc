@@ -221,6 +221,7 @@ flowchart TB
 
 - **Devices:** 19 types and 85 kinds, for example a compact, modular or micro PLC, a PAC, a protection relay, a merging unit, a data diode or a cellular router. Each kind has its own original two-tone icon.
 - **Asset details:** vendor, model, firmware, serial number, one or more IP addresses, and notes.
+- **Custom fields and tags:** define your own device attributes (text, date or a choice list), such as owner, cabinet or support end date, and add free tags such as `patch-pending`. Both can be edited per device, for many devices at once, or in the inventory, and they are searchable, filterable and exported.
 - **Criticality:** low, medium or high, shown as a lettered badge on the device.
 - **Remote-access services:** RDP, SSH, VNC or HTTPS listeners with their ports.
 - **Network links:** undirected Ethernet, serial or wireless connections. Each records the port or interface at both ends (shown on the canvas), its VLANs (one for an access port, several for a trunk) and the planned network it carries. A warning appears when an end device has no address in that network, or when the link does not carry the network's VLAN.
@@ -233,8 +234,8 @@ flowchart TB
 
 - **Sites:** each site has its own tab and its own lanes. A connection to a device on another site is drawn to a small *stub* in a column on the right, and clicking the stub opens that site.
 - **Areas:** dashed frames for cells, production lines or substations. Devices inside an area move with it, and an area can **collapse** into a single node whose connections are merged.
-- **Search** (Ctrl + K or /): finds devices on every site by name, kind, IP address, vendor, model or notes.
-- **Filters:** by zone, device type, level or protocol. Items that do not match are dimmed, not hidden, so the layout stays readable.
+- **Search** (Ctrl + K or /): finds devices on every site by name, kind, IP address, vendor, model, notes, tags or custom field values.
+- **Filters:** by zone, device type, level, protocol or tag. Items that do not match are dimmed, not hidden, so the layout stays readable.
 
 ![The multi-site pipeline template in the dark theme, with stubs for devices on the control centre site](docs/images/dark-multisite.png)
 
@@ -879,7 +880,7 @@ flowchart TD
 
 | Table | Columns |
 |-------|---------|
-| Devices | `name, type, variant, level, zone, site, area, criticality, vendor, model, firmware, serial, ip, notes` |
+| Devices | `name, type, variant, level, zone, site, area, criticality, vendor, model, firmware, serial, ip, notes, tags`, then `field:<name>` for each custom field |
 | Links | `source, source port, target, target port, medium, vlans, network` (VLANs as `10 20` or `30-32`) |
 | Flows | `source, target, protocol, port, summary, settings` (`settings` written as `name=value; name=value`) |
 | Firewall rules | `firewall, order, action, source, destination, protocol, port, note` (endpoints as `any`, `zone: Name` or a device name) |
@@ -1214,6 +1215,7 @@ pie showData
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
 | `e2e/data.spec.ts` | Save and open, broken files, autosave restore, share links, IP warnings, revisions, CSV import |
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, dialogs and comparison in each theme |
+| `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 

@@ -1,6 +1,7 @@
 // CSV export of the inventory, and CSV import of devices with per-row error reporting.
 import Papa from 'papaparse';
 import { DEVICE_CATALOG, kindLabel } from './catalog';
+import { isValidDate, parseTags } from './fields';
 import { addDevice, createDevice, emptyAsset } from './ops';
 import { addressReport, addressSortKey, type AddressReport } from './ipam';
 import { flowLabel, getProtocol } from './protocols';
@@ -37,12 +38,15 @@ function unparse(table: { fields: string[]; data: unknown[][] }): string {
 /** Undoes the formula escape added on export, so exported files re-import unchanged. */
 export const unescapeFormula = (v: string) => (/^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v);
 
+/** Header of a custom field's column in device CSV files. */
+export const fieldColumn = (label: string) => `field:${label}`;
+
 export function devicesToCsv(project: Project): string {
   const zone = names(project.zones);
   const site = names(project.sites);
   const area = names(project.areas);
   return unparse({
-    fields: [...DEVICE_COLUMNS],
+    fields: [...DEVICE_COLUMNS, 'tags', ...project.fieldDefs.map((f) => fieldColumn(f.label))],
     data: project.devices.map((d) => [
       d.label,
       d.type,
@@ -58,6 +62,8 @@ export function devicesToCsv(project: Project): string {
       d.asset.serial,
       d.asset.ip,
       d.asset.notes,
+      d.tags.join('; '),
+      ...project.fieldDefs.map((f) => d.fields[f.id] ?? ''),
     ]),
   });
 }
@@ -240,6 +246,17 @@ export function parseDeviceCsv(project: Project, text: string, defaultSiteId: st
       else errors.push(`no site named "${get('site')}"`);
     }
 
+    const fields: Record<string, string> = {};
+    for (const column of Object.keys(row)) {
+      if (!column.startsWith('field:')) continue;
+      const value = get(column);
+      if (!value) continue;
+      const def = project.fieldDefs.find((f) => norm(fieldColumn(f.label)) === column);
+      if (!def) errors.push(`no custom field named "${column.slice(6)}"; add it under Custom fields first`);
+      else if (def.kind === 'date' && !isValidDate(value)) errors.push(`${def.label} must be a date like 2027-03-31`);
+      else fields[def.id] = value;
+    }
+
     const criticality = norm(get('criticality'));
     if (criticality && !['low', 'medium', 'high'].includes(criticality)) errors.push(`criticality must be low, medium or high`);
 
@@ -259,6 +276,8 @@ export function parseDeviceCsv(project: Project, text: string, defaultSiteId: st
         ip: get('ip'),
         notes: get('notes'),
       },
+      tags: parseTags(get('tags')),
+      fields,
     };
     return { line: i + 2, name, device, errors };
   });

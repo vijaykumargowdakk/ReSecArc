@@ -65,7 +65,7 @@ export function projectToMarkdown(project: Project, generatedAt = new Date()): s
     out.push('### Devices\n');
     out.push(
       table(
-        ['Name', 'Kind', 'Level', 'Zone', 'Area', 'IP', 'Vendor', 'Model', 'Firmware', 'Criticality'],
+        ['Name', 'Kind', 'Level', 'Zone', 'Area', 'IP', 'Vendor', 'Model', 'Firmware', 'Criticality', 'Tags'],
         devices.map((d) => [
           d.label,
           kindLabel(d.type, d.variant),
@@ -77,9 +77,14 @@ export function projectToMarkdown(project: Project, generatedAt = new Date()): s
           d.asset.model,
           d.asset.firmware,
           d.criticality,
+          d.tags.join(', '),
         ]),
       ),
     );
+    if (project.fieldDefs.length) {
+      out.push('### Custom fields\n');
+      out.push(table(['Device', ...project.fieldDefs.map((f) => f.label)], devices.map((d) => [d.label, ...project.fieldDefs.map((f) => d.fields[f.id] ?? '')])));
+    }
     const ids = new Set(devices.map((d) => d.id));
     out.push('### Protocol flows\n');
     out.push(

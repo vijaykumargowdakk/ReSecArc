@@ -19,6 +19,8 @@ import type { Asset, Device, Flow, Link, PurdueLevel, RemoteService } from '../.
 import { useComparison } from '../../store/compare';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { DevicePicker } from '../DevicePicker';
+import { FieldInput, TagEditor } from '../fields';
+import { setDeviceField, setTags, tagCounts } from '../../model/fields';
 import { removeNote } from '../../model/notes';
 import { moveDevicesToSite } from '../../model/structure';
 import { AddressInfo } from './AddressInfo';
@@ -153,6 +155,16 @@ function DeviceInspector({ device }: { device: Device }) {
         <Field label="Notes">
           <textarea rows={3} value={device.asset.notes} onChange={(e) => setAsset({ notes: e.target.value })} />
         </Field>
+      </Section>
+
+      <Section title="Tags and custom fields">
+        <TagEditor tags={device.tags} suggestions={tagCounts(project).map((t) => t.tag)} onChange={(tags) => apply((q) => setTags(q, device.id, tags))} />
+        {project.fieldDefs.map((def) => (
+          <Field key={def.id} label={def.label}>
+            <FieldInput def={def} value={device.fields[def.id] ?? ''} onChange={(v) => apply((q) => setDeviceField(q, [device.id], def.id, v), `device:${device.id}:field:${def.id}`)} />
+          </Field>
+        ))}
+        {project.fieldDefs.length === 0 && <p className="muted">Custom fields are defined in the project panel (click empty canvas).</p>}
       </Section>
 
       <Section

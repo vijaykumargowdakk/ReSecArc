@@ -27,6 +27,7 @@ export function NetworksSection() {
           type="button"
           className="icon-button"
           title="Add network"
+          aria-label="Add network"
           onClick={() => apply((q) => addNetwork(q, createNetwork(`Network ${q.networks.length + 1}`, suggestCidr(q))))}
         >
           <Plus size={16} />

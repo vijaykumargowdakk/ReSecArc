@@ -19,6 +19,7 @@ import type { Device } from '../../model/schema';
 import { addArea, AREA_COLORS, createArea, moveDevicesToSite } from '../../model/structure';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { Field, Section, Select } from '../form';
+import { BulkTagsFields } from './BulkTagsFields';
 
 const MIXED = '__mixed__';
 
@@ -84,6 +85,8 @@ export function BulkInspector({ ids }: { ids: string[] }) {
           {devices.some((d) => d.locked) && <span className="muted">{devices.filter((d) => d.locked).length} locked</span>}
         </div>
       </Section>
+
+      <BulkTagsFields ids={ids} />
 
       <Section title="Organise">
         <button

@@ -1,6 +1,7 @@
 import { Filter as FilterIcon, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { DEVICE_CATALOG } from '../model/catalog';
+import { tagCounts } from '../model/fields';
 import { isFiltering, NO_FILTER, type Filter } from '../model/filter';
 import { getProtocol } from '../model/protocols';
 import { levelLabel, PURDUE_LANES } from '../model/purdue';
@@ -42,6 +43,7 @@ export function FilterBar() {
   const types = [...new Set(project.devices.map((d) => d.type))].sort() as DeviceType[];
   const levels = PURDUE_LANES.map((l) => l.level).filter((lvl) => project.devices.some((d) => d.purdueLevel === lvl));
   const protocols = [...new Set(project.flows.map((f) => f.protocol))].sort();
+  const tags = tagCounts(project);
 
   return (
     <div className="filter-bar" role="group" aria-label="Filter">
@@ -78,6 +80,15 @@ export function FilterBar() {
           </Check>
         ))}
       </Dropdown>
+      {tags.length > 0 && (
+        <Dropdown label="Tag" count={filter.tags.length}>
+          {tags.map(({ tag, count }) => (
+            <Check key={tag} checked={filter.tags.includes(tag)} onChange={() => set({ tags: toggle(filter.tags, tag) })}>
+              {tag} <span className="muted">({count})</span>
+            </Check>
+          ))}
+        </Dropdown>
+      )}
       {isFiltering(filter) && (
         <button type="button" className="filter__clear" onClick={() => setFilter(NO_FILTER)}>
           <X size={13} /> Clear
