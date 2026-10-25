@@ -75,3 +75,16 @@ describe('architecture document', () => {
     expect(md).not.toMatch(/\| undefined/);
   });
 });
+
+describe('CSV safety', () => {
+  it('escapes spreadsheet formulas on export and restores them on import', () => {
+    const p = loadTemplate('water-treatment');
+    const evil = { ...p, devices: p.devices.map((d, i) => (i === 0 ? { ...d, label: '=HYPERLINK("http://x","y")' } : d)) };
+    const csv = devicesToCsv(evil);
+    expect(csv).toContain(`"'=HYPERLINK(""http://x"",""y"")"`);
+    expect(csv).not.toMatch(/(^|,)=HYPERLINK/m);
+    const target = withZonesAndSites(evil);
+    const rows = parseDeviceCsv(target, csv, target.sites[0].id);
+    expect(rows[0].device?.label).toBe('=HYPERLINK("http://x","y")');
+  });
+});
