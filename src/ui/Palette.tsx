@@ -44,7 +44,7 @@ function PaletteItem({
 export function Palette() {
   const apply = useProject((s) => s.apply);
   const count = useProject((s) => s.project.devices.length);
-  const siteId = useProject((s) => s.project.sites[0].id);
+  const siteId = useProject((s) => s.activeSiteId);
   const [open, setOpen] = useState<Set<DeviceType>>(() => new Set());
 
   // Keyboard and click alternative to dragging: drop into the type's default lane.

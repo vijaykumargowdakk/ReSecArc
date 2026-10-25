@@ -1,4 +1,4 @@
-import { Cable, Download, Factory, FilePlus2, FolderOpen, Grid3x3, Redo2, Undo2, Workflow } from 'lucide-react';
+import { Cable, Download, Factory, FilePlus2, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { parseProject, serializeProject } from '../model/io';
 import { PROTOCOLS } from '../model/protocols';
@@ -16,7 +16,7 @@ function fileName(projectName: string): string {
   return `${slug || 'architecture'}.conduitot.json`;
 }
 
-export function Toolbar({ onErrors }: { onErrors: (errors: string[]) => void }) {
+export function Toolbar({ onErrors, onSearch }: { onErrors: (errors: string[]) => void; onSearch: () => void }) {
   const project = useProject((s) => s.project);
   const load = useProject((s) => s.load);
   const connectMode = useProject((s) => s.connectMode);
@@ -71,6 +71,12 @@ export function Toolbar({ onErrors }: { onErrors: (errors: string[]) => void }) 
           {project.name}
         </span>
       </div>
+
+      <button type="button" className="button search-trigger" onClick={onSearch} title="Find a device (Ctrl+K or /)">
+        <Search size={16} />
+        Find
+        <kbd>Ctrl K</kbd>
+      </button>
 
       <div className="toolbar__group" role="group" aria-label="Edit">
         <button type="button" className="button icon-only" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" aria-label="Undo">

@@ -1,4 +1,5 @@
 // Pure, immutable operations on a Project. The store wraps these; tests call them directly.
+import { areaAt } from './areas';
 import { DEVICE_CATALOG } from './catalog';
 import { DEFAULT_SITE } from './migrate';
 import { defaultPortFor, defaultSettings, getProtocol } from './protocols';
@@ -73,17 +74,25 @@ export function defaultFlow(protocol: string, source: string, target: string, id
   return { id, source, target, protocol, port: defaultPortFor(def, settings), settings };
 }
 
+/** Adds a device; it joins whichever area on its site it was placed in. */
 export function addDevice(project: Project, device: Device): Project {
-  return { ...project, devices: [...project.devices, device] };
+  const placed = { ...device, areaId: areaAt(project, device.siteId, device.position) };
+  return { ...project, devices: [...project.devices, placed] };
 }
 
 export function updateDevice(project: Project, id: string, patch: Partial<Omit<Device, 'id' | 'type'>>): Project {
   return { ...project, devices: project.devices.map((d) => (d.id === id ? { ...d, ...patch } : d)) };
 }
 
-/** Moves a device and re-derives its Purdue level from the lane it was dropped in. */
+/** Moves a device and re-derives its Purdue level and area from where it was dropped. */
 export function moveDevice(project: Project, id: string, position: { x: number; y: number }): Project {
-  return updateDevice(project, id, { position, purdueLevel: levelAtY(position.y) });
+  const device = project.devices.find((d) => d.id === id);
+  if (!device) return project;
+  return updateDevice(project, id, {
+    position,
+    purdueLevel: levelAtY(position.y),
+    areaId: areaAt(project, device.siteId, position),
+  });
 }
 
 function endpointRefersTo(endpoint: RuleEndpoint, kind: 'zone' | 'device', id: string): boolean {
@@ -276,7 +285,7 @@ export function pasteFragment(
       id: idMap.get(d.id)!,
       siteId,
       zoneId: d.zoneId && zoneIds.has(d.zoneId) ? d.zoneId : null,
-      areaId: null,
+      areaId: areaAt(project, siteId, position),
       position,
       purdueLevel: levelAtY(position.y),
       services: d.services.map((s) => ({ ...s })),

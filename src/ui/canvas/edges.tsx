@@ -1,9 +1,9 @@
 import { BaseEdge, EdgeLabelRenderer, useInternalNode, type Edge, type EdgeProps, type InternalNode } from '@xyflow/react';
 import { flowLabel, getProtocol } from '../../model/protocols';
-import type { Flow, Link } from '../../model/schema';
+import type { FlowEdgeData, LinkEdgeData } from './view';
 
-export type LinkFlowEdge = Edge<{ link: Link }, 'link'>;
-export type ProtocolFlowEdge = Edge<{ flow: Flow }, 'flow'>;
+export type LinkFlowEdge = Edge<LinkEdgeData, 'link'>;
+export type ProtocolFlowEdge = Edge<FlowEdgeData, 'flow'>;
 export type CanvasEdge = LinkFlowEdge | ProtocolFlowEdge;
 
 interface Point {
@@ -51,7 +51,8 @@ export function LinkEdge({ id, source, target, data, selected }: EdgeProps<LinkF
   const t = useInternalNode(target);
   if (!s || !t || !data) return null;
   const { path } = floatingSegment(s, t, 0);
-  return <BaseEdge id={id} path={path} className={`link-edge medium-${data.link.medium}${selected ? ' is-selected' : ''}`} />;
+  const state = `${selected ? ' is-selected' : ''}${data.dimmed ? ' is-dimmed' : ''}${data.aggregated ? ' is-aggregated' : ''}`;
+  return <BaseEdge id={id} path={path} className={`link-edge medium-${data.link.medium}${state}`} />;
 }
 
 export function FlowEdge({ id, source, target, data, selected, markerEnd }: EdgeProps<ProtocolFlowEdge>) {
@@ -61,18 +62,19 @@ export function FlowEdge({ id, source, target, data, selected, markerEnd }: Edge
   const { start, end, path } = floatingSegment(s, t, FLOW_OFFSET);
   const def = getProtocol(data.flow.protocol);
   const color = def?.color ?? 'var(--ink-soft)';
+  const state = `${selected ? ' is-selected' : ''}${data.dimmed ? ' is-dimmed' : ''}${data.aggregated ? ' is-aggregated' : ''}`;
   return (
     <>
       <BaseEdge
         id={id}
         path={path}
         markerEnd={markerEnd}
-        className={`flow-edge${selected ? ' is-selected' : ''}`}
+        className={`flow-edge${state}`}
         style={{ stroke: color, strokeDasharray: def?.dash ?? '6 4' }}
       />
       <EdgeLabelRenderer>
         <div
-          className={`flow-label${selected ? ' is-selected' : ''}`}
+          className={`flow-label${state}`}
           style={{
             color,
             transform: `translate(-50%, -50%) translate(${(start.x + end.x) / 2}px, ${(start.y + end.y) / 2}px)`,
