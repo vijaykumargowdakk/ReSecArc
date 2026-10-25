@@ -1,3 +1,4 @@
+import { hasTag } from './fields';
 import type { DeviceType, Project, PurdueLevel } from './schema';
 
 export interface Filter {
@@ -5,12 +6,14 @@ export interface Filter {
   types: DeviceType[];
   levels: PurdueLevel[];
   protocols: string[];
+  /** A device matches when it carries any of these tags (compared without case). */
+  tags: string[];
 }
 
-export const NO_FILTER: Filter = { zones: [], types: [], levels: [], protocols: [] };
+export const NO_FILTER: Filter = { zones: [], types: [], levels: [], protocols: [], tags: [] };
 
 export function isFiltering(f: Filter): boolean {
-  return f.zones.length + f.types.length + f.levels.length + f.protocols.length > 0;
+  return f.zones.length + f.types.length + f.levels.length + f.protocols.length + f.tags.length > 0;
 }
 
 /**
@@ -35,7 +38,8 @@ export function dimmedIds(project: Project, f: Filter): Set<string> {
       (f.zones.length === 0 || f.zones.includes(d.zoneId ?? '')) &&
       (f.types.length === 0 || f.types.includes(d.type)) &&
       (f.levels.length === 0 || f.levels.includes(d.purdueLevel)) &&
-      (f.protocols.length === 0 || onMatchingFlow.has(d.id));
+      (f.protocols.length === 0 || onMatchingFlow.has(d.id)) &&
+      (f.tags.length === 0 || f.tags.some((t) => hasTag(d, t)));
     if (!ok) dimmed.add(d.id);
   }
   for (const l of project.links) {

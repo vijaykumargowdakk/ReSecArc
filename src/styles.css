@@ -228,6 +228,7 @@ select {
 
 input[type='text'],
 input[type='number'],
+input[type='date'],
 select,
 textarea {
   width: 100%;
@@ -2574,4 +2575,47 @@ textarea {
 
 .legend {
   user-select: none;
+}
+
+/* Tags */
+.tag-editor {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 4px 1px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.tag button {
+  display: grid;
+  place-items: center;
+  padding: 1px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.tag button:hover {
+  color: var(--danger);
 }

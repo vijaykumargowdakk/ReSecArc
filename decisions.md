@@ -196,3 +196,14 @@ Also fixed:
 - the autosave status was shortened to "Saved 10:52", so the toolbar fits at 1440 px.
 **Why:** Interface-level detail and readable busy diagrams were the main usability gaps for larger plants.
 **User input:** Approved in the v0.4 plan.
+
+## 2026-10-25 — Custom fields and tags (M21)
+**Decision:** Custom fields are defined once per project (text, date or choice list) under Custom fields in the project panel, and edited on each device, for a whole selection, or as inventory columns. Tags are free labels: trimmed, de-duplicated without regard to case (the first spelling is kept), and capped at 50 per device. They can be added and removed in bulk, filtered by (a device matches any selected tag) and searched, together with field values.
+
+Device CSV gains a `tags` column (separated by `;`) and a `field:<name>` column per field. Import rejects unknown field columns and invalid dates rather than guessing. The Markdown record shows tags and a custom-field table per site. Deleting a field asks first and removes its values.
+
+Also fixed:
+- "Add zone", "Add network" and "Add custom field" now have full accessible names;
+- date inputs share the standard input style.
+**Why:** Every site tracks different asset attributes; fixed columns cannot cover them.
+**User input:** Approved in the v0.4 plan.

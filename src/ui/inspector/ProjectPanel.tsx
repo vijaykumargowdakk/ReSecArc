@@ -4,6 +4,7 @@ import type { Zone } from '../../model/schema';
 import { useConduits } from '../../store/derived';
 import { useProject } from '../../store/useProject';
 import { Field, Section, Select, TextInput, Toggle } from '../form';
+import { CustomFieldsSection } from './CustomFieldsSection';
 import { NetworksSection } from './NetworksSection';
 import { RevisionsSection } from './RevisionsSection';
 
@@ -59,7 +60,8 @@ export function ProjectPanel() {
       <Section
         title="Security zones"
         actions={
-          <button type="button" className="icon-button" onClick={createZone} title="Add zone">
+          <button type="button" className="icon-button" onClick={createZone} title="Add zone"
+          aria-label="Add zone">
             <Plus size={16} />
             <span>Zone</span>
           </button>
@@ -98,6 +100,8 @@ export function ProjectPanel() {
       </Section>
 
       <NetworksSection />
+
+      <CustomFieldsSection />
 
       <Section title="Conduits">
         <p className="muted">Zone pairs joined directly by a link or protocol flow.</p>
