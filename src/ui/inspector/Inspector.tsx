@@ -18,11 +18,13 @@ import { laneTop, levelLabel, PURDUE_LANES } from '../../model/purdue';
 import type { Asset, Device, Flow, Link, PurdueLevel, RemoteService } from '../../model/schema';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { DevicePicker } from '../DevicePicker';
+import { removeNote } from '../../model/notes';
 import { moveDevicesToSite } from '../../model/structure';
 import { AreaInspector } from './AreaInspector';
 import { BulkInspector } from './BulkInspector';
 import { Field, IntInput, Section, Select, TextInput, Toggle } from '../form';
 import { FirewallRules } from './FirewallRules';
+import { NoteInspector } from './NoteInspector';
 import { ProjectPanel } from './ProjectPanel';
 
 const LEVEL_OPTIONS = PURDUE_LANES.map((l) => ({ value: String(l.level), label: `${levelLabel(l.level)} · ${l.name}` }));
@@ -339,7 +341,8 @@ export function Inspector() {
   const selection = useProject((s) => s.selection);
   const select = useProject((s) => s.select);
   const apply = useProject((s) => s.apply);
-  const count = selection.devices.length + selection.links.length + selection.flows.length + selection.areas.length;
+  const count =
+    selection.devices.length + selection.links.length + selection.flows.length + selection.areas.length + selection.notes.length;
 
   let body = <ProjectPanel />;
   if (selection.devices.length > 1) {
@@ -349,10 +352,12 @@ export function Inspector() {
     const link = project.links.find((l) => l.id === selection.links[0]);
     const flow = project.flows.find((f) => f.id === selection.flows[0]);
     const area = project.areas.find((a) => a.id === selection.areas[0]);
+    const note = project.notes.find((n) => n.id === selection.notes[0]);
     if (device) body = <DeviceInspector key={device.id} device={device} />;
     else if (area) body = <AreaInspector key={area.id} area={area} />;
     else if (link) body = <LinkInspector key={link.id} link={link} />;
     else if (flow) body = <FlowInspector key={flow.id} flow={flow} />;
+    else if (note) body = <NoteInspector key={note.id} note={note} />;
   } else if (count > 1) {
     body = (
       <>
@@ -365,7 +370,7 @@ export function Inspector() {
             onClick={() => {
               apply((p) => {
                 const q = selection.flows.reduce(removeFlow, selection.links.reduce(removeLink, p));
-                return selection.devices.reduce(removeDevice, q);
+                return selection.notes.reduce(removeNote, selection.devices.reduce(removeDevice, q));
               });
               select(NO_SELECTION);
             }}

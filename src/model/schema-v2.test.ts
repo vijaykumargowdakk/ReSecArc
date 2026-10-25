@@ -5,7 +5,7 @@ import { parseProject, referenceErrors } from './io';
 import { migrate } from './migrate';
 import { addDevice, addFlow, createDevice, defaultFlow, emptyProject } from './ops';
 import { defaultPortFor, defaultSettings, flowLabel, getProtocol, PROTOCOLS, settingsErrors } from './protocols';
-import type { Project } from './schema';
+import { SCHEMA_VERSION, type Project } from './schema';
 
 function load(raw: unknown): Project {
   const result = parseProject(JSON.stringify(raw));
@@ -16,7 +16,7 @@ function load(raw: unknown): Project {
 describe('v1 → v2 migration', () => {
   it('opens a v1 file and fills the new fields', () => {
     const p = load(v1);
-    expect(p.schemaVersion).toBe(2);
+    expect(p.schemaVersion).toBe(SCHEMA_VERSION);
     expect(p.sites).toEqual([{ id: 'site-main', name: 'Main site' }]);
     expect(p.areas).toEqual([]);
     expect(p.devices).toHaveLength(v1.devices.length);

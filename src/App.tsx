@@ -5,6 +5,7 @@ import { useAnnouncer } from './store/announcer';
 import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './store/autosave';
 import { NO_SELECTION, useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
+import { TidyButton } from './ui/canvas/TidyButton';
 import { Inspector } from './ui/inspector/Inspector';
 import { Inventory } from './ui/Inventory';
 import { FilterBar } from './ui/FilterBar';
@@ -103,6 +104,7 @@ export function App() {
                 </button>
               </div>
               {view === 'diagram' && <SiteTabs />}
+              {view === 'diagram' && <TidyButton />}
               {view === 'diagram' && <FilterBar />}
             </div>
             {view === 'diagram' ? (

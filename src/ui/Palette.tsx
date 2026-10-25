@@ -1,13 +1,16 @@
-import { Boxes, ChevronRight, Trash2 } from 'lucide-react';
+import { useReactFlow } from '@xyflow/react';
+import { Boxes, ChevronRight, StickyNote, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { DEVICE_CATALOG, PALETTE_GROUPS } from '../model/catalog';
+import { addNote, createNote } from '../model/notes';
 import { addDevice, createDevice } from '../model/ops';
 import { laneTop } from '../model/purdue';
 import type { DeviceType } from '../model/schema';
 import { announce } from '../store/announcer';
 import { useBlocks } from '../store/blocks';
 import { useProject } from '../store/useProject';
-import { DEVICE_DND_MIME } from './canvas/Canvas';
+import { NO_SELECTION } from '../store/useProject';
+import { DEVICE_DND_MIME, NOTE_DND_MIME } from './canvas/Canvas';
 import { DeviceIcon } from './icons';
 
 function PaletteItem({
@@ -51,6 +54,18 @@ export function Palette() {
   const blocks = useBlocks((s) => s.blocks);
   const removeBlock = useBlocks((s) => s.remove);
   const insertFragment = useProject((s) => s.insertFragment);
+  const select = useProject((s) => s.select);
+  const { screenToFlowPosition } = useReactFlow();
+
+  // Click alternative to dragging a note: place it in the middle of the visible canvas.
+  const addNoteInView = () => {
+    const box = document.querySelector('.canvas')?.getBoundingClientRect();
+    const at = box ? screenToFlowPosition({ x: box.left + box.width / 2, y: box.top + box.height / 2 }) : { x: 240, y: 40 };
+    const note = createNote(siteId, { x: Math.round(at.x - 130), y: Math.round(at.y - 20) });
+    apply((p) => addNote(p, note));
+    select({ ...NO_SELECTION, notes: [note.id] });
+    announce('Note added');
+  };
 
   // Keyboard and click alternative to dragging: drop into the type's default lane.
   const addToDefaultLane = (type: DeviceType, variant: string) => {
@@ -114,6 +129,27 @@ export function Palette() {
           </ul>
         </div>
       ))}
+      <div className="palette__group">
+        <h3>Annotate</h3>
+        <ul>
+          <li>
+            <button
+              type="button"
+              className="palette__item"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData(NOTE_DND_MIME, 'note');
+                e.dataTransfer.effectAllowed = 'copy';
+              }}
+              onClick={addNoteInView}
+              title="A free text note on the canvas"
+            >
+              <StickyNote size={22} />
+              <span>Text note</span>
+            </button>
+          </li>
+        </ul>
+      </div>
       <div className="palette__group">
         <h3>Your blocks</h3>
         {blocks.length === 0 ? (

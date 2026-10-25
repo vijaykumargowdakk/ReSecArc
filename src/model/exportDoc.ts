@@ -89,6 +89,11 @@ export function projectToMarkdown(project: Project, generatedAt = new Date()): s
       );
       out.push(`Default action when no rule matches: **${fw.firewall!.defaultAction}**.\n`);
     }
+    const notes = project.notes.filter((n) => n.siteId === site.id && n.text.trim());
+    if (notes.length) {
+      out.push('### Notes\n');
+      out.push(notes.map((n) => `- ${n.text.trim().replace(/\s*\n\s*/g, ' ')}`).join('\n') + '\n');
+    }
   }
   return out.join('\n');
 }

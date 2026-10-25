@@ -1,20 +1,22 @@
 import { Handle, NodeResizer, Position, type Node, type NodeProps } from '@xyflow/react';
 import { ChevronsDownUp, ChevronsUpDown, ExternalLink } from 'lucide-react';
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../../model/catalog';
 import { levelLabel, type PurdueLane } from '../../model/purdue';
+import { updateNote } from '../../model/notes';
 import { updateArea } from '../../model/structure';
 import { useProject } from '../../store/useProject';
 import { DeviceIcon } from '../icons';
-import type { AreaNodeData, DeviceNodeData, PortalNodeData } from './view';
+import type { AreaNodeData, DeviceNodeData, NoteNodeData, PortalNodeData } from './view';
 
 export type DeviceFlowNode = Node<DeviceNodeData, 'device'>;
 export type AreaFlowNode = Node<AreaNodeData, 'area'>;
 export type PortalFlowNode = Node<PortalNodeData, 'portal'>;
+export type NoteFlowNode = Node<NoteNodeData, 'note'>;
 export type LaneNodeData = { lane: PurdueLane };
 export type LaneFlowNode = Node<LaneNodeData, 'lane'>;
 
-export type CanvasNode = DeviceFlowNode | AreaFlowNode | PortalFlowNode | LaneFlowNode;
+export type CanvasNode = DeviceFlowNode | AreaFlowNode | PortalFlowNode | NoteFlowNode | LaneFlowNode;
 
 const MIN_AREA = { width: 240, height: 120 };
 
@@ -122,6 +124,48 @@ export function PortalNode({ data }: NodeProps<PortalFlowNode>) {
         </span>
       </span>
       <Handle type="source" position={Position.Right} isConnectable={false} />
+    </div>
+  );
+}
+
+/** A text note. Double-click to edit it in place; keyboard users edit it in the properties panel. */
+export function NoteNode({ id, data, selected }: NodeProps<NoteFlowNode>) {
+  const apply = useProject((s) => s.apply);
+  const [editing, setEditing] = useState(false);
+  const { note } = data;
+  const style = { '--note-color': note.color } as CSSProperties;
+  if (editing) {
+    return (
+      <div className="note is-editing" style={style}>
+        <textarea
+          className="note__editor nodrag nowheel"
+          aria-label="Note text"
+          autoFocus
+          defaultValue={note.text}
+          rows={Math.max(2, note.text.split('\n').length)}
+          onBlur={(e) => {
+            const text = e.target.value;
+            if (text !== note.text) apply((p) => updateNote(p, id, { text }));
+            setEditing(false);
+          }}
+          onKeyDown={(e) => {
+            // Keep Delete/Backspace and arrows inside the editor instead of acting on the canvas.
+            e.stopPropagation();
+            if (e.key === 'Escape') setEditing(false);
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) e.currentTarget.blur();
+          }}
+        />
+      </div>
+    );
+  }
+  return (
+    <div
+      className={`note${selected ? ' is-selected' : ''}`}
+      style={style}
+      onDoubleClick={() => setEditing(true)}
+      title="Double-click to edit"
+    >
+      {note.text || <span className="muted">Empty note</span>}
     </div>
   );
 }

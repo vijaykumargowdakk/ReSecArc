@@ -4,7 +4,7 @@ import { MarkerType } from '@xyflow/react';
 import { kindLabel } from '../../model/catalog';
 import { levelLabel, NODE_WIDTH } from '../../model/purdue';
 import { getProtocol } from '../../model/protocols';
-import type { Area, Device, Flow, Link, Project, Zone } from '../../model/schema';
+import type { Area, Device, Flow, Link, Note, Project, Zone } from '../../model/schema';
 import type { Selection } from '../../store/useProject';
 import type { CanvasEdge } from './edges';
 import type { CanvasNode } from './nodes';
@@ -15,6 +15,7 @@ const PORTAL_GAP = 60;
 export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean };
 export type AreaNodeData = { area: Area; members: Device[] };
 export type PortalNodeData = { device: Device; siteName: string };
+export type NoteNodeData = { note: Note };
 export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean };
 export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean };
 
@@ -35,6 +36,7 @@ export function buildView(
   const sel = {
     devices: new Set(selection.devices),
     areas: new Set(selection.areas),
+    notes: new Set(selection.notes),
     edges: new Set([...selection.links, ...selection.flows]),
   };
 
@@ -80,6 +82,20 @@ export function buildView(
       ].join(', '),
     });
     anchorPos.set(d.id, d.position);
+  }
+
+  for (const note of project.notes) {
+    if (note.siteId !== siteId) continue;
+    nodes.push({
+      id: note.id,
+      type: 'note',
+      position: note.position,
+      data: { note },
+      selected: sel.notes.has(note.id),
+      width: note.width,
+      connectable: false,
+      ariaLabel: `Note: ${note.text}`,
+    });
   }
 
   const portals = new Map<string, CanvasNode>();
