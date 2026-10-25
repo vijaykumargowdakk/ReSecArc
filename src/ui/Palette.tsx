@@ -4,6 +4,7 @@ import { DEVICE_CATALOG, PALETTE_GROUPS } from '../model/catalog';
 import { addDevice, createDevice } from '../model/ops';
 import { laneTop } from '../model/purdue';
 import type { DeviceType } from '../model/schema';
+import { announce } from '../store/announcer';
 import { useBlocks } from '../store/blocks';
 import { useProject } from '../store/useProject';
 import { DEVICE_DND_MIME } from './canvas/Canvas';
@@ -56,6 +57,7 @@ export function Palette() {
     const level = DEVICE_CATALOG[type].defaultLevel;
     const device = createDevice(type, { x: 240 + (count % 8) * 45, y: laneTop(level) + 37 }, { siteId, variant });
     apply((p) => addDevice(p, device));
+    announce(`${device.label} added`);
   };
 
   const toggle = (type: DeviceType) =>

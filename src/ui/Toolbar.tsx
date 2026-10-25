@@ -1,4 +1,4 @@
-import { Cable, Download, FileOutput, FilePlus2, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
+import { Cable, CircleHelp, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { devicesToCsv, flowsToCsv, rulesToCsv } from '../model/csv';
@@ -6,6 +6,7 @@ import { projectToMarkdown } from '../model/exportDoc';
 import { parseProject, serializeProject } from '../model/io';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
+import { useTheme, type Theme } from '../store/theme';
 import type { CanvasEdge } from './canvas/edges';
 import type { CanvasNode } from './canvas/nodes';
 import { downloadText, downloadUrl, slug } from './download';
@@ -18,13 +19,21 @@ export function Toolbar({
   onErrors,
   onSearch,
   onNew,
+  onHelp,
   diagramVisible,
+  drawer,
+  onDrawer,
 }: {
   onErrors: (errors: string[]) => void;
   onSearch: () => void;
   onNew: () => void;
+  onHelp: () => void;
   diagramVisible: boolean;
+  drawer: 'palette' | 'inspector' | null;
+  onDrawer: (drawer: 'palette' | 'inspector') => void;
 }) {
+  const theme = useTheme((s) => s.theme);
+  const setTheme = useTheme((s) => s.setTheme);
   const reactFlow = useReactFlow<CanvasNode, CanvasEdge>();
   const exportMenu = useRef<HTMLDetailsElement>(null);
   const project = useProject((s) => s.project);
@@ -86,6 +95,15 @@ export function Toolbar({
         <span className="brand__project" title={project.name}>
           {project.name}
         </span>
+      </div>
+
+      <div className="toolbar__group narrow-only" role="group" aria-label="Panels">
+        <button type="button" className={`button icon-only${drawer === 'palette' ? ' is-active' : ''}`} aria-pressed={drawer === 'palette'} onClick={() => onDrawer('palette')} aria-label="Device palette" title="Device palette">
+          <PanelLeft size={16} />
+        </button>
+        <button type="button" className={`button icon-only${drawer === 'inspector' ? ' is-active' : ''}`} aria-pressed={drawer === 'inspector'} onClick={() => onDrawer('inspector')} aria-label="Properties panel" title="Properties panel">
+          <PanelRight size={16} />
+        </button>
       </div>
 
       <button type="button" className="button search-trigger" onClick={onSearch} title="Find a device (Ctrl+K or /)">
@@ -193,6 +211,15 @@ export function Toolbar({
             </button>
           </div>
         </details>
+        <select className="toolbar__select" value={theme} onChange={(e) => setTheme(e.target.value as Theme)} aria-label="Colour theme" title="Colour theme">
+          <option value="system">Theme: system</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="contrast">High contrast</option>
+        </select>
+        <button type="button" className="button icon-only" onClick={onHelp} aria-label="Keyboard shortcuts and help" title="Keyboard shortcuts (?)">
+          <CircleHelp size={16} />
+        </button>
         <span className={`autosave${autosave.failed ? ' is-failed' : ''}`} aria-live="polite">
           {autosave.failed ? 'Not saved in browser' : autosave.savedAt ? `Saved in browser ${clock.format(autosave.savedAt)}` : ''}
         </span>

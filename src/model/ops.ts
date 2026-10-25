@@ -87,7 +87,7 @@ export function updateDevice(project: Project, id: string, patch: Partial<Omit<D
 /** Moves a device and re-derives its Purdue level and area from where it was dropped. */
 export function moveDevice(project: Project, id: string, position: { x: number; y: number }): Project {
   const device = project.devices.find((d) => d.id === id);
-  if (!device) return project;
+  if (!device || (device.position.x === position.x && device.position.y === position.y)) return project;
   return updateDevice(project, id, {
     position,
     purdueLevel: levelAtY(position.y),

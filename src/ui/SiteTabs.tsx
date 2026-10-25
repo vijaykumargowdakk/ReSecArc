@@ -4,7 +4,7 @@ import { newId } from '../model/ops';
 import { addSite, canRemoveSite, removeSite, renameSite } from '../model/structure';
 import { useProject } from '../store/useProject';
 
-/** One tab per site; double-click a tab to rename it. */
+/** One tab per site; double-click a tab to rename it. The current site is marked with aria-current. */
 export function SiteTabs() {
   const project = useProject((s) => s.project);
   const activeSiteId = useProject((s) => s.activeSiteId);
@@ -23,7 +23,7 @@ export function SiteTabs() {
   };
 
   return (
-    <div className="site-tabs" role="tablist" aria-label="Sites">
+    <nav className="site-tabs" aria-label="Sites">
       {project.sites.map((site) => {
         const active = site.id === activeSiteId;
         return (
@@ -47,8 +47,8 @@ export function SiteTabs() {
             ) : (
               <button
                 type="button"
-                role="tab"
-                aria-selected={active}
+                className="site-tab__button"
+                aria-current={active ? 'page' : undefined}
                 onClick={() => setActiveSite(site.id)}
                 onDoubleClick={() => setEditing(site.id)}
                 title="Double-click to rename"
@@ -74,6 +74,6 @@ export function SiteTabs() {
       <button type="button" className="site-tabs__add" onClick={create} title="Add site" aria-label="Add site">
         <Plus size={15} />
       </button>
-    </div>
+    </nav>
   );
 }

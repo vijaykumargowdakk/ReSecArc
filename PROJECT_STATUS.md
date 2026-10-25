@@ -8,9 +8,11 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M12 are complete. v0.2 work (M7–M13) is in progress; see the milestone table.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M13 are complete (v0.2).
 
 Next: the owner decides the scope of any further features. No analysis features have been built.
+
+Work is committed on feature branches and merged into `main` with merge commits, then pushed to `origin` (github.com/vijaykumargowdakk/conduitot). Before each push, sweep history for retired names and confirm no AI attribution lines.
 
 ## Dev loop
 - Install: `npm ci`
@@ -38,10 +40,10 @@ Next: the owner decides the scope of any further features. No analysis features 
 | M10 | Scale | Sites, areas, search, filter | Multi-site project navigable ✅ |
 | M11 | Templates | Five fictional starter plants, reusable blocks | New-from-template works ✅ |
 | M12 | Inventory and export | Asset table, CSV import/export, SVG/PNG/PDF, Markdown document | Round-trips through CSV ✅ |
-| M13 | Accessibility and themes | Keyboard-only use, screen-reader labels, dark/high-contrast, responsive | Lighthouse a11y ≥ 95 |
+| M13 | Accessibility and themes | Keyboard-only use, screen-reader labels, dark/high-contrast, responsive | Lighthouse a11y ≥ 95 ✅ (100) |
 
 ## Known issues
-- Desktop-only layout. Below about 900px wide the three panels get cramped; there is no phone layout.
+- Below 900px the palette and properties panel become slide-over drawers. The canvas itself is still best used with a mouse or trackpad on a larger screen.
 - `NODE_HEIGHT` in `src/model/purdue.ts` must match the `.device-node` height in `src/styles.css` (64px). If they drift apart, lane detection shifts slightly.
 - Chromium's synthetic drag in Playwright can't drive the palette's HTML5 drag-and-drop. In automated checks, dispatch `DragEvent`s on the canvas pane instead.
 

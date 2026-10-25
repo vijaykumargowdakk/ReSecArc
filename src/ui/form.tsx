@@ -10,8 +10,19 @@ export function Field({ label, children, hint }: { label: string; children: Reac
   );
 }
 
-export function TextInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
-  return <input type="text" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />;
+export function TextInput({
+  value,
+  onChange,
+  placeholder,
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  /** Needed when the input is not wrapped in a Field label. */
+  ariaLabel?: string;
+}) {
+  return <input type="text" value={value} placeholder={placeholder} aria-label={ariaLabel} onChange={(e) => onChange(e.target.value)} />;
 }
 
 /**
