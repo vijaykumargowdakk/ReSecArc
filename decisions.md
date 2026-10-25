@@ -69,3 +69,8 @@
 **Decision:** Project files move to `schemaVersion: 2`. Devices gain `variant`, `asset`, `siteId` and `areaId`; projects gain `sites` and `areas`; flows become `{ protocol, port, settings }` validated against a protocol registry. v1 files are upgraded on open by `src/model/migrate.ts`.
 **Why:** Bundling every format change into one version bump means one migration. The registry lets new protocols be added as data instead of code branches.
 **User input:** None beyond the approved plan.
+
+## 2026-10-25 — Two-tone silhouette icon set
+**Decision:** Replaced the line icons with original two-tone device silhouettes (`src/ui/icons/`): a base icon per type and a specific icon for every variant, about 70 in all. Nodes show the icon with no tile, plus a lettered criticality badge. The palette expands each type into its variants. `?gallery` shows every icon for review.
+**Why:** Recognisable hardware shapes are faster to read than abstract glyphs. Drawing them in-house avoids licensing and trademark issues.
+**User input:** Owner chose "Device silhouettes".
