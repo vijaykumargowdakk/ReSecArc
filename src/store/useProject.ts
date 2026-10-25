@@ -3,7 +3,7 @@ import { loadDemo } from '../examples/templates/demo';
 import { NO_FILTER, type Filter } from '../model/filter';
 import { extractFragment, pasteFragment, type Fragment } from '../model/ops';
 import type { Project } from '../model/schema';
-import { commit, initHistory, redo, undo, type History } from './history';
+import { commit, initHistory, jump, redo, undo, type History } from './history';
 
 export interface Selection {
   devices: string[];
@@ -37,6 +37,8 @@ interface ProjectState {
   apply: (op: (project: Project) => Project, coalesceKey?: string) => void;
   undo: () => void;
   redo: () => void;
+  /** Jumps several undo steps at once: negative goes back, positive forward. */
+  jumpHistory: (delta: number) => void;
   /** Replaces the project and clears undo history. */
   load: (project: Project) => void;
   select: (selection: Selection) => void;
@@ -128,6 +130,7 @@ export const useProject = create<ProjectState>((set, get) => {
     },
     undo: () => setHistory(undo(get().history)),
     redo: () => setHistory(redo(get().history)),
+    jumpHistory: (delta) => setHistory(jump(get().history, delta)),
     load: (project) =>
       set((s) => ({
         project,

@@ -207,3 +207,22 @@ Also fixed:
 - date inputs share the standard input style.
 **Why:** Every site tracks different asset attributes; fixed columns cannot cover them.
 **User input:** Approved in the v0.4 plan.
+
+## 2026-10-25 — Translation dropped from M24
+**Decision:** M24 covers only touch and tablet support and the text size setting. There will be no second language, no i18n dictionaries, no `t()` hook and no language setting; the interface stays in English. This replaces the "Hindi" part of the v0.4 roadmap entry above.
+**Why:** Owner's decision.
+**User input:** "For M24, leave out translation entirely — no Hindi, no i18n dictionaries, no t() hook, no language setting. Keep only touch/tablet support and the text size setting."
+
+## 2026-10-25 — Command palette, edit history and first-run tour (M22)
+**Decision:**
+- **Command palette:** opened with Ctrl + Shift + P, or Alt + P because some browsers reserve the first. It searches a registry (`src/ui/commands.ts`) covering file, export, edit, view, layer, theme, connection, protocol, site and help actions. Each command reads the current state when it runs. Toolbar, palette and commands share one set of actions (`src/ui/actions.ts`).
+- **Edit history:** a toolbar menu lists the last 40 undo steps. Their names come from running `diffDesigns` on neighbouring snapshots (`describeChange`), computed only while the menu is open. Jumping to a step is one store update.
+- **Tour:** six steps, each pointing at an element. It opens on a first visit on screens at least 900 px wide, is remembered per browser, and can be replayed from Help or the palette.
+- **Smaller additions:**
+  - an empty site shows what to do next;
+  - Ctrl + S saves the project file;
+  - clicking a device in the palette now places it in the first free spot of its lane instead of on top of other devices (found by the new browser test).
+- **Bundle:** the panels for multi-selection, areas, notes, comparison, firewall rules, revisions and custom fields now load on demand. This brought the startup bundle from 569 kB to 547 kB before this milestone's additions; it is 553 kB after them.
+- **Contrast fixes:** the search dialog's "Esc" hint and the command group labels.
+**Why:** Faster access to every action, safer experimentation, and a guided start for new users.
+**User input:** Approved in the v0.4 plan. The owner asked to stop after M22 and start M23 in a new session.

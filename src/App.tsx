@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { Network, Table2, X } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { decodeShare, isShareFragment } from './model/share';
 import type { Project } from './model/schema';
 import { useAnnouncer } from './store/announcer';
@@ -15,6 +15,8 @@ import { FilterBar } from './ui/FilterBar';
 import { Palette } from './ui/Palette';
 import { SiteTabs } from './ui/SiteTabs';
 import { Toolbar } from './ui/Toolbar';
+import { usePrefs } from './store/prefs';
+import type { CommandContext } from './ui/commands';
 import { useShortcuts } from './ui/useShortcuts';
 
 // Views and dialogs that are not needed on first paint load on demand.
@@ -22,6 +24,8 @@ const Inventory = lazy(() => import('./ui/Inventory').then((m) => ({ default: m.
 const HelpDialog = lazy(() => import('./ui/HelpDialog').then((m) => ({ default: m.HelpDialog })));
 const SearchDialog = lazy(() => import('./ui/SearchDialog').then((m) => ({ default: m.SearchDialog })));
 const ShareDialog = lazy(() => import('./ui/ShareDialog').then((m) => ({ default: m.ShareDialog })));
+const CommandPalette = lazy(() => import('./ui/CommandPalette').then((m) => ({ default: m.CommandPalette })));
+const Tour = lazy(() => import('./ui/Tour').then((m) => ({ default: m.Tour })));
 const TemplateGallery = lazy(() => import('./ui/TemplateGallery').then((m) => ({ default: m.TemplateGallery })));
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -49,7 +53,28 @@ export function App() {
   const compareWith = useCompare((s) => s.compareWith);
   const announcement = useAnnouncer((s) => s.message);
   const seq = useAnnouncer((s) => s.seq);
-  useShortcuts(openSearch, openHelp);
+  const [commanding, setCommanding] = useState(false);
+  const openCommands = useCallback(() => setCommanding(true), []);
+  // The tour starts on a first visit on screens wide enough to show the palette and properties side by side.
+  const [touring, setTouring] = useState(() => !usePrefs.getState().tourSeen && window.innerWidth >= 900);
+  const endTour = useCallback(() => {
+    setTouring(false);
+    usePrefs.getState().setTourSeen();
+  }, []);
+  useShortcuts({ onSearch: openSearch, onHelp: openHelp, onCommands: openCommands });
+  const commandContext = useMemo<CommandContext>(
+    () => ({
+      view,
+      setView,
+      openSearch,
+      openHelp,
+      openShare: () => setSharing(true),
+      openNew: () => setChoosingTemplate(true),
+      openTour: () => setTouring(true),
+      onErrors: setErrors,
+    }),
+    [view, openSearch, openHelp],
+  );
 
   useEffect(() => (pending ? undefined : startAutosave()), [pending]);
 
@@ -78,6 +103,7 @@ export function App() {
           onSearch={openSearch}
           onNew={() => setChoosingTemplate(true)}
           onHelp={openHelp}
+          onCommands={openCommands}
           onShare={() => setSharing(true)}
           diagramVisible={view === 'diagram'}
           drawer={drawer}
@@ -223,7 +249,17 @@ export function App() {
         <Suspense fallback={null}>
           {searching && <SearchDialog onClose={() => setSearching(false)} />}
           {choosingTemplate && <TemplateGallery onClose={() => setChoosingTemplate(false)} />}
-          {helping && <HelpDialog onClose={() => setHelping(false)} />}
+          {helping && (
+            <HelpDialog
+              onClose={() => setHelping(false)}
+              onTour={() => {
+                setHelping(false);
+                setTouring(true);
+              }}
+            />
+          )}
+          {commanding && <CommandPalette ctx={commandContext} onClose={() => setCommanding(false)} />}
+          {touring && !pending && !shared && <Tour onClose={endTour} />}
           {sharing && <ShareDialog onClose={() => setSharing(false)} />}
         </Suspense>
         <div className="sr-only" aria-live="polite" aria-atomic="true">

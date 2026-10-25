@@ -4,7 +4,7 @@ import { linksToCsv } from './csv';
 import { importLinks, parseLinkCsv } from './csvImport';
 import { linkIssues, parseVlans } from './ipam';
 import { parseProject, serializeProject } from './io';
-import { overlapping, tidyLayout } from './layout';
+import { freeSpotInLane, overlapping, tidyLayout } from './layout';
 import { alignDevices, updateDevice, updateLink } from './ops';
 import { insertWaypoint, midpoint, moveWaypoint, removeWaypoint } from './routing';
 import type { Project } from './schema';
@@ -104,5 +104,13 @@ describe('locking', () => {
     const hmi = p.devices.find((d) => d.id === 'hmi')!.position;
     const after = alignDevices(p, ['hmi', 'plc-filter', 'plc-dosing'], 'left');
     expect(after.devices.find((d) => d.id === 'hmi')!.position).toEqual(hmi);
+  });
+});
+
+describe('click-to-add placement', () => {
+  it('finds a lane spot that covers no device', () => {
+    const p = loadTemplate('water-treatment');
+    const at = freeSpotInLane(p, 'site-main', 1);
+    for (const d of p.devices) expect(overlapping(at, d.position), d.label).toBe(false);
   });
 });

@@ -127,6 +127,23 @@ export function tidyLayout(project: Project, siteId: string): Project {
   return reassignAreas(next, siteId);
 }
 
+/**
+ * The first spot in a lane, from the left, where a new device would not cover another device or note
+ * on the site. Used when a device is added by clicking rather than dropped at a chosen point.
+ */
+export function freeSpotInLane(project: Project, siteId: string, level: PurdueLevel): Point {
+  const y = Math.round(rowY(level));
+  const taken = [
+    ...project.devices.filter((d) => d.siteId === siteId).map((d) => ({ ...d.position, w: NODE_WIDTH, h: NODE_HEIGHT })),
+    ...project.notes.filter((n) => n.siteId === siteId).map((n) => ({ ...n.position, w: n.width, h: NODE_HEIGHT })),
+  ];
+  for (let x = LAYOUT_LEFT; ; x += STEP) {
+    const clash = taken.some((t) => x < t.x + t.w + LAYOUT_GAP / 2 && x + NODE_WIDTH + LAYOUT_GAP / 2 > t.x && y < t.y + t.h && y + NODE_HEIGHT > t.y);
+    // Positions are bounded, so the scan always ends; past the bound the last spot is reused.
+    if (!clash || x > 900_000) return { x, y };
+  }
+}
+
 /** True when two device nodes on the same site would overlap; used by tests and as a sanity check. */
 export function overlapping(a: Point, b: Point): boolean {
   return Math.abs(a.x - b.x) < NODE_WIDTH && Math.abs(a.y - b.y) < NODE_HEIGHT;

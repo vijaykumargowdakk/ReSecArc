@@ -360,6 +360,12 @@ export function Canvas() {
         />
       </ReactFlow>
       {menu && <NodeMenu {...menu} onClose={() => setMenu(null)} />}
+      {view.nodes.length === 0 && (
+        <div className="canvas-empty" role="note">
+          <p>This site is empty.</p>
+          <p className="muted">Drag a device here from the palette, or press Ctrl + Shift + P to run any command, such as “New architecture from a template”.</p>
+        </div>
+      )}
     </div>
   );
 }

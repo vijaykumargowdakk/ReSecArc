@@ -8,7 +8,7 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 (M18–M26) is in progress.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is in progress: M18–M22 are done; **M23 (outline view and keyboard connections) is next** and will be started in a new session. The approved v0.4 plan is summarised in the milestone table below; M24 no longer includes translation.
 
 No analysis features have been built, and none are planned.
 
@@ -49,14 +49,21 @@ Work is committed on feature branches and merged into `main` with merge commits,
 | M19 | Schema v4 | Link ports/VLANs/network, waypoints, locking, device tags and custom fields | v3 files open; revisions diff the new fields ✅ |
 | M20 | Ports, bend points, layers, locking | Link interface editing and Links tab, polyline edges, layer toggles, lock | Ports shown on canvas; layers persist per browser ✅ |
 | M21 | Custom fields and tags | Field definitions, editing, bulk edit, inventory columns, tag filter, search, CSV | Round-trips through CSV ✅ |
-| M22 | Command palette, tour, history panel | Action registry, first-run tour, named undo steps | Every toolbar action reachable from the palette |
+| M22 | Command palette, tour, history panel | Action registry, first-run tour, named undo steps | Every toolbar action reachable from the palette ✅ |
 | M23 | Outline view, keyboard connections | Accessible tree view of the design, connect devices on the canvas by keyboard | Keyboard-only connection e2e passes |
-| M24 | Touch, text size, language | Coarse-pointer targets, long-press menus, text size setting, English/Hindi interface | Tablet e2e passes; dictionaries match |
+| M24 | Touch and text size | Coarse-pointer targets, long-press menus, text size setting (no translation: dropped by the owner) | Tablet e2e passes; text size persists |
 | M25 | Report, draw.io, merge | Static SVG renderer, full HTML/PDF report, draw.io export, merge sites from another project | Report includes every site |
 | M26 | Works offline | Installable app with offline precache and update prompt | Edits work with the network off |
 
 ## Documentation
 - `README.md` is the full guide: purpose, features, architecture and data-flow diagrams (Mermaid, checked with Mermaid 11 in light and dark themes), and the development guide. Screenshots are in `docs/images/`; retake them when the UI changes noticeably.
+
+## Notes for the next session
+- Run both `npm run ci` and `npm run e2e` before merging; browser tests need `npx playwright install chromium` once.
+- The startup bundle budget is 575 kB (`scripts/check-bundle.mjs`); it is at about 553 kB. Load new dialogs and panels with `lazy()` / `import()`.
+- Unit tests run in Node: modules imported by tests must not touch `document` at import time (see the guard in `src/store/theme.ts`).
+- `gh` could not reach the GitHub API from this machine (TLS certificate error) late on 2026-10-25, although `git push` worked; CI results were read from the repository's public Actions page instead.
+- Shared actions (open, save, exports, tidy, add note) live in `src/ui/actions.ts`; the command palette registry is `src/ui/commands.ts`. New features should add their commands there.
 
 ## Known issues
 - Below 900px the palette and properties panel become slide-over drawers. The canvas itself is still best used with a mouse or trackpad on a larger screen.

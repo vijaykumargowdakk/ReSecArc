@@ -1,15 +1,14 @@
-import { Cable, CircleHelp, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
+import { Cable, CircleHelp, Command, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { useReactFlow } from '@xyflow/react';
-import { parseProject, serializeProject } from '../model/io';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
 import { useTheme, type Theme } from '../store/theme';
 import type { CanvasEdge } from './canvas/edges';
 import type { CanvasNode } from './canvas/nodes';
-import { downloadText, downloadUrl, slug } from './download';
-import { exportDiagram } from './exportDiagram';
-import { hasEdits, useProject, type ConnectMode } from '../store/useProject';
+import { chooseProjectFile, exportImage, exportText, openProjectFile, PROJECT_FILE_INPUT_ID, saveProjectFile, type TextExport } from './actions';
+import { HistoryMenu } from './HistoryMenu';
+import { useProject, type ConnectMode } from '../store/useProject';
 
 const clock = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
 
@@ -19,6 +18,7 @@ export function Toolbar({
   onNew,
   onHelp,
   onShare,
+  onCommands,
   diagramVisible,
   drawer,
   onDrawer,
@@ -28,6 +28,7 @@ export function Toolbar({
   onNew: () => void;
   onHelp: () => void;
   onShare: () => void;
+  onCommands: () => void;
   diagramVisible: boolean;
   drawer: 'palette' | 'inspector' | null;
   onDrawer: (drawer: 'palette' | 'inspector') => void;
@@ -37,7 +38,6 @@ export function Toolbar({
   const reactFlow = useReactFlow<CanvasNode, CanvasEdge>();
   const exportMenu = useRef<HTMLDetailsElement>(null);
   const project = useProject((s) => s.project);
-  const load = useProject((s) => s.load);
   const connectMode = useProject((s) => s.connectMode);
   const setConnectMode = useProject((s) => s.setConnectMode);
   const flowProtocol = useProject((s) => s.flowProtocol);
@@ -49,38 +49,15 @@ export function Toolbar({
   const snapToGrid = useProject((s) => s.snapToGrid);
   const toggleSnap = useProject((s) => s.toggleSnap);
   const autosave = useAutosaveStatus();
-  const fileInput = useRef<HTMLInputElement>(null);
-
-  const replace = (next: typeof project, message: string) => {
-    if (hasEdits() && !window.confirm(message)) return;
-    onErrors([]);
-    load(next);
-  };
-
-  const save = () => downloadText(`${slug(project.name)}.conduitot.json`, serializeProject(project), 'application/json');
 
   const closeMenu = () => exportMenu.current?.removeAttribute('open');
-  const exportAs = async (format: 'svg' | 'png') => {
+  const exportAs = (format: 'svg' | 'png') => {
     closeMenu();
-    try {
-      downloadUrl(`${slug(project.name)}.${format}`, await exportDiagram(reactFlow, format));
-    } catch (err) {
-      onErrors([`Could not export the diagram: ${(err as Error).message}`]);
-    }
+    void exportImage(reactFlow, project, format, onErrors);
   };
-  // The CSV and Markdown writers (and the CSV library) are loaded on first use.
-  const exportFile = async (suffix: string, mime: string, write: (m: typeof import('../model/exportFiles')) => string) => {
+  const exportFile = (kind: TextExport) => {
     closeMenu();
-    downloadText(`${slug(project.name)}${suffix}`, write(await import('../model/exportFiles')), mime);
-  };
-
-  const open = async (file: File) => {
-    const result = parseProject(await file.text());
-    if (!result.ok) {
-      onErrors([`Could not open ${file.name}:`, ...result.errors]);
-      return;
-    }
-    replace(result.project, 'Open this file and discard the current architecture?');
+    void exportText(project, kind);
   };
 
   const modes: { value: ConnectMode; label: string; icon: ReactElement }[] = [
@@ -112,6 +89,9 @@ export function Toolbar({
         Find
         <kbd>Ctrl K</kbd>
       </button>
+      <button type="button" className="button icon-only" onClick={onCommands} title="Run a command (Ctrl+Shift+P)" aria-label="Command palette">
+        <Command size={16} />
+      </button>
 
       <div className="toolbar__group" role="group" aria-label="Edit">
         <button type="button" className="button icon-only" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" aria-label="Undo">
@@ -130,7 +110,7 @@ export function Toolbar({
         >
           <Grid3x3 size={16} />
         </button>
-
+        <HistoryMenu />
       </div>
 
       <div className="toolbar__group" role="group" aria-label="Connection type">
@@ -167,15 +147,15 @@ export function Toolbar({
           <FilePlus2 size={16} />
           New
         </button>
-        <button type="button" className="button" onClick={() => fileInput.current?.click()}>
+        <button type="button" className="button" onClick={chooseProjectFile}>
           <FolderOpen size={16} />
           Open
         </button>
-        <button type="button" className="button" onClick={save} title="Download the project as a JSON file">
+        <button type="button" className="button" onClick={() => saveProjectFile(project)} title="Download the project as a JSON file (Ctrl+S)">
           <Download size={16} />
           Save
         </button>
-        <details className="menu" ref={exportMenu}>
+        <details className="menu export-menu" ref={exportMenu}>
           <summary className="button">
             <FileOutput size={16} />
             Export
@@ -210,19 +190,19 @@ export function Toolbar({
               Print / save as PDF…
             </button>
             <hr />
-            <button type="button" role="menuitem" onClick={() => exportFile('.md', 'text/markdown', (m) => m.projectToMarkdown(project))}>
+            <button type="button" role="menuitem" onClick={() => exportFile('md')}>
               Architecture document (Markdown)
             </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('-devices.csv', 'text/csv', (m) => m.devicesToCsv(project))}>
+            <button type="button" role="menuitem" onClick={() => exportFile('devices')}>
               Devices (CSV)
             </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('-links.csv', 'text/csv', (m) => m.linksToCsv(project))}>
+            <button type="button" role="menuitem" onClick={() => exportFile('links')}>
               Network links (CSV)
             </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('-flows.csv', 'text/csv', (m) => m.flowsToCsv(project))}>
+            <button type="button" role="menuitem" onClick={() => exportFile('flows')}>
               Protocol flows (CSV)
             </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('-firewall-rules.csv', 'text/csv', (m) => m.rulesToCsv(project))}>
+            <button type="button" role="menuitem" onClick={() => exportFile('rules')}>
               Firewall rules (CSV)
             </button>
           </div>
@@ -244,14 +224,14 @@ export function Toolbar({
           {autosave.failed ? 'Not saved' : autosave.savedAt ? <>Saved <span className="sr-only">in this browser at </span>{clock.format(autosave.savedAt)}</> : ''}
         </span>
         <input
-          ref={fileInput}
+          id={PROJECT_FILE_INPUT_ID}
           type="file"
           accept=".json,application/json"
           hidden
           onChange={(e) => {
             const file = e.target.files?.[0];
             e.target.value = '';
-            if (file) void open(file);
+            if (file) void openProjectFile(file, onErrors);
           }}
         />
       </div>

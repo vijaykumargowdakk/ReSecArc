@@ -242,6 +242,8 @@ flowchart TB
 ### 4.3 Editing
 
 - Undo and redo (100 steps; rapid edits to the same field merge into one step).
+- **Edit history:** the clock button lists recent steps by name ("Added device HMI", "Moved 3 devices", "Filtration PLC: firmware: — → V4.2") and jumps back or forward to any of them.
+- **Command palette** (Ctrl + Shift + P or Alt + P): run any action by typing part of its name, such as "export csv", "dark" or "tidy".
 - Copy, paste, duplicate, select all, and box selection with Shift + drag.
 - Bulk editing of zone, criticality and site, plus align and distribute.
 - Snap to grid, a right-click menu on devices, and **Tidy layout** for a whole site.
@@ -249,7 +251,8 @@ flowchart TB
 - **Lock** devices, notes and areas so they cannot be dragged; Tidy, align and distribute leave them in place.
 - **View menu:** show or hide network links, protocol flows, flow labels, port names, notes and area frames. The choice is remembered in the browser.
 - **Reusable blocks:** save a group of devices with their links and flows, then insert copies from the palette.
-- **Autosave** to the browser one second after each change, with an offer to restore it next time.
+- **Autosave** to the browser one second after each change, with an offer to restore it next time. Ctrl + S saves the project file.
+- **First-run tour:** six short steps introduce the palette, Purdue levels, connections, properties, the inventory and sharing. It can be replayed from the help dialog or the command palette. Clicking a device in the palette places it in the first free spot of its lane.
 
 ### 4.4 Templates
 
@@ -1216,6 +1219,7 @@ pie showData
 | `e2e/data.spec.ts` | Save and open, broken files, autosave restore, share links, IP warnings, revisions, CSV import |
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, dialogs and comparison in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
+| `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour, the empty-site hint |
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 
@@ -1250,7 +1254,9 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 
 | Keys | Action |
 |------|--------|
+| Ctrl + Shift + P or Alt + P | Run any command by name |
 | Ctrl + K or / | Find a device on any site |
+| Ctrl + S | Save the project file |
 | Ctrl + Z | Undo |
 | Ctrl + Shift + Z or Ctrl + Y | Redo |
 | Ctrl + C / Ctrl + V | Copy and paste selected devices |

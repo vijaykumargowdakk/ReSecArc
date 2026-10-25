@@ -12,6 +12,8 @@ export async function openApp(page: Page, { theme = 'light', path = '/' }: { the
     sessionStorage.setItem('e2e:init', '1');
     localStorage.clear();
     localStorage.setItem('conduitot:theme', t);
+    // Tests start past the first-run tour; the tour has its own test.
+    localStorage.setItem('conduitot:prefs', JSON.stringify({ tourSeen: true }));
   }, theme);
   await page.goto(path);
   await expect(page.locator('.react-flow__node-device').first()).toBeVisible();

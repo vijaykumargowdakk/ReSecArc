@@ -15,6 +15,7 @@ function read(): Theme {
 }
 
 function applyToDocument(theme: Theme): void {
+  if (typeof document === 'undefined') return; // unit tests run without a page
   if (theme === 'system') delete document.documentElement.dataset.theme;
   else document.documentElement.dataset.theme = theme;
 }
