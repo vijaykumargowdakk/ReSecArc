@@ -20,6 +20,8 @@ interface ProjectState {
   history: History;
   selection: Selection;
   connectMode: ConnectMode;
+  /** Protocol given to newly drawn flows. */
+  flowProtocol: string;
   snapToGrid: boolean;
   clipboard: Fragment | null;
   /** Applies a pure operation from model/ops. Edits sharing a `coalesceKey` in quick succession undo as one step. */
@@ -34,6 +36,7 @@ interface ProjectState {
   paste: () => void;
   duplicate: () => void;
   setConnectMode: (mode: ConnectMode) => void;
+  setFlowProtocol: (protocol: string) => void;
   toggleSnap: () => void;
 }
 
@@ -81,6 +84,7 @@ export const useProject = create<ProjectState>((set, get) => {
     history: initHistory(initial),
     selection: NO_SELECTION,
     connectMode: 'link',
+    flowProtocol: 'modbus',
     snapToGrid: false,
     clipboard: null,
     apply: (op, coalesceKey) => {
@@ -108,6 +112,7 @@ export const useProject = create<ProjectState>((set, get) => {
       if (selection.devices.length) pasteInto(extractFragment(project, selection.devices));
     },
     setConnectMode: (connectMode) => set({ connectMode }),
+    setFlowProtocol: (flowProtocol) => set({ flowProtocol, connectMode: 'flow' }),
     toggleSnap: () => set((s) => ({ snapToGrid: !s.snapToGrid })),
   };
 });

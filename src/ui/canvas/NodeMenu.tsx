@@ -10,6 +10,7 @@ export function NodeMenu({ deviceId, x, y, onClose }: { deviceId: string; x: num
   const apply = useProject((s) => s.apply);
   const select = useProject((s) => s.select);
   const duplicate = useProject((s) => s.duplicate);
+  const flowProtocol = useProject((s) => s.flowProtocol);
   const [picking, setPicking] = useState<'link' | 'flow' | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -24,7 +25,7 @@ export function NodeMenu({ deviceId, x, y, onClose }: { deviceId: string; x: num
 
   const connect = (targetId: string) => {
     if (picking === 'link') apply((p) => addLink(p, device.id, targetId));
-    else apply((p) => addFlow(p, defaultFlow('modbus', device.id, targetId)));
+    else apply((p) => addFlow(p, defaultFlow(flowProtocol, device.id, targetId)));
     onClose();
   };
 

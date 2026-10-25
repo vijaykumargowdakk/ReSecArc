@@ -71,6 +71,7 @@ export function referenceErrors(project: Project): string[] {
       continue;
     }
     for (const e of settingsErrors(def, f.settings)) errors.push(`Flow "${f.id}": ${e}`);
+    if (def.portOptional) continue;
     if (def.defaultPort === null && f.port !== null) errors.push(`Flow "${f.id}": ${def.label} is layer 2 and has no port`);
     if (def.defaultPort !== null && f.port === null) errors.push(`Flow "${f.id}": ${def.label} needs a port`);
   }

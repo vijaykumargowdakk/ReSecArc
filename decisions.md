@@ -79,3 +79,8 @@
 **Decision:** Undo/redo is a pure snapshot history (`src/store/history.ts`, 100 steps). Rapid edits to the same field coalesce into one step within 600ms, and multi-deletes go through React Flow's `onDelete` so they are a single step. Selection is now `{ devices, links, flows }` and is owned by the store; the canvas mirrors it. Autosave writes to `localStorage` one second after the last edit and only starts after a pending snapshot has been restored or discarded, so it never overwrites unsaved work the user hasn't seen.
 **Why:** Large diagrams need safe experimentation and bulk editing. Autosave guards against lost work without needing an account or server.
 **User input:** Approved in the v0.2 plan.
+
+## 2026-10-25 — Twelve protocols in the registry, chosen per new flow
+**Decision:** Added EtherNet/IP, PROFINET, OPC UA, IEC 60870-5-104, IEC 61850 MMS and GOOSE, BACnet, S7, MQTT and a free-form custom protocol alongside Modbus and DNP3. Each has its own roles, settings, default ports (some follow a setting such as TLS), colour and dash pattern. A toolbar picker sets the protocol for newly drawn flows, and a canvas legend lists the protocols in use.
+**Why:** Real plants mix protocols. Dash patterns plus a legend keep flows distinguishable without relying on colour.
+**User input:** Approved in the v0.2 plan.
