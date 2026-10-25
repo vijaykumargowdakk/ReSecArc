@@ -1,7 +1,8 @@
-import { ArrowDownUp, Crosshair, Download, Trash2, Upload } from 'lucide-react';
+import { ArrowDownUp, Crosshair, Download, Trash2, TriangleAlert, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../model/catalog';
-import { devicesToCsv, endpointName, flowsToCsv, rulesToCsv } from '../model/csv';
+import { addressesToCsv, addressRows, devicesToCsv, endpointName, flowsToCsv, rulesToCsv } from '../model/csv';
+import { addressReport, addressSortKey, deviceAddresses } from '../model/ipam';
 import { removeDevice, updateDevice } from '../model/ops';
 import { flowLabel, getProtocol } from '../model/protocols';
 import { laneTop, levelLabel, PURDUE_LANES } from '../model/purdue';
@@ -11,7 +12,7 @@ import { downloadText, slug } from './download';
 import { DeviceIcon } from './icons';
 import { ImportDialog } from './ImportDialog';
 
-type Tab = 'devices' | 'flows' | 'rules';
+type Tab = 'devices' | 'flows' | 'rules' | 'addresses';
 type SortKey = 'name' | 'kind' | 'level' | 'zone' | 'site' | 'ip' | 'vendor' | 'model' | 'firmware' | 'criticality';
 
 const CRITICALITY = ['low', 'medium', 'high'] as const;
@@ -33,6 +34,8 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
   const zoneName = useMemo(() => new Map(project.zones.map((z) => [z.id, z.name])), [project.zones]);
   const siteName = useMemo(() => new Map(project.sites.map((s) => [s.id, s.name])), [project.sites]);
   const deviceName = useMemo(() => new Map(project.devices.map((d) => [d.id, d.label])), [project.devices]);
+  const report = useMemo(() => addressReport(project), [project]);
+  const addresses = useMemo(() => (tab === 'addresses' ? addressRows(project) : []), [project, tab]);
 
   const devices = useMemo(() => {
     const sortValue = (d: Device, key: SortKey): string | number => {
@@ -49,6 +52,8 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
         return siteName.get(d.siteId) ?? '';
       case 'criticality':
         return CRITICALITY.indexOf(d.criticality);
+      case 'ip':
+        return addressSortKey(deviceAddresses(d)[0] ?? '');
         default:
           return d.asset[key].toLowerCase();
       }
@@ -80,6 +85,7 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
     const name = slug(project.name);
     if (tab === 'devices') downloadText(`${name}-devices.csv`, devicesToCsv(project), 'text/csv');
     else if (tab === 'flows') downloadText(`${name}-flows.csv`, flowsToCsv(project), 'text/csv');
+    else if (tab === 'addresses') downloadText(`${name}-ip-plan.csv`, addressesToCsv(project), 'text/csv');
     else downloadText(`${name}-firewall-rules.csv`, rulesToCsv(project), 'text/csv');
   };
 
@@ -94,6 +100,7 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
               ['devices', `Devices (${project.devices.length})`],
               ['flows', `Flows (${project.flows.length})`],
               ['rules', `Firewall rules (${rules.length})`],
+              ['addresses', 'IP plan'],
             ] as [Tab, string][]
           ).map(([id, label]) => (
             <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'is-active' : ''} onClick={() => setTab(id)}>
@@ -216,7 +223,15 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
                   </td>
                   {project.sites.length > 1 && <td>{siteName.get(d.siteId)}</td>}
                   <td>
-                    <Cell value={d.asset.ip} label="IP address" onChange={(v) => setAsset(d, 'ip', v)} />
+                    <span className="cell-with-flag">
+                      <Cell value={d.asset.ip} label="IP address" onChange={(v) => setAsset(d, 'ip', v)} />
+                      {report.issues.has(d.id) && (
+                        <span className="cell-flag" title={report.issues.get(d.id)!.map((i) => i.message).join('\n')}>
+                          <TriangleAlert size={13} aria-hidden="true" />
+                          <span className="sr-only">{report.issues.get(d.id)!.map((i) => i.message).join('. ')}</span>
+                        </span>
+                      )}
+                    </span>
                   </td>
                   <td>
                     <Cell value={d.asset.vendor} label="Vendor" onChange={(v) => setAsset(d, 'vendor', v)} />
@@ -319,9 +334,47 @@ export function Inventory({ onShowDevice, onShowFlow }: { onShowDevice: (id: str
             </tbody>
           </table>
         )}
+        {tab === 'addresses' && addresses.length > 0 && (
+          <table className="inventory__table">
+            <thead>
+              <tr>
+                <th>Address</th>
+                <th>Device</th>
+                {project.sites.length > 1 && <th>Site</th>}
+                <th>Network</th>
+                <th>VLAN</th>
+                <th>Device zone</th>
+                <th>Warnings</th>
+              </tr>
+            </thead>
+            <tbody>
+              {addresses.map((r) => (
+                <tr key={`${r.deviceId}|${r.address}`}>
+                  <td className="mono">{r.address}</td>
+                  <td>
+                    <button type="button" className="link-button" onClick={() => onShowDevice(r.deviceId)}>
+                      {r.device}
+                    </button>
+                  </td>
+                  {project.sites.length > 1 && <td>{r.site}</td>}
+                  <td>
+                    {r.network}
+                    {r.subnet && <span className="muted mono"> {r.subnet}</span>}
+                  </td>
+                  <td>{r.vlan}</td>
+                  <td>{r.zone}</td>
+                  <td className="issues-cell">{r.warnings.join('; ')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
         {tab === 'devices' && devices.length === 0 && <p className="empty inventory__empty">No devices{query ? ' match the filter' : ''}.</p>}
         {tab === 'flows' && project.flows.length === 0 && <p className="empty inventory__empty">No protocol flows yet.</p>}
         {tab === 'rules' && rules.length === 0 && <p className="empty inventory__empty">No firewall rules yet.</p>}
+        {tab === 'addresses' && addresses.length === 0 && (
+          <p className="empty inventory__empty">No device has an IP address yet. Add addresses in the Devices tab or in a device's properties.</p>
+        )}
       </div>
       {importing && <ImportDialog onClose={() => setImporting(false)} />}
     </section>

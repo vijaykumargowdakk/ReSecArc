@@ -876,6 +876,69 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+/* IP plan */
+.network-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.network {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-alt);
+}
+
+.network__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 8px;
+}
+
+.network__usage {
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.address-info {
+  margin: 2px 0 8px;
+  font-size: 12.5px;
+}
+
+.address-info ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.issues {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+  color: var(--crit-medium);
+  font-size: 12px;
+}
+
+.issues li {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.issues svg {
+  flex: none;
+  margin-top: 2px;
+}
+
 /* Text notes */
 .note {
   min-height: 40px;
@@ -1112,8 +1175,11 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.inventory__table th button,
 .inventory__table th:not(:has(button)) {
+  padding: 8px;
+}
+
+.inventory__table th button {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -2231,4 +2297,21 @@ textarea {
   .canvas {
     height: 100%;
   }
+}
+
+/* Address warnings in inventory tables */
+.cell-with-flag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cell-flag {
+  display: inline-flex;
+  color: var(--crit-medium);
+}
+
+.issues-cell {
+  color: var(--crit-medium);
+  font-size: 12px;
 }

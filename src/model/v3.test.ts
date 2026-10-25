@@ -17,8 +17,9 @@ function load(raw: unknown): Project {
 
 describe('v2 → v3 migration', () => {
   it('adds empty notes, networks and revisions to a v2 file', () => {
-    expect((water as { schemaVersion: number }).schemaVersion).toBe(2);
-    const p = load(water);
+    const { notes, networks, revisions, ...rest } = water;
+    expect([notes, networks, revisions].every(Array.isArray)).toBe(true);
+    const p = load({ ...rest, schemaVersion: 2 });
     expect(p.schemaVersion).toBe(SCHEMA_VERSION);
     expect(p.notes).toEqual([]);
     expect(p.networks).toEqual([]);

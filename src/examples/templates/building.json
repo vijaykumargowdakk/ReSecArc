@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "name": "Harbour View Office Tower (fictional demo)",
   "sites": [
     {
@@ -607,5 +607,25 @@
       "targetSL": 2
     }
   ],
-  "areas": []
+  "areas": [],
+  "notes": [],
+  "networks": [
+    {
+      "id": "net-bms",
+      "name": "BMS servers",
+      "cidr": "10.60.0.0/24",
+      "vlan": 60,
+      "zoneId": "zone-bms",
+      "siteId": "site-main"
+    },
+    {
+      "id": "net-field",
+      "name": "Field controllers",
+      "cidr": "10.60.1.0/24",
+      "vlan": 61,
+      "zoneId": "zone-field",
+      "siteId": "site-main"
+    }
+  ],
+  "revisions": []
 }
