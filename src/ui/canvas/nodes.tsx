@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../../model/catalog';
 import { levelLabel, type PurdueLane } from '../../model/purdue';
 import type { Device, Zone } from '../../model/schema';
-import { DeviceIcon } from '../DeviceIcon';
+import { DeviceIcon } from '../icons';
 
 export type DeviceNodeData = { device: Device; zone: Zone | null };
 export type DeviceFlowNode = Node<DeviceNodeData, 'device'>;
@@ -19,15 +19,18 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
   return (
     <div className={`device-node${selected ? ' is-selected' : ''}`} style={style} title={DEVICE_CATALOG[device.type].description}>
       <Handle type="target" position={Position.Top} />
-      <span className={`device-node__icon kind-${device.criticality}`}>
-        <DeviceIcon type={device.type} />
+      <span className="device-node__icon">
+        <DeviceIcon type={device.type} variant={device.variant} size={34} />
       </span>
       <span className="device-node__text">
-        <span className="device-node__label">{device.label || DEVICE_CATALOG[device.type].label}</span>
+        <span className="device-node__label">{device.label || kindLabel(device.type, device.variant)}</span>
         <span className="device-node__meta">
           {kindLabel(device.type, device.variant)} · {levelLabel(device.purdueLevel)}
           {zone ? ` · ${zone.name}` : ''}
         </span>
+      </span>
+      <span className={`criticality criticality--${device.criticality}`} title={`${device.criticality} criticality`}>
+        {device.criticality[0].toUpperCase()}
       </span>
       <Handle type="source" position={Position.Bottom} />
     </div>

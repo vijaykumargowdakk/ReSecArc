@@ -8,7 +8,7 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and Modbus/DNP3 protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M6 are complete. v0.2 work (M7–M13) is in progress; see the milestone table.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and Modbus/DNP3 protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M7 are complete. v0.2 work (M7–M13) is in progress; see the milestone table.
 
 Next: the owner decides the scope of any further features. No analysis features have been built.
 
@@ -32,7 +32,7 @@ Next: the owner decides the scope of any further features. No analysis features 
 | M4 | Zones and conduits | IEC 62443 zones, device zone assignment, derived conduit list | Zones colour devices and conduits list correctly ✅ |
 | M5 | Save/load, demo, docs | JSON save/load with validation, fictional demo project, README and docs | Demo loads from the toolbar and round-trips through save/load ✅ |
 | M6 | Schema v2, variants, asset fields | Device kinds per type, 4 new types, asset details, sites/areas in the file format, protocol registry, v1 migration | v1 files open; Kind and Asset details editable ✅ |
-| M7 | Silhouette icons | Two-tone device icons per variant, node and palette redesign | Every variant has an icon |
+| M7 | Silhouette icons | Two-tone device icons per variant, node and palette redesign | Every variant has an icon ✅ |
 | M8 | Editing power, autosave | Undo/redo, copy/paste, multi-select, align, snap, local autosave | Shortcuts work and autosave restores |
 | M9 | More protocols | EtherNet/IP, PROFINET, OPC UA, IEC 104, IEC 61850, BACnet, S7, MQTT, custom | Every protocol editable from the registry |
 | M10 | Scale | Sites, areas, search, filter | Multi-site project navigable |
