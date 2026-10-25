@@ -1,0 +1,22 @@
+# Third-party components and licences
+
+## Runtime dependencies
+
+| Package | Version | Licence | Used for |
+|---------|---------|---------|----------|
+| react, react-dom | 18.3 | MIT | UI framework |
+| @xyflow/react (React Flow) | 12.x | MIT | Canvas, nodes, edges, zoom and pan |
+| zustand | 5.x | MIT | Project state store |
+| zod | 3.x | MIT | Project file schema and validation |
+| lucide-react | 1.x | ISC | Toolbar and panel icons |
+
+Build and test tooling (Vite, TypeScript, Vitest, ESLint) is used only in development and is not shipped in the bundle.
+
+## Original assets
+
+- **Device icons** (`src/ui/DeviceIcon.tsx`) and the **favicon** (`public/favicon.svg`) were drawn for this project. They do not reproduce any vendor's logo or product artwork.
+- **Demo project** (`src/examples/demo-water-treatment.json`): *Riverbend Water Treatment* is fictional. Its devices, names and rules do not describe any real facility.
+
+## Standards terminology
+
+The editor uses the vocabulary of the Purdue reference model and IEC 62443 (zones, conduits, target security levels). No text from either document is reproduced.
