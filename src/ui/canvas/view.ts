@@ -12,12 +12,13 @@ import type { CanvasNode } from './nodes';
 export const COLLAPSED_AREA = { width: 210, height: 72 };
 const PORTAL_GAP = 60;
 
-export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean };
+export type DiffMark = 'added' | 'changed';
+export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean; diff?: DiffMark };
 export type AreaNodeData = { area: Area; members: Device[] };
 export type PortalNodeData = { device: Device; siteName: string };
 export type NoteNodeData = { note: Note };
-export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean };
-export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean };
+export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean; diff?: DiffMark };
+export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean; diff?: DiffMark };
 
 export const portalId = (deviceId: string) => `portal:${deviceId}`;
 
@@ -26,7 +27,10 @@ export function buildView(
   siteId: string,
   selection: Selection,
   dimmed: Set<string>,
+  /** Items added or changed since the revision being compared with. */
+  marks: ReadonlyMap<string, DiffMark> = new Map(),
 ): { nodes: CanvasNode[]; edges: CanvasEdge[] } {
+  const diffClass = (id: string) => (marks.has(id) ? `diff-${marks.get(id)}` : undefined);
   const onSite = new Set(project.devices.filter((d) => d.siteId === siteId).map((d) => d.id));
   const areas = project.areas.filter((a) => a.siteId === siteId);
   const collapsed = new Set(areas.filter((a) => a.collapsed).map((a) => a.id));
@@ -59,6 +63,7 @@ export function buildView(
       position: { x: area.rect.x, y: area.rect.y },
       data: { area, members },
       selected: sel.areas.has(area.id),
+      className: diffClass(area.id),
       zIndex: area.collapsed ? 0 : -1,
       ...size,
     });
@@ -71,14 +76,15 @@ export function buildView(
       id: d.id,
       type: 'device',
       position: d.position,
-      data: { device: d, zone: d.zoneId ? (zoneById.get(d.zoneId) ?? null) : null, dimmed: dimmed.has(d.id) },
+      data: { device: d, zone: d.zoneId ? (zoneById.get(d.zoneId) ?? null) : null, dimmed: dimmed.has(d.id), diff: marks.get(d.id) },
       selected: sel.devices.has(d.id),
-      className: dimmed.has(d.id) ? 'is-dimmed' : undefined,
+      className: [dimmed.has(d.id) ? 'is-dimmed' : '', diffClass(d.id) ?? ''].filter(Boolean).join(' ') || undefined,
       ariaLabel: [
         `${d.label}, ${kindLabel(d.type, d.variant)}`,
         `level ${levelLabel(d.purdueLevel).slice(1)}`,
         d.zoneId ? `zone ${zoneById.get(d.zoneId)?.name ?? ''}` : 'no zone',
         `${d.criticality} criticality`,
+        ...(marks.has(d.id) ? [`${marks.get(d.id)} since the compared revision`] : []),
       ].join(', '),
     });
     anchorPos.set(d.id, d.position);
@@ -92,6 +98,7 @@ export function buildView(
       position: note.position,
       data: { note },
       selected: sel.notes.has(note.id),
+      className: diffClass(note.id),
       width: note.width,
       connectable: false,
       ariaLabel: `Note: ${note.text}`,
@@ -145,7 +152,7 @@ export function buildView(
       type: 'link',
       source: r.source,
       target: r.target,
-      data: { link, dimmed: dimmed.has(link.id), aggregated: r.aggregated },
+      data: { link, dimmed: dimmed.has(link.id), aggregated: r.aggregated, diff: r.aggregated ? undefined : marks.get(link.id) },
       selected: !r.aggregated && sel.edges.has(link.id),
       selectable: !r.aggregated,
     });
@@ -158,7 +165,7 @@ export function buildView(
       type: 'flow',
       source: r.source,
       target: r.target,
-      data: { flow, dimmed: dimmed.has(flow.id), aggregated: r.aggregated },
+      data: { flow, dimmed: dimmed.has(flow.id), aggregated: r.aggregated, diff: r.aggregated ? undefined : marks.get(flow.id) },
       selected: !r.aggregated && sel.edges.has(flow.id),
       selectable: !r.aggregated,
       markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color: getProtocol(flow.protocol)?.color },

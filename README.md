@@ -47,6 +47,11 @@ Everything runs in the browser. There is no server, no account and no telemetry.
 - **Tidy layout:** one click lines a site's devices up in their lanes and areas and keeps connected devices close. Undo restores the previous positions.
 - **Autosave** to your browser, with an offer to restore unsaved work the next time you open the app.
 
+### Revisions and change records
+- **Revisions:** save the design under a name, such as "Baseline" or "Before outage work". Revisions are stored inside the project file.
+- **Compare** any revision with the current design. On the canvas, added items get a solid green outline and a "New" tag, and changed items a dashed amber outline and a "Changed" tag. The Changes panel lists every addition, removal and field change, such as `zone: Control → Operations` or `port: 502 → 802`. Pure moves are hidden by default.
+- Export the change list as a **Markdown change record**, or **restore** a revision (undoable).
+
 ### Inventory and export
 - An **Inventory** view with sortable, inline-editable tables of devices, protocol flows and firewall rules, plus an **IP plan** listing every address with its network, VLAN and warnings.
 - **CSV import** of devices. Each rejected row is listed with the reason.

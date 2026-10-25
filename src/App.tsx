@@ -3,6 +3,7 @@ import { Network, Table2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useAnnouncer } from './store/announcer';
 import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './store/autosave';
+import { useCompare, useComparison } from './store/compare';
 import { NO_SELECTION, useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
 import { TidyButton } from './ui/canvas/TidyButton';
@@ -33,6 +34,8 @@ export function App() {
   const [helping, setHelping] = useState(false);
   const openHelp = useCallback(() => setHelping(true), []);
   const [drawer, setDrawer] = useState<'palette' | 'inspector' | null>(null);
+  const comparison = useComparison();
+  const compareWith = useCompare((s) => s.compareWith);
   const announcement = useAnnouncer((s) => s.message);
   const seq = useAnnouncer((s) => s.seq);
   useShortcuts(openSearch, openHelp);
@@ -76,6 +79,21 @@ export function App() {
               }}
             >
               Discard
+            </button>
+          </div>
+        )}
+        {comparison && (
+          <div className="notice notice--info" role="status">
+            <p>
+              Comparing with <strong>“{comparison.revision.name}”</strong>: {comparison.changes.length} change
+              {comparison.changes.length === 1 ? '' : 's'}. Added items have a solid green outline and a “New” tag; changed items a dashed amber
+              outline and a “Changed” tag. Removed items are listed in the Changes panel.
+            </p>
+            <button type="button" className="button" onClick={() => select(NO_SELECTION)}>
+              Show changes
+            </button>
+            <button type="button" className="button" onClick={() => compareWith(null)}>
+              Stop comparing
             </button>
           </div>
         )}

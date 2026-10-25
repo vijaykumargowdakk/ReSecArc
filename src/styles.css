@@ -12,6 +12,7 @@
   --danger: #b42318;
   --danger-soft: #fdecea;
   --allow: #15803d;
+  --on-status: #ffffff;
   --brand-bg: #0f2a3d;
   --icon-ink: #1d3b4f;
   --icon-fill: #cde7e3;
@@ -66,6 +67,7 @@
     --danger-soft: #3b1a1a;
     --danger-line: #7f1d1d;
     --allow: #4ade80;
+    --on-status: #0b1520;
     --allow-soft: #12321f;
     --info-bg: #0c2a3d;
     --info-line: #164e63;
@@ -109,6 +111,7 @@
   --danger-soft: #3b1a1a;
   --danger-line: #7f1d1d;
   --allow: #4ade80;
+  --on-status: #0b1520;
   --allow-soft: #12321f;
   --info-bg: #0c2a3d;
   --info-line: #164e63;
@@ -2314,4 +2317,152 @@ textarea {
 .issues-cell {
   color: var(--crit-medium);
   font-size: 12px;
+}
+
+/* Comparison with a revision: added items in green, changed items in amber, each with a text badge */
+.react-flow__node.diff-added .device-node,
+.react-flow__node.diff-added .note,
+.react-flow__node.diff-added .area {
+  outline: 3px solid var(--allow);
+  outline-offset: 3px;
+}
+
+.react-flow__node.diff-changed .device-node,
+.react-flow__node.diff-changed .note,
+.react-flow__node.diff-changed .area {
+  outline: 3px dashed var(--crit-medium);
+  outline-offset: 3px;
+}
+
+.diff-badge {
+  position: absolute;
+  top: -10px;
+  left: 8px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--on-status);
+}
+
+.diff-badge--added {
+  background: var(--allow);
+}
+
+.diff-badge--changed {
+  background: var(--crit-medium);
+}
+
+.link-edge.diff-added,
+.flow-edge.diff-added {
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 2px var(--allow));
+}
+
+.link-edge.diff-changed,
+.flow-edge.diff-changed {
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 2px var(--crit-medium));
+}
+
+.flow-label.diff-added {
+  outline: 2px solid var(--allow);
+}
+
+.flow-label.diff-changed {
+  outline: 2px dashed var(--crit-medium);
+}
+
+/* Change list */
+.change-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.change-tag {
+  display: inline-block;
+  padding: 0 7px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  color: var(--on-status);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.change-tag--added {
+  background: var(--allow);
+}
+
+.change-tag--changed {
+  background: var(--crit-medium);
+}
+
+.change-tag--removed {
+  background: var(--danger);
+}
+
+.change-group h4 {
+  margin: 12px 0 4px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.change-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.change-list > li {
+  font-size: 12.5px;
+}
+
+.change-list ul {
+  margin: 2px 0 0 18px;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.revision-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.revision {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-alt);
+}
+
+.revision.is-comparing {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.revision__date {
+  margin: 2px 0 6px;
+  font-size: 11.5px;
+}
+
+.revision__save {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.revision__save input {
+  flex: 1;
+  min-width: 0;
 }

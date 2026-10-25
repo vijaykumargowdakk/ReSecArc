@@ -47,12 +47,16 @@ function floatingSegment(source: InternalNode, target: InternalNode, offset: num
   return { start, end, path: `M ${start.x},${start.y} L ${end.x},${end.y}` };
 }
 
+function edgeState(selected: boolean | undefined, data: LinkEdgeData | FlowEdgeData): string {
+  return `${selected ? ' is-selected' : ''}${data.dimmed ? ' is-dimmed' : ''}${data.aggregated ? ' is-aggregated' : ''}${data.diff ? ` diff-${data.diff}` : ''}`;
+}
+
 export function LinkEdge({ id, source, target, data, selected }: EdgeProps<LinkFlowEdge>) {
   const s = useInternalNode(source);
   const t = useInternalNode(target);
   if (!s || !t || !data) return null;
   const { path } = floatingSegment(s, t, 0);
-  const state = `${selected ? ' is-selected' : ''}${data.dimmed ? ' is-dimmed' : ''}${data.aggregated ? ' is-aggregated' : ''}`;
+  const state = edgeState(selected, data);
   return <BaseEdge id={id} path={path} className={`link-edge medium-${data.link.medium}${state}`} />;
 }
 
@@ -63,7 +67,7 @@ export function FlowEdge({ id, source, target, data, selected, markerEnd }: Edge
   const { start, end, path } = floatingSegment(s, t, FLOW_OFFSET);
   const def = getProtocol(data.flow.protocol);
   const color = def?.color ?? 'var(--ink-soft)';
-  const state = `${selected ? ' is-selected' : ''}${data.dimmed ? ' is-dimmed' : ''}${data.aggregated ? ' is-aggregated' : ''}`;
+  const state = edgeState(selected, data);
   return (
     <>
       <BaseEdge
