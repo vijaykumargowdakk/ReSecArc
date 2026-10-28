@@ -56,7 +56,7 @@ function route(source: InternalNode, target: InternalNode, offset: number, waypo
 const toPath = (points: readonly Point[]) => points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
 
 function edgeState(selected: boolean | undefined, data: LinkEdgeData | FlowEdgeData): string {
-  return `${selected ? ' is-selected' : ''}${data.dimmed ? ' is-dimmed' : ''}${data.aggregated ? ' is-aggregated' : ''}${data.diff ? ` diff-${data.diff}` : ''}`;
+  return `${selected ? ' is-selected' : ''}${data.dimmed ? ' is-dimmed' : ''}${data.aggregated ? ' is-aggregated' : ''}${data.diff ? ` diff-${data.diff}` : ''}${data.violation ? ' sec-violation' : ''}`;
 }
 
 const at = (p: Point): CSSProperties => ({ transform: `translate(-50%, -50%) translate(${p.x}px, ${p.y}px)` });

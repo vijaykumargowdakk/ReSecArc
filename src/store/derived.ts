@@ -1,5 +1,6 @@
 // Values computed from the project that several components need. Each is cached per project
 // object, so it is computed once per change however many panels read it.
+import { findingsByItem, runChecks, type Finding } from '../model/checks';
 import { deriveConduits, type Conduit } from '../model/conduits';
 import { addressReport, linkIssues, type AddressReport } from '../model/ipam';
 import type { Project } from '../model/schema';
@@ -20,6 +21,8 @@ function cached<T>(compute: (p: Project) => T): (p: Project) => T {
 export const addressReportOf = cached(addressReport);
 export const conduitsOf = cached(deriveConduits);
 export const linkIssuesOf = cached((p) => linkIssues(p, addressReportOf(p)));
+export const findingsOf = cached(runChecks);
+export const findingsByItemOf = cached((p) => findingsByItem(p, findingsOf(p)));
 
 export function useAddressReport(): AddressReport {
   return addressReportOf(useProject((s) => s.project));
@@ -31,4 +34,13 @@ export function useLinkIssues(): Map<string, string[]> {
 
 export function useConduits(): Conduit[] {
   return conduitsOf(useProject((s) => s.project));
+}
+
+export function useFindings(): Finding[] {
+  return findingsOf(useProject((s) => s.project));
+}
+
+/** Findings per device, link and flow id. */
+export function useFindingsByItem(): Map<string, Finding[]> {
+  return findingsByItemOf(useProject((s) => s.project));
 }

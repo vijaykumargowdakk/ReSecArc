@@ -24,6 +24,7 @@ import { deviceTypeSchema, type Device, type DeviceType, type Project } from '..
 import { moveArea, removeArea } from '../../model/structure';
 import { announce } from '../../store/announcer';
 import { useComparison } from '../../store/compare';
+import { useFindingsByItem } from '../../store/derived';
 import { usePrefs } from '../../store/prefs';
 import { flowColorMode, useTheme } from '../../store/theme';
 import { useRenderAll } from '../exportDiagram';
@@ -105,9 +106,10 @@ export function Canvas() {
   const comparison = useComparison();
   const marks = comparison?.marks;
   const layers = usePrefs((s) => s.layers);
+  const findings = useFindingsByItem();
   const view = useMemo(
-    () => buildView(project, siteId, selection, dimmed, marks, layers, pendingConnect),
-    [project, siteId, selection, dimmed, marks, layers, pendingConnect],
+    () => buildView(project, siteId, selection, dimmed, marks, layers, pendingConnect, layers.security ? findings : undefined),
+    [project, siteId, selection, dimmed, marks, layers, pendingConnect, findings],
   );
 
   const [nodes, setNodes] = useState<CanvasNode[]>(() => [...LANE_NODES, ...view.nodes]);
@@ -143,11 +145,20 @@ export function Canvas() {
 
   useEffect(() => {
     if (!focus) return;
-    const node = nodes.find((n) => n.id === focus.deviceId);
-    if (!node?.measured) return;
-    setCenter(node.position.x + NODE_WIDTH / 2, node.position.y + NODE_HEIGHT / 2, { zoom: 1.2, duration: reducedMotion() ? 0 : 400 });
+    const targets = nodes.filter((n) => focus.deviceIds.includes(n.id));
+    if (targets.length === 0 || !targets.every((n) => n.measured)) return;
+    const duration = reducedMotion() ? 0 : 400;
+    if (targets.length === 1) {
+      setCenter(targets[0].position.x + NODE_WIDTH / 2, targets[0].position.y + NODE_HEIGHT / 2, { zoom: 1.2, duration });
+    } else {
+      const x = Math.min(...targets.map((n) => n.position.x));
+      const y = Math.min(...targets.map((n) => n.position.y));
+      const width = Math.max(...targets.map((n) => n.position.x + NODE_WIDTH)) - x;
+      const height = Math.max(...targets.map((n) => n.position.y + NODE_HEIGHT)) - y;
+      fitBounds({ x, y, width, height }, { padding: 0.3, duration });
+    }
     clearFocus();
-  }, [focus, nodes, setCenter, clearFocus]);
+  }, [focus, nodes, setCenter, fitBounds, clearFocus]);
 
   // Pans just enough to show a device highlighted from the keyboard, keeping the zoom.
   const reveal = useCallback(

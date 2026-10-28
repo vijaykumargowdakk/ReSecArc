@@ -1,12 +1,14 @@
 // Every action that can be run by name from the command palette. Each command reads the current
 // state when it runs, so the list can be built once when the palette opens.
 import type { ReactFlowInstance } from '@xyflow/react';
+import { addPolicy, newPolicy } from '../model/policies';
 import { PROTOCOLS } from '../model/protocols';
 import { saveRevision } from '../model/revisions';
 import { announce } from '../store/announcer';
 import { LAYER_LABELS, usePrefs, type Layers } from '../store/prefs';
+import { useSecurity, type SecurityTab } from '../store/security';
 import { useTheme, type Theme } from '../store/theme';
-import { useProject } from '../store/useProject';
+import { NO_SELECTION, useProject } from '../store/useProject';
 import { addNoteInView, chooseProjectFile, exportImage, exportText, saveProjectFile, tidyOpenSite } from './actions';
 import type { CanvasEdge } from './canvas/edges';
 import { startKeyboardConnect } from './canvas/useKeyboardConnect';
@@ -92,6 +94,17 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   for (const t of THEMES) {
     add('View', `theme-${t.value}`, `Theme: ${t.label}`, () => useTheme.getState().setTheme(t.value), { keywords: 'colour color dark light contrast' });
   }
+
+  const showSecurity = (tab: SecurityTab) => {
+    useSecurity.getState().show(tab);
+    useProject.getState().select(NO_SELECTION);
+  };
+  add('Security', 'security-findings', 'Show security findings', () => showSecurity('findings'), { keywords: 'iec 62443 checks violations policy' });
+  add('Security', 'security-policy', 'Add a company policy rule', () => {
+    useProject.getState().apply((p) => addPolicy(p, newPolicy()));
+    showSecurity('rules');
+    announce('Policy rule added. Edit it in the Rules tab of the Security panel.');
+  }, { keywords: 'security rule iec 62443' });
 
   const one = selection.devices.length === 1 ? selection.devices[0] : null;
   add('Connect', 'key-link', 'Link the selected device to another (arrow keys choose)', () => one && startKeyboardConnect('link', one), {

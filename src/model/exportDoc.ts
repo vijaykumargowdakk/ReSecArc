@@ -1,7 +1,9 @@
 // Markdown architecture document: a readable record of what the project contains.
 import { kindLabel } from './catalog';
+import { checkById, runChecks } from './checks';
 import { deriveConduits } from './conduits';
 import { endpointName } from './csv';
+import { describePolicy } from './policies';
 import { flowLabel, getProtocol } from './protocols';
 import { levelLabel } from './purdue';
 import type { Project } from './schema';
@@ -56,6 +58,18 @@ export function projectToMarkdown(project: Project, generatedAt = new Date()): s
       deriveConduits(project).map((c) => [`${zone.get(c.zones[0])} ↔ ${zone.get(c.zones[1])}`, c.linkIds.length, c.flowIds.length]),
     ),
   );
+
+  out.push('## Security findings\n');
+  out.push('Design-time checks based on IEC 62443 zone and conduit principles, plus company policy rules. Not a compliance assessment.\n');
+  const findings = runChecks(project);
+  out.push(table(['Severity', 'Finding', 'Detail', 'Reference', 'Suggested fix'], findings.map((f) => [f.severity, f.headline, f.message, f.reference ?? '', f.fix])));
+  if (project.disabledChecks.length) {
+    out.push(`Checks switched off for this project: ${project.disabledChecks.map((id) => checkById(id)?.title ?? id).join(', ')}.\n`);
+  }
+  if (project.policies.length) {
+    out.push('### Company policies\n');
+    out.push(table(['Rule', 'Forbids', 'Severity', 'Enabled'], project.policies.map((r) => [r.name, describePolicy(r, project), r.severity, r.enabled ? 'yes' : 'no'])));
+  }
 
   for (const site of project.sites) {
     const devices = project.devices.filter((d) => d.siteId === site.id).sort((a, b) => b.purdueLevel - a.purdueLevel || a.label.localeCompare(b.label));

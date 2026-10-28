@@ -9,9 +9,11 @@ export interface Layers {
   ports: boolean;
   notes: boolean;
   areas: boolean;
+  /** Security findings: red links and flows, and finding counts on devices. */
+  security: boolean;
 }
 
-export const ALL_LAYERS: Layers = { links: true, flows: true, flowLabels: true, ports: true, notes: true, areas: true };
+export const ALL_LAYERS: Layers = { links: true, flows: true, flowLabels: true, ports: true, notes: true, areas: true, security: true };
 
 export const LAYER_LABELS: Record<keyof Layers, string> = {
   links: 'Network links',
@@ -20,6 +22,7 @@ export const LAYER_LABELS: Record<keyof Layers, string> = {
   ports: 'Port names',
   notes: 'Notes',
   areas: 'Area frames',
+  security: 'Security findings',
 };
 
 interface Prefs {

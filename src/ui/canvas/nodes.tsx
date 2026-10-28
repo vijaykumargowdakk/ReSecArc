@@ -1,5 +1,5 @@
 import { Handle, NodeResizer, Position, type Node, type NodeProps } from '@xyflow/react';
-import { ChevronsDownUp, ChevronsUpDown, ExternalLink, Lock } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown, ExternalLink, Lock, ShieldAlert } from 'lucide-react';
 import { useState, type CSSProperties } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../../model/catalog';
 import { levelLabel, type PurdueLane } from '../../model/purdue';
@@ -45,6 +45,16 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
       {data.diff && (
         <span className={`diff-badge diff-badge--${data.diff}`} aria-hidden="true">
           {data.diff === 'added' ? 'New' : 'Changed'}
+        </span>
+      )}
+      {data.security && (
+        <span
+          className={`sec-badge sec-badge--${data.security.severity}`}
+          title={`${data.security.count} security finding${data.security.count === 1 ? '' : 's'}`}
+          aria-hidden="true"
+        >
+          <ShieldAlert size={10} />
+          {data.security.count}
         </span>
       )}
       {device.locked && (

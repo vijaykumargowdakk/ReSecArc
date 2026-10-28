@@ -53,7 +53,7 @@ test('shares a design as a link that opens in another tab', async ({ page, conte
 test('flags a duplicate IP address and lists it in the IP plan', async ({ page }) => {
   await deviceNode(page, 'Filtration PLC').click();
   await page.getByLabel('IP address', { exact: true }).fill('10.50.2.11');
-  await expect(page.locator('.inspector .issues')).toContainText('10.50.2.11 is also used by Filtration HMI');
+  await expect(page.locator('.inspector .address-info .issues')).toContainText('10.50.2.11 is also used by Filtration HMI');
   await clearSelection(page);
   await page.getByRole('tab', { name: 'Inventory' }).click();
   await page.getByRole('tab', { name: 'IP plan' }).click();

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { loadTemplate } from '../examples/templates';
+import { projectToMarkdown } from './exportDoc';
 import { parseProject, serializeProject } from './io';
+import { addLink } from './ops';
 import { addPolicy, describePolicy, examplePolicy, setCheckEnabled, updatePolicy } from './policies';
 import { changesToMarkdown, designOf, diffDesigns, saveRevision } from './revisions';
 import { SCHEMA_VERSION, type Project } from './schema';
@@ -78,5 +80,18 @@ describe('v5 in the change diff', () => {
     const p = loadTemplate('water-treatment');
     const rule = { ...examplePolicy('x'), bothWays: false, connection: 'flow' as const, protocols: ['modbus', 'dnp3'] };
     expect(describePolicy(rule, p)).toBe('L5, L4 → L3, L2, L1, L0, flows: Modbus, DNP3');
+  });
+});
+
+describe('v5 in the Markdown record', () => {
+  it('lists findings, company policies and switched-off checks', () => {
+    let p = addPolicy(addLink(loadTemplate('water-treatment'), 'office-ws', 'rtu-pump'), examplePolicy('pol'));
+    p = setCheckEnabled(p, 'device-without-zone', false);
+    const md = projectToMarkdown(p, new Date('2026-10-26T00:00:00Z'));
+    expect(md).toContain('## Security findings');
+    expect(md).toContain('| high | IEC 62443 communication violation | Office workstation (L4) connects directly to Pump station RTU (L1) |');
+    expect(md).toContain('| high | Company policy violation: No direct IT → OT |');
+    expect(md).toContain('Checks switched off for this project: OT device without a zone.');
+    expect(md).toContain('| No direct IT → OT | L5, L4 ↔ L3, L2, L1, L0, links and flows | high | yes |');
   });
 });

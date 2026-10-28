@@ -28,4 +28,4 @@ Build and test tooling is used only in development and is not shipped in the bun
 
 ## Standards terminology
 
-The editor uses the vocabulary of the Purdue reference model and IEC 62443 (zones, conduits, target security levels). No text from either document is reproduced.
+The editor uses the vocabulary of the Purdue reference model and IEC 62443 (zones, conduits, target security levels). No text from either document is reproduced. The security checks cite IEC 62443 clauses by number only (for example "IEC 62443-3-3 SR 5.2") and describe them in our own words.

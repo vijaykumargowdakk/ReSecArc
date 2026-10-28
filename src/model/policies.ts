@@ -59,7 +59,7 @@ export function selectorMatches(sel: PolicySelector, d: Device): boolean {
     case 'type':
       return sel.types.includes(d.type);
     case 'tag': {
-      const tag = sel.tag.toLowerCase();
+      const tag = sel.tag.trim().toLowerCase();
       return d.tags.some((t) => t.toLowerCase() === tag);
     }
   }

@@ -4,7 +4,7 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
 
 ```jsonc
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites":   [ /* Site, at least one */ ],
   "devices": [ /* Device */ ],
@@ -15,11 +15,13 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
   "notes":   [ /* Note */ ],
   "networks":  [ /* Network */ ],
   "fieldDefs": [ /* Custom field definition */ ],
+  "policies":  [ /* Company policy rule */ ],
+  "disabledChecks": [ /* ids of built-in security checks switched off */ ],
   "revisions": [ /* Revision */ ]
 }
 ```
 
-Files saved by older versions (`schemaVersion` 1, 2 or 3) are upgraded, including the designs stored in their revisions, automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
+Files saved by older versions (`schemaVersion` 1 to 4) are upgraded, including the designs stored in their revisions, automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
 
 ## Device
 
@@ -126,6 +128,19 @@ A device's `asset.ip` may hold several addresses separated by commas, semicolons
 - an address whose network belongs to a different zone than the device;
 - two devices with the same address on the same site, or anywhere inside a network that spans every site.
 
+## Company policy rule
+
+`{ id, name, enabled, severity, from, to, bothWays, connection, protocols }`. A rule forbids direct links and flows from devices matching `from` to devices matching `to`. With `bothWays`, the reverse direction is forbidden too. Links have no direction, so they match either way round regardless.
+
+- `severity` is `high`, `medium` or `low`.
+- `connection` is `link`, `flow` or `any`.
+- `protocols` lists flow protocol ids; empty means any protocol. A rule with protocols matches flows only.
+- `from` and `to` are selectors: `{ kind: "any" }`, `{ kind: "levels", levels: [4, 5] }`, `{ kind: "zone", id }`, `{ kind: "type", types: ["plc"] }` or `{ kind: "tag", tag }`. Tags compare without regard to case.
+
+## Disabled checks
+
+`disabledChecks` lists the ids of built-in security checks switched off for the project, such as `device-without-zone`. Unknown ids are kept, because a newer version may add checks. The checks themselves and their findings are not stored; they are computed from the design, see [`src/model/checks.ts`](../src/model/checks.ts).
+
 ## Revision
 
 A named copy of the design at a point in time: `{ id, name, createdAt, design }`. `createdAt` is an ISO 8601 timestamp. `design` holds every top-level field above except `schemaVersion` and `revisions`, so revisions do not nest.
@@ -137,10 +152,10 @@ Conduits are not stored. They are derived as the zone pairs joined directly by a
 A file is accepted only if:
 
 1. it parses as JSON,
-2. after any upgrade, it matches the schema, including `schemaVersion: 4`, and
+2. after any upgrade, it matches the schema, including `schemaVersion: 5`, and
 3. it passes the reference checks:
    - every id is unique;
-   - links, flows, sites, zones, areas, notes, networks, custom fields and rule endpoints point at things that exist;
+   - links, flows, sites, zones, areas, notes, networks, custom fields, rule endpoints and policy zones point at things that exist, and policy protocols are in the registry;
    - every variant is in the catalog, and every flow's settings match its protocol;
    - nothing connects a device to itself;
    - only firewalls carry rules;
