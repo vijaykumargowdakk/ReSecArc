@@ -2,7 +2,7 @@ import { BaseEdge, EdgeLabelRenderer, useInternalNode, useReactFlow, type Edge, 
 import { useState, type CSSProperties, type PointerEvent } from 'react';
 import { replaceFlow, updateLink } from '../../model/ops';
 import { flowLabel, getProtocol } from '../../model/protocols';
-import { along, midpoint, moveWaypoint, removeWaypoint, type Point } from '../../model/routing';
+import { along, midpoint, moveWaypoint, removeWaypoint, routeBetween, FLOW_OFFSET, type Box, type Point } from '../../model/routing';
 import { useProject } from '../../store/useProject';
 import type { FlowEdgeData, LinkEdgeData } from './view';
 
@@ -10,48 +10,17 @@ export type LinkFlowEdge = Edge<LinkEdgeData, 'link'>;
 export type ProtocolFlowEdge = Edge<FlowEdgeData, 'flow'>;
 export type CanvasEdge = LinkFlowEdge | ProtocolFlowEdge;
 
-/** Offset of a protocol flow from the link it usually runs alongside. */
-const FLOW_OFFSET = 9;
 /** Distance of a port name from the device it belongs to, along the edge. */
 const PORT_LABEL_DISTANCE = 30;
 
-function box(node: InternalNode) {
+function box(node: InternalNode): Box {
   const { x, y } = node.internals.positionAbsolute;
   const w = node.measured.width ?? 0;
   const h = node.measured.height ?? 0;
   return { cx: x + w / 2, cy: y + h / 2, hw: w / 2, hh: h / 2 };
 }
 
-/** Where the ray from a box's centre towards `to` leaves the box. */
-function exitPoint(b: ReturnType<typeof box>, from: Point, to: Point): Point {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  if (dx === 0 && dy === 0) return from;
-  const sx = dx === 0 ? Infinity : b.hw / Math.abs(dx);
-  const sy = dy === 0 ? Infinity : b.hh / Math.abs(dy);
-  const s = Math.min(sx, sy);
-  return { x: from.x + dx * s, y: from.y + dy * s };
-}
-
-/**
- * The drawn route between two nodes' borders. Without bend points it is a straight segment, shifted
- * sideways by `offset` so a flow can run beside its link; with bend points it passes through each one.
- */
-function route(source: InternalNode, target: InternalNode, offset: number, waypoints: readonly Point[]): Point[] {
-  const a = box(source);
-  const b = box(target);
-  if (waypoints.length > 0) {
-    const first = waypoints[0];
-    const last = waypoints[waypoints.length - 1];
-    return [exitPoint(a, { x: a.cx, y: a.cy }, first), ...waypoints, exitPoint(b, { x: b.cx, y: b.cy }, last)];
-  }
-  const len = Math.hypot(b.cx - a.cx, b.cy - a.cy) || 1;
-  const nx = (-(b.cy - a.cy) / len) * offset;
-  const ny = ((b.cx - a.cx) / len) * offset;
-  const from = { x: a.cx + nx, y: a.cy + ny };
-  const to = { x: b.cx + nx, y: b.cy + ny };
-  return [exitPoint(a, from, to), exitPoint(b, to, from)];
-}
+const route = (source: InternalNode, target: InternalNode, offset: number, waypoints: readonly Point[]) => routeBetween(box(source), box(target), offset, waypoints);
 
 const toPath = (points: readonly Point[]) => points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
 

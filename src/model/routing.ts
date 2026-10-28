@@ -68,3 +68,43 @@ export function along(a: Point, b: Point, distance: number): Point {
   const t = Math.min(1, distance / len);
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
 }
+
+/** Offset of a protocol flow from the link it usually runs alongside. */
+export const FLOW_OFFSET = 9;
+
+/** A node's box by its centre and half sizes. */
+export interface Box {
+  cx: number;
+  cy: number;
+  hw: number;
+  hh: number;
+}
+
+/** Where the ray from a box's centre towards `to` leaves the box. */
+function exitPoint(b: Box, from: Point, to: Point): Point {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (dx === 0 && dy === 0) return from;
+  const sx = dx === 0 ? Infinity : b.hw / Math.abs(dx);
+  const sy = dy === 0 ? Infinity : b.hh / Math.abs(dy);
+  const s = Math.min(sx, sy);
+  return { x: from.x + dx * s, y: from.y + dy * s };
+}
+
+/**
+ * The drawn route between two boxes' borders. Without bend points it is a straight segment, shifted
+ * sideways by `offset` so a flow can run beside its link; with bend points it passes through each one.
+ */
+export function routeBetween(a: Box, b: Box, offset: number, waypoints: readonly Point[]): Point[] {
+  if (waypoints.length > 0) {
+    const first = waypoints[0];
+    const last = waypoints[waypoints.length - 1];
+    return [exitPoint(a, { x: a.cx, y: a.cy }, first), ...waypoints, exitPoint(b, { x: b.cx, y: b.cy }, last)];
+  }
+  const len = Math.hypot(b.cx - a.cx, b.cy - a.cy) || 1;
+  const nx = (-(b.cy - a.cy) / len) * offset;
+  const ny = ((b.cx - a.cx) / len) * offset;
+  const from = { x: a.cx + nx, y: a.cy + ny };
+  const to = { x: b.cx + nx, y: b.cy + ny };
+  return [exitPoint(a, from, to), exitPoint(b, to, from)];
+}
