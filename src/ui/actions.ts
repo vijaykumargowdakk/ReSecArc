@@ -5,6 +5,7 @@ import { parseProject, serializeProject } from '../model/io';
 import { tidyLayout } from '../model/layout';
 import { addNote, createNote } from '../model/notes';
 import { countRuleReferences, removeDevice } from '../model/ops';
+import type { PathOverrides } from '../model/attack/paths';
 import type { Project } from '../model/schema';
 import { announce } from '../store/announcer';
 import { hasEdits, NO_SELECTION, useProject } from '../store/useProject';
@@ -52,6 +53,22 @@ export async function exportText(project: Project, kind: TextExport): Promise<vo
   };
   const [suffix, mime, write] = files[kind];
   downloadText(`${slug(project.name)}${suffix}`, write(), mime);
+}
+
+/**
+ * Downloads attack paths as a MITRE Attack Flow file (STIX 2.1): the one given, or every path
+ * shown. The path finder and the exporter load on first use.
+ */
+export async function exportAttackFlow(project: Project, overrides: PathOverrides, pathId: string | null = null): Promise<void> {
+  const [paths, flow] = await Promise.all([import('../model/attack/paths'), import('../model/attack/attackFlow')]);
+  const all = paths.attackPathsOf(project, overrides).paths;
+  const chosen = pathId ? all.filter((p) => p.id === pathId) : all;
+  if (chosen.length === 0) {
+    announce('No attack paths to export');
+    return;
+  }
+  downloadText(`${slug(project.name)}-attack-flow.json`, JSON.stringify(flow.toAttackFlow(project, chosen), null, 2), 'application/json');
+  announce(`Exported ${chosen.length} attack path${chosen.length === 1 ? '' : 's'} as a MITRE Attack Flow file`);
 }
 
 export async function exportImage(rf: Flow, project: Project, format: 'svg' | 'png', onErrors: (errors: string[]) => void): Promise<void> {

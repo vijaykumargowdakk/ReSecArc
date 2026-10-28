@@ -18,12 +18,14 @@ const PORTAL_ROW = 48;
 export type DiffMark = 'added' | 'changed';
 /** How many security findings concern an item, and the worst severity among them. */
 export type SecurityMark = { count: number; severity: Severity };
-export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean; diff?: DiffMark; security?: SecurityMark };
+/** A device's step number on the highlighted attack path, or `via` for anything the path crosses. */
+export type PathMark = number | 'via';
+export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean; diff?: DiffMark; security?: SecurityMark; pathStep?: number };
 export type AreaNodeData = { area: Area; members: Device[] };
 export type PortalNodeData = { device: Device; siteName: string };
 export type NoteNodeData = { note: Note };
-export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showPorts: boolean; violation: boolean };
-export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showLabel: boolean; violation: boolean };
+export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showPorts: boolean; violation: boolean; onPath: boolean };
+export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showLabel: boolean; violation: boolean; onPath: boolean };
 
 export const portalId = (deviceId: string) => `portal:${deviceId}`;
 
@@ -40,6 +42,8 @@ export function buildView(
   connect: { sourceId: string; targetId: string | null } | null = null,
   /** Security findings per device, link and flow id; empty when the security layer is off. */
   findings: ReadonlyMap<string, Finding[]> = new Map(),
+  /** The attack path chosen in the Security panel. */
+  path: ReadonlyMap<string, PathMark> = new Map(),
 ): { nodes: CanvasNode[]; edges: CanvasEdge[] } {
   const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined;
   const diffClass = (id: string) => (marks.has(id) ? `diff-${marks.get(id)}` : undefined);
@@ -96,11 +100,19 @@ export function buildView(
   for (const d of project.devices) {
     if (!onSite.has(d.id) || anchor(d.id) !== d.id) continue;
     const security = securityOf(d.id);
+    const step = path.get(d.id);
     nodes.push({
       id: d.id,
       type: 'device',
       position: d.position,
-      data: { device: d, zone: d.zoneId ? (zoneById.get(d.zoneId) ?? null) : null, dimmed: dimmed.has(d.id), diff: marks.get(d.id), security },
+      data: {
+        device: d,
+        zone: d.zoneId ? (zoneById.get(d.zoneId) ?? null) : null,
+        dimmed: dimmed.has(d.id),
+        diff: marks.get(d.id),
+        security,
+        pathStep: typeof step === 'number' ? step : undefined,
+      },
       selected: sel.devices.has(d.id),
       draggable: !d.locked,
       className: classes(
@@ -109,6 +121,7 @@ export function buildView(
         d.locked && 'is-locked',
         connect?.sourceId === d.id && 'is-connect-source',
         connect?.targetId === d.id && 'is-connect-target',
+        step !== undefined && (step === 'via' ? 'sec-path' : 'sec-path-step'),
       ),
       ariaLabel: [
         `${d.label}, ${kindLabel(d.type, d.variant)}`,
@@ -118,6 +131,7 @@ export function buildView(
         ...(d.locked ? ['locked'] : []),
         ...(marks.has(d.id) ? [`${marks.get(d.id)} since the compared revision`] : []),
         ...(security ? [`${security.count} security finding${security.count === 1 ? '' : 's'}`] : []),
+        ...(typeof step === 'number' ? [`step ${step} of the selected attack path`] : step ? ['on the selected attack path'] : []),
       ].join(', '),
     });
     anchorPos.set(d.id, d.position);
@@ -201,6 +215,7 @@ export function buildView(
         diff: r.aggregated ? undefined : marks.get(link.id),
         showPorts: layers.ports,
         violation: !r.aggregated && violation(link.id),
+        onPath: path.has(link.id),
       },
       selected: !r.aggregated && sel.edges.has(link.id),
       selectable: !r.aggregated,
@@ -221,6 +236,7 @@ export function buildView(
         diff: r.aggregated ? undefined : marks.get(flow.id),
         showLabel: layers.flowLabels,
         violation: !r.aggregated && violation(flow.id),
+        onPath: path.has(flow.id),
       },
       selected: !r.aggregated && sel.edges.has(flow.id),
       selectable: !r.aggregated,

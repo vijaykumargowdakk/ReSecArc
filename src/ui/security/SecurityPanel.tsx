@@ -1,14 +1,17 @@
-import { Plus, ShieldCheck, Trash2, X } from 'lucide-react';
+import { Download, Plus, RotateCcw, ShieldCheck, Trash2, X } from 'lucide-react';
 import { useRef, type KeyboardEvent } from 'react';
+import { ATTACK_ICS_RELEASE, ICS_TACTICS, ICS_TECHNIQUES } from '../../model/attack/icsTechniques';
+import { attackPathsOf, isDefaultEntry, isDefaultTarget, isHost, pathFindings, type AttackPath, type PathOverrides, type PathReport } from '../../model/attack/paths';
 import { DEVICE_CATALOG } from '../../model/catalog';
 import { BUILTIN_CHECKS, findingDevices, type Finding, type Severity } from '../../model/checks';
 import { addPolicy, describePolicy, examplePolicy, newPolicy, removePolicy, setCheckEnabled, updatePolicy } from '../../model/policies';
 import { PROTOCOLS } from '../../model/protocols';
 import { levelLabel, PURDUE_LANES } from '../../model/purdue';
-import type { DeviceType, PolicyRule, PolicySelector, Project } from '../../model/schema';
+import type { Device, DeviceType, PolicyRule, PolicySelector, Project } from '../../model/schema';
 import { useFindings } from '../../store/derived';
 import { useSecurity, type SecurityTab } from '../../store/security';
 import { useProject } from '../../store/useProject';
+import { exportAttackFlow } from '../actions';
 import { Field, Section, Select, TextInput, Toggle } from '../form';
 
 const SEVERITIES: { value: Severity; label: string }[] = [
@@ -18,6 +21,7 @@ const SEVERITIES: { value: Severity; label: string }[] = [
 ];
 const TABS: [SecurityTab, string][] = [
   ['findings', 'Findings'],
+  ['paths', 'Attack paths'],
   ['rules', 'Rules'],
 ];
 const tabId = (tab: SecurityTab) => `security-tab-${tab}`;
@@ -28,13 +32,18 @@ export function SecurityPanel() {
   const setTab = useSecurity((s) => s.setTab);
   const close = useSecurity((s) => s.close);
   const findings = useFindings();
+  const project = useProject((s) => s.project);
+  const overrides = useSecurity((s) => s.overrides);
+  const report = attackPathsOf(project, overrides);
   const tabs = useRef<HTMLDivElement>(null);
+  const counts: Partial<Record<SecurityTab, number>> = { findings: findings.length, paths: report.total };
 
   // Tabs follow the WAI-ARIA pattern: one Tab stop, arrow keys move between tabs.
   const onTabKey = (e: KeyboardEvent) => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
-    const next = TABS[(TABS.findIndex(([id]) => id === tab) + 1) % TABS.length][0];
+    const step = e.key === 'ArrowRight' ? 1 : TABS.length - 1;
+    const next = TABS[(TABS.findIndex(([id]) => id === tab) + step) % TABS.length][0];
     setTab(next);
     tabs.current?.querySelector<HTMLButtonElement>(`#${tabId(next)}`)?.focus();
   };
@@ -63,13 +72,15 @@ export function SecurityPanel() {
               className={tab === id ? 'is-active' : ''}
               onClick={() => setTab(id)}
             >
-              {id === 'findings' ? `${label} (${findings.length})` : label}
+              {counts[id] === undefined ? label : `${label} (${counts[id]})`}
             </button>
           ))}
         </div>
       </Section>
       <div id="security-tabpanel" role="tabpanel" aria-labelledby={tabId(tab)}>
-        {tab === 'findings' ? <FindingsTab findings={findings} /> : <RulesTab />}
+        {tab === 'findings' && <FindingsTab findings={findings} />}
+        {tab === 'paths' && <PathsTab report={report} overrides={overrides} />}
+        {tab === 'rules' && <RulesTab />}
       </div>
       <p className="muted security-footer">Design-time checks based on IEC 62443 zone and conduit principles. Not a compliance assessment.</p>
     </>
@@ -120,6 +131,176 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
         );
       })}
     </>
+  );
+}
+
+const deviceName = (d: Device | undefined) => d?.label || (d ? DEVICE_CATALOG[d.type].label : 'Unknown device');
+
+function PathsTab({ report, overrides }: { report: PathReport; overrides: PathOverrides }) {
+  const project = useProject((s) => s.project);
+  const focusItems = useProject((s) => s.focusItems);
+  const findings = useFindings();
+  const pathId = useSecurity((s) => s.pathId);
+  const selectPath = useSecurity((s) => s.selectPath);
+  const device = new Map(project.devices.map((d) => [d.id, d]));
+  const { paths, total } = report;
+  const choose = (path: AttackPath) => {
+    if (pathId === path.id) return selectPath(null);
+    selectPath(path.id);
+    // Frames the path without selecting anything, so this panel stays open.
+    focusItems({}, path.steps.map((s) => s.deviceId));
+  };
+  return (
+    <>
+      <Section
+        title="MITRE ATT&CK® for ICS — possible attack paths"
+        actions={
+          paths.length > 0 && (
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => void exportAttackFlow(project, overrides)}
+              title="Export the paths shown as a MITRE Attack Flow file (STIX 2.1)"
+            >
+              <Download size={16} />
+              <span>Export</span>
+            </button>
+          )
+        }
+      >
+        <p className="muted">
+          Possible paths based on the design, from entry points to critical devices, honouring firewall rules. They are not predictions. Each step is labelled with an ATT&CK
+          for ICS tactic and technique ({ATTACK_ICS_RELEASE}).
+        </p>
+        {paths.length === 0 ? (
+          <p className="empty">
+            <ShieldCheck size={16} aria-hidden="true" /> No possible path from an entry point to a target.
+          </p>
+        ) : (
+          <p>
+            {total > paths.length ? `Showing ${paths.length} of ${total} paths` : `${total} path${total === 1 ? '' : 's'}`}, most critical targets first. Choose one to
+            highlight it on the canvas.
+          </p>
+        )}
+        <ol className="path-list">
+          {paths.map((path) => {
+            const relied = pathFindings(project, path, findings);
+            const selected = pathId === path.id;
+            return (
+              <li key={path.id} className={`path${selected ? ' is-selected' : ''}`}>
+                <button type="button" className="link-button path__title" aria-pressed={selected} onClick={() => choose(path)}>
+                  {deviceName(device.get(path.entryId))} → {deviceName(device.get(path.targetId))}
+                </button>
+                <span className="muted">
+                  {' '}
+                  {path.steps.length - 1} {path.steps.length === 2 ? 'hop' : 'hops'}
+                </span>
+                <ol className="attack-chain" aria-label="Steps">
+                  {[...path.steps, { ...path.impact, deviceId: path.targetId }].map((step, i) => {
+                    const technique = ICS_TECHNIQUES[step.technique];
+                    return (
+                      <li key={i} className="attack-chip">
+                        <span className="attack-chip__device">{deviceName(device.get(step.deviceId))}</span>
+                        <span className="attack-chip__label">
+                          {ICS_TACTICS[step.tactic].name} ·{' '}
+                          <a href={technique.url} target="_blank" rel="noreferrer" title={`${technique.name} on attack.mitre.org`}>
+                            {technique.id}
+                          </a>
+                        </span>
+                        <span className="attack-chip__name">{technique.name}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+                {relied.length > 0 && (
+                  <p className="path__relies">Relies on: {relied.map((f) => `${f.message} (${f.source === 'policy' ? f.headline : f.checkId})`).join('; ')}</p>
+                )}
+                {selected && (
+                  <button type="button" className="link-button" onClick={() => void exportAttackFlow(project, overrides, path.id)}>
+                    Export this path (Attack Flow)
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </Section>
+      <EndpointList kind="entries" title="Entry points" ids={report.entryIds} isDefault={isDefaultEntry} overrides={overrides} />
+      <EndpointList kind="targets" title="Targets" ids={report.targetIds} isDefault={isDefaultTarget} overrides={overrides} />
+    </>
+  );
+}
+
+/** The entry points or targets in use, with controls to change them for this visit. */
+function EndpointList({
+  kind,
+  title,
+  ids,
+  isDefault,
+  overrides,
+}: {
+  kind: keyof PathOverrides;
+  title: string;
+  ids: string[];
+  isDefault: (d: Device) => boolean;
+  overrides: PathOverrides;
+}) {
+  const devices = useProject((s) => s.project.devices);
+  const setOverride = useSecurity((s) => s.setOverride);
+  const device = new Map(devices.map((d) => [d.id, d]));
+  const inUse = new Set(ids);
+  const changed = Object.keys(overrides[kind]).filter((id) => device.has(id));
+  // Setting a device back to its default drops the override instead of storing it.
+  const set = (d: Device, on: boolean) => setOverride(kind, d.id, on === isDefault(d) ? undefined : on);
+  const addable = devices.filter((d) => isHost(d) && !inUse.has(d.id));
+  const lower = title.toLowerCase();
+  return (
+    <Section
+      title={`${title} (${ids.length})`}
+      actions={
+        changed.length > 0 && (
+          <button type="button" className="icon-button" onClick={() => changed.forEach((id) => setOverride(kind, id, undefined))} title={`Go back to the default ${lower}`}>
+            <RotateCcw size={16} />
+            <span>Defaults</span>
+          </button>
+        )
+      }
+    >
+      <details>
+        <summary>{kind === 'entries' ? 'Where an attacker could start' : 'What an attacker could aim for'}</summary>
+        <p className="muted">
+          {kind === 'entries'
+            ? 'By default: internet connections, wireless access points, jump hosts, every L4–L5 host, and hosts at L3.5 or above that offer a remote service.'
+            : 'By default: safety systems, PLCs, RTUs, and other high-criticality devices at L1–L2.'}{' '}
+          Changes here last for this visit and are not saved in the project file.
+        </p>
+        <ul className="endpoint-list">
+          {ids.map((id) => {
+            const d = device.get(id)!;
+            return (
+              <li key={id}>
+                <span>
+                  {deviceName(d)}
+                  {overrides[kind][id] === true && <span className="muted"> (added)</span>}
+                </span>
+                <button type="button" className="icon-button" onClick={() => set(d, false)} aria-label={`Remove ${deviceName(d)} from the ${lower}`} title="Remove">
+                  <X size={14} />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {addable.length > 0 && (
+          <Field label={kind === 'entries' ? 'Add an entry point' : 'Add a target'}>
+            <Select
+              value=""
+              options={[{ value: '', label: 'Choose a device…' }, ...addable.map((d) => ({ value: d.id, label: deviceName(d) }))]}
+              onChange={(id) => id && set(device.get(id)!, true)}
+            />
+          </Field>
+        )}
+      </details>
+    </Section>
   );
 }
 

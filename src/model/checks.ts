@@ -4,7 +4,7 @@
 import { selectorMatches } from './policies';
 import { getProtocol } from './protocols';
 import { levelLabel } from './purdue';
-import type { Device, Flow, Link, Project } from './schema';
+import type { Device, FirewallRule, Flow, Link, Project, RuleEndpoint } from './schema';
 
 export type Severity = 'high' | 'medium' | 'low';
 
@@ -319,8 +319,9 @@ export function findingsByItem(project: Project, findings: Finding[]): Map<strin
   return map;
 }
 
-type Endpoint = { kind: 'any' } | { kind: 'zone'; id: string } | { kind: 'device'; id: string };
-const endpointMatches = (ep: Endpoint, d: Device) => ep.kind === 'any' || (ep.kind === 'zone' ? d.zoneId === ep.id : d.id === ep.id);
+const endpointMatches = (ep: RuleEndpoint, d: Device) => ep.kind === 'any' || (ep.kind === 'zone' ? d.zoneId === ep.id : d.id === ep.id);
+/** Whether a firewall rule's source and destination match traffic from `src` to `dst`. */
+export const ruleMatches = (r: FirewallRule, src: Device, dst: Device) => endpointMatches(r.src, src) && endpointMatches(r.dst, dst);
 
 /**
  * What a firewall does with traffic from `src` to `dst`: rules are evaluated top to bottom and the
@@ -331,7 +332,7 @@ export function firewallVerdict(fw: Device, src: Device, dst: Device, protocol: 
   const config = fw.firewall;
   if (!config) return 'allow';
   for (const r of config.rules) {
-    if (!endpointMatches(r.src, src) || !endpointMatches(r.dst, dst)) continue;
+    if (!ruleMatches(r, src, dst)) continue;
     if (r.protocol !== 'any' && protocol !== 'any' && r.protocol !== protocol) continue;
     if (r.port !== null && port !== null && r.port !== port) continue;
     return r.action;

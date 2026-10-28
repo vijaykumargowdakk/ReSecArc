@@ -26,6 +26,9 @@
   --on-accent: #ffffff;
   --allow-soft: #dcfce7;
   --danger-line: #f5c2bd;
+  /* The highlighted attack path: violet, apart from the red of findings and the accent of selection. */
+  --path: #6d28d9;
+  --on-path: #ffffff;
   --info-bg: #e0f2fe;
   --info-line: #bae6fd;
   --info-ink: #0c4a6e;
@@ -66,6 +69,8 @@
     --danger: #f87171;
     --danger-soft: #3b1a1a;
     --danger-line: #7f1d1d;
+    --path: #c4b5fd;
+    --on-path: #1e1033;
     --allow: #4ade80;
     --on-status: #0b1520;
     --allow-soft: #12321f;
@@ -110,6 +115,8 @@
   --danger: #f87171;
   --danger-soft: #3b1a1a;
   --danger-line: #7f1d1d;
+  --path: #c4b5fd;
+  --on-path: #1e1033;
   --allow: #4ade80;
   --on-status: #0b1520;
   --allow-soft: #12321f;
@@ -153,6 +160,8 @@
   --danger: #9b0000;
   --danger-soft: #ffe5e5;
   --danger-line: #9b0000;
+  --path: #4b0082;
+  --on-path: #ffffff;
   --allow: #005c1a;
   --allow-soft: #ddf5e3;
   --info-bg: #ffffff;
@@ -3115,4 +3124,125 @@ textarea {
 .security-footer {
   margin: 8px 12px 16px;
   font-size: 11.5px;
+}
+
+/* The attack path chosen in the Security panel: violet links, flows and outlines, numbered steps. */
+.link-edge.sec-path,
+.flow-edge.sec-path {
+  stroke: var(--path) !important;
+  stroke-width: 4px !important;
+}
+
+.sec-path-step .device-node,
+.sec-path .device-node {
+  outline: 3px solid var(--path);
+  outline-offset: 2px;
+}
+
+.sec-path .device-node {
+  outline-style: dashed;
+}
+
+.path-step-badge {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: var(--path);
+  color: var(--on-path);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.path-list,
+.endpoint-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.path {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+
+.path.is-selected {
+  border-left-color: var(--path);
+  box-shadow: 0 0 0 1px var(--path);
+}
+
+.path__title {
+  font-weight: 600;
+  text-align: left;
+}
+
+.path__relies {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* Each step is a chip, stacked to fit the panel; the arrows between them come from CSS so screen
+   readers read only the list. */
+.attack-chain {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+}
+
+.attack-chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 3px 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.attack-chip + .attack-chip::before {
+  content: '↓';
+  position: absolute;
+  left: 10px;
+  top: -16px;
+  line-height: 16px;
+  color: var(--ink-soft);
+}
+
+.attack-chip__device {
+  font-weight: 600;
+}
+
+.attack-chip__label {
+  font-variant-numeric: tabular-nums;
+}
+
+.attack-chip__name {
+  color: var(--ink-soft);
+}
+
+.endpoint-list {
+  gap: 2px;
+  margin: 6px 0;
+}
+
+.endpoint-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }

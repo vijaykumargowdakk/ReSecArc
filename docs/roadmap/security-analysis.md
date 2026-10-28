@@ -1,6 +1,6 @@
 # Security checks, company policies and attack paths (M24–M25)
 
-*Planned 2026-10-25. M24 built on 2026-10-28 (see decisions.md for where it differs from this plan); M25 not started.*
+*Planned 2026-10-25. M24 and M25 built on 2026-10-28; decisions.md records where each differs from this plan (for example, T0855 is revoked in ATT&CK v20.0 and replaced by T1692.001).*
 
 This is the agreed plan. A future session can build these milestones from it. Read
 `PROJECT_STATUS.md` and `decisions.md` first, as usual.
