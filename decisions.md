@@ -301,3 +301,8 @@ Also fixed:
 - Startup bundle: 571 kB of the 575 kB budget. The panel is a separate chunk; the checks run at startup because the badges need them.
 **Why:** The plan in `docs/roadmap/security-analysis.md`. axe found the policy selector dropdowns unlabelled and the Security button's name not matching its visible text; both were fixed before commit.
 **User input:** The owner asked to start M24.
+
+## 2026-10-28 — M24 merged; M25 in a new session
+**Decision:** PR #1 (M24) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/security-checks` branch stays on GitHub. M25 starts in a separate session, from `docs/roadmap/security-analysis.md`.
+**Why:** This is the first milestone merged through a pull request, under the branch-and-PR workflow adopted on the same day.
+**User input:** The owner approved the merge and said they will start M25 in another session.
