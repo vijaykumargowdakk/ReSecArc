@@ -86,7 +86,10 @@ export const BUILTIN_CHECKS: readonly CheckDef[] = [
     title: 'Direct connection between IT and OT',
     headline: COMMUNICATION_VIOLATION,
     reference: 'IEC 62443-3-2 ZCR 3.2; IEC 62443-3-3 SR 5.1, SR 5.2',
-    rationale: 'Business systems (L4–L5) and control systems (L0–L3) belong in separate zones, joined only through a boundary device and the DMZ.',
+    // Levels classify the assets (business or control); IEC 62443 then asks for the two kinds to be in
+    // separate zones. So this check reads levels, and a zone-based check covers zone boundaries.
+    rationale:
+      'The Purdue level tells business systems (L4–L5) from control systems (L0–L3). IEC 62443 asks for business and control assets to be kept in separate zones, joined only through a boundary device and the DMZ.',
     fix: 'Route the connection through the IT/OT firewall and terminate it in the DMZ (L3.5).',
     severity: 'high',
     run: (ctx) => {
@@ -245,6 +248,12 @@ function policyFindings(ctx: Context): Finding[] {
     const forbidden = (a: Device, b: Device, either: boolean) =>
       (selectorMatches(rule.from, a) && selectorMatches(rule.to, b)) ||
       ((either || rule.bothWays) && selectorMatches(rule.from, b) && selectorMatches(rule.to, a));
+    // Name devices by what the rule's selectors look at: levels, zones, both, or neither.
+    const kinds = new Set([rule.from.kind, rule.to.kind]);
+    const who = (d: Device) => {
+      const parts = [...(kinds.has('levels') ? [levelLabel(d.purdueLevel)] : []), ...(kinds.has('zone') ? [zoneName(ctx, d)] : [])];
+      return parts.length ? `${d.label} (${parts.join(', ')})` : d.label;
+    };
     const finding = (message: string, items: Partial<FindingItems>, itemId: string): Finding => ({
       id: `${rule.id}:${itemId}`,
       source: 'policy',
@@ -260,14 +269,14 @@ function policyFindings(ctx: Context): Finding[] {
       for (const l of ctx.project.links) {
         const pair = ends(ctx, l);
         // Links have no direction, so they match either way round.
-        if (pair && forbidden(...pair, true)) out.push(finding(`${name(pair[0])} is linked to ${name(pair[1])}`, { links: [l.id] }, l.id));
+        if (pair && forbidden(...pair, true)) out.push(finding(`${who(pair[0])} is linked to ${who(pair[1])}`, { links: [l.id] }, l.id));
       }
     }
     if (rule.connection !== 'link') {
       for (const f of ctx.project.flows) {
         const pair = ends(ctx, f);
         if (!pair || (rule.protocols.length && !rule.protocols.includes(f.protocol))) continue;
-        if (forbidden(...pair, false)) out.push(finding(`${name(pair[0])} sends ${protocolName(f)} to ${name(pair[1])}`, { flows: [f.id] }, f.id));
+        if (forbidden(...pair, false)) out.push(finding(`${who(pair[0])} sends ${protocolName(f)} to ${who(pair[1])}`, { flows: [f.id] }, f.id));
       }
     }
   }

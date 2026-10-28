@@ -358,3 +358,14 @@ Also fixed:
 - A test pins the new wording and checks that no zone-based finding shows a level.
 **Why:** A user pointed out that the old message put levels next to "different zones", which reads as if L3 and L2 were the zones. Levels come from the Purdue model; zones and conduits come from IEC 62443.
 **User input:** The owner passed on a user's comment: "Zones are different from Levels. Single level can have multiple zones and a single zone can be spread across multiple levels. Levels are from Purdue model; zones and conduits are from IEC 62443."
+
+## 2026-10-28 — Policy findings follow their selectors; the IT/OT check stays level-based
+**Decision:**
+- **Company policy findings** name devices by what the rule selects on: levels ("Office workstation (L4)"), zones ("(zone Enterprise)"), both, or just the label for type and tag rules. Before, they always showed levels, so a zone-to-zone rule reported levels it never looked at. This turned up when the zone wording fix was checked against every message.
+- **"Direct connection between IT and OT" stays based on Purdue levels.** No zone property ("business" / "control") is added. Reasons:
+  - IEC 62443-3-2 ZCR 3.2 is "Separate business and IACS assets" (ISA 62443-3-2 table of contents). It is about two kinds of *asset* being in separate zones. The Purdue level is how the design says which kind an asset is, so the level classifies the asset; it does not stand in for a zone.
+  - A zone property would repeat what the levels already say. Every user would have to set it. Where it was not set, the check would stay silent, and the office-to-RTU link that started this work would go unreported.
+  - Zone boundaries are already checked from zones by `zone-boundary-unprotected`, and policies can select on zones.
+- The check's rationale now says this in plain words, and so does README section 2.2.
+**Why:** The owner asked for the earlier proposal to be checked again before deciding.
+**User input:** "Do what is right and decide after cross-inspecting your decision again."

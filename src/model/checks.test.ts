@@ -209,6 +209,19 @@ describe('company policies', () => {
     expect(policy(addPolicy(base(), { ...examplePolicy('pol'), enabled: false }))).toEqual([]);
   });
 
+  it('names devices by what the rule looks at: levels, zones or neither', () => {
+    const message = (rule: Partial<ReturnType<typeof newPolicy>>) =>
+      policy(addPolicy(addLink(water(), 'office-ws', 'rtu-pump', 'link-bad'), { ...newPolicy('pol'), ...rule })).find((f) => f.items.links.includes('link-bad'))?.message;
+    expect(message(examplePolicy('pol'))).toBe('Office workstation (L4) is linked to Pump station RTU (L1)');
+    expect(message({ from: { kind: 'zone', id: 'zone-enterprise' }, to: { kind: 'zone', id: 'zone-control' } })).toBe(
+      'Office workstation (zone Enterprise) is linked to Pump station RTU (zone Control)',
+    );
+    expect(message({ from: { kind: 'levels', levels: [4] }, to: { kind: 'zone', id: 'zone-control' } })).toBe(
+      'Office workstation (L4, zone Enterprise) is linked to Pump station RTU (L1, zone Control)',
+    );
+    expect(message({ from: { kind: 'type', types: ['workstation'] }, to: { kind: 'type', types: ['rtu'] } })).toBe('Office workstation is linked to Pump station RTU');
+  });
+
   it('is reported alongside the IEC 62443 finding', () => {
     const p = addPolicy(addLink(water(), 'office-ws', 'rtu-pump', 'link-bad'), examplePolicy('pol'));
     const headlines = runChecks(p).filter((f) => f.items.links.includes('link-bad')).map((f) => f.headline);
