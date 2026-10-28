@@ -9,7 +9,7 @@ import { LAYER_LABELS, usePrefs, type Layers } from '../store/prefs';
 import { useSecurity, type SecurityTab } from '../store/security';
 import { useTheme, type Theme } from '../store/theme';
 import { NO_SELECTION, useProject } from '../store/useProject';
-import { addNoteInView, chooseProjectFile, exportImage, exportText, saveProjectFile, tidyOpenSite } from './actions';
+import { addNoteInView, chooseProjectFile, exportAttackFlow, exportImage, exportText, saveProjectFile, tidyOpenSite } from './actions';
 import type { CanvasEdge } from './canvas/edges';
 import { startKeyboardConnect } from './canvas/useKeyboardConnect';
 import type { CanvasNode } from './canvas/nodes';
@@ -100,6 +100,10 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
     useProject.getState().select(NO_SELECTION);
   };
   add('Security', 'security-findings', 'Show security findings', () => showSecurity('findings'), { keywords: 'iec 62443 checks violations policy' });
+  add('Security', 'attack-paths', 'Show attack paths', () => showSecurity('paths'), { keywords: 'mitre att&ck ics attack flow reachability' });
+  add('Security', 'attack-flow', 'Export attack paths (MITRE Attack Flow)', () => {
+    void exportAttackFlow(useProject.getState().project, useSecurity.getState().overrides);
+  }, { keywords: 'stix json mitre att&ck download' });
   add('Security', 'security-policy', 'Add a company policy rule', () => {
     useProject.getState().apply((p) => addPolicy(p, newPolicy()));
     showSecurity('rules');

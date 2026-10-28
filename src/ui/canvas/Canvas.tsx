@@ -34,6 +34,7 @@ import { Legend } from './Legend';
 import { NodeMenu } from './NodeMenu';
 import { AreaNode, DeviceNode, LaneNode, NoteNode, PortalNode, type CanvasNode, type LaneFlowNode } from './nodes';
 import { useKeyboardConnect } from './useKeyboardConnect';
+import { usePathMarks } from './usePathMarks';
 import { buildView } from './view';
 
 export const DEVICE_DND_MIME = 'application/x-conduitot-device';
@@ -107,9 +108,10 @@ export function Canvas() {
   const marks = comparison?.marks;
   const layers = usePrefs((s) => s.layers);
   const findings = useFindingsByItem();
+  const path = usePathMarks();
   const view = useMemo(
-    () => buildView(project, siteId, selection, dimmed, marks, layers, pendingConnect, layers.security ? findings : undefined),
-    [project, siteId, selection, dimmed, marks, layers, pendingConnect, findings],
+    () => buildView(project, siteId, selection, dimmed, marks, layers, pendingConnect, layers.security ? findings : undefined, path),
+    [project, siteId, selection, dimmed, marks, layers, pendingConnect, findings, path],
   );
 
   const [nodes, setNodes] = useState<CanvasNode[]>(() => [...LANE_NODES, ...view.nodes]);

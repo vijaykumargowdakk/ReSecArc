@@ -73,6 +73,10 @@ for (const theme of THEMES) {
       await page.getByRole('button', { name: 'Add example: no direct IT → OT' }).click();
       await page.locator('.policy summary').click();
       await expectNoViolations(page, 'security rules with an open policy');
+      await page.getByRole('tab', { name: /^Attack paths/ }).click();
+      await page.getByRole('button', { name: 'Office workstation → Pump station RTU' }).click();
+      await page.locator('summary', { hasText: 'Where an attacker could start' }).click();
+      await expectNoViolations(page, 'attack paths with a highlighted path');
     });
 
     test('comparison view has no violations', async ({ page }) => {

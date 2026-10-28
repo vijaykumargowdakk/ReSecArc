@@ -74,6 +74,15 @@ describe('architecture document', () => {
     expect(md).toContain('Default action when no rule matches: **deny**.');
     expect(md).not.toMatch(/\| undefined/);
   });
+
+  it('lists the attack paths with their ATT&CK for ICS labels', () => {
+    const md = projectToMarkdown(loadTemplate('water-treatment'));
+    expect(md).toContain('## Attack paths (MITRE ATT&CK for ICS)');
+    expect(md).toContain('(ATT&CK-v20.0)');
+    expect(md).toContain(
+      '| Office workstation | Pump station RTU | Office workstation: Initial Access · T0865 Spearphishing Attachment → Remote access jump host: Lateral Movement · T0886 Remote Services',
+    );
+  });
 });
 
 describe('CSV safety', () => {

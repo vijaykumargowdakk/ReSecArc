@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { clearSelection, deviceNode, openApp } from './helpers';
 
@@ -60,6 +61,63 @@ test('company policies and switching a built-in check off', async ({ page }) => 
   // Both changes are ordinary edits.
   await page.keyboard.press('Control+z');
   await expect(page.getByRole('button', { name: 'Office workstation (L4) connects directly to Pump station RTU (L1)' })).toBeVisible();
+});
+
+test('attack paths: ATT&CK labels, canvas highlight and the Attack Flow export', async ({ page }) => {
+  await securityButton(page).click();
+  await page.getByRole('tab', { name: 'Attack paths (12)' }).click();
+  const panel = page.getByRole('tabpanel');
+  await expect(panel.getByRole('heading', { name: /MITRE ATT&CK® for ICS — possible attack paths/ })).toBeVisible();
+
+  // The demo's path from the office runs through the jump host and SCADA, then commands the RTU.
+  const path = panel.getByRole('listitem').filter({ has: page.getByRole('button', { name: 'Office workstation → Pump station RTU' }) });
+  await expect(path.locator('.attack-chip__label')).toHaveText([
+    'Initial Access · T0865',
+    'Lateral Movement · T0886',
+    'Lateral Movement · T0886',
+    'Impair Process Control · T1692.001',
+    'Impact · T0831',
+  ]);
+  await expect(path.getByRole('link', { name: 'T1692.001' })).toHaveAttribute('href', 'https://attack.mitre.org/techniques/T1692/001');
+
+  // Choosing it numbers its steps on the canvas and keeps the panel open.
+  await path.getByRole('button', { name: 'Office workstation → Pump station RTU' }).click();
+  await expect(page.locator('.path-step-badge')).toHaveCount(4);
+  await expect(deviceNode(page, 'Office workstation').locator('.path-step-badge')).toHaveText('1');
+  await expect(deviceNode(page, 'Pump station RTU').locator('.path-step-badge')).toHaveText('4');
+  await expect(page.locator('.react-flow__node.sec-path-step')).toHaveCount(4);
+  await expect(page.locator('.link-edge.sec-path')).toHaveCount(7);
+  await expect(page.locator('.flow-edge.sec-path')).toHaveCount(1);
+  await expect(page.getByRole('tab', { name: /^Attack paths/ })).toBeVisible();
+
+  const download = page.waitForEvent('download');
+  await path.getByRole('button', { name: 'Export this path (Attack Flow)' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe('riverbend-water-treatment-fictional-demo-attack-flow.json');
+  const bundle = JSON.parse(await readFile(await file.path(), 'utf8'));
+  expect(bundle.type).toBe('bundle');
+  const actions = bundle.objects.filter((o: { type: string }) => o.type === 'attack-action');
+  expect(actions.map((a: { technique_id: string }) => a.technique_id)).toEqual(['T0865', 'T0886', 'T0886', 'T1692.001', 'T0831']);
+
+  // Choosing it again stops the highlight.
+  await path.getByRole('button', { name: 'Office workstation → Pump station RTU' }).click();
+  await expect(page.locator('.path-step-badge')).toHaveCount(0);
+});
+
+test('a direct office to RTU link gives a one-hop path, and entry points can be changed', async ({ page }) => {
+  await linkOfficeToRtu(page);
+  await securityButton(page).click();
+  await page.getByRole('tab', { name: /^Attack paths/ }).click();
+  const panel = page.getByRole('tabpanel');
+  const path = panel.getByRole('listitem').filter({ has: page.getByRole('button', { name: 'Office workstation → Pump station RTU' }) });
+  await expect(path).toContainText('1 hop');
+  await expect(path.locator('.path__relies')).toContainText('Office workstation (L4) connects directly to Pump station RTU (L1) (it-ot-direct)');
+
+  await page.locator('summary', { hasText: 'Where an attacker could start' }).click();
+  await panel.getByRole('button', { name: 'Remove Office workstation from the entry points' }).click();
+  await expect(panel.getByRole('button', { name: 'Office workstation → Pump station RTU' })).toHaveCount(0);
+  await panel.getByRole('button', { name: /Go back to the default entry points|Defaults/ }).click();
+  await expect(panel.getByRole('button', { name: 'Office workstation → Pump station RTU' })).toBeVisible();
 });
 
 test('the security layer can be hidden', async ({ page }) => {

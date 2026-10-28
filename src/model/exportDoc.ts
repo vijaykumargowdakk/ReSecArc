@@ -1,4 +1,6 @@
 // Markdown architecture document: a readable record of what the project contains.
+import { ATTACK_ICS_RELEASE, ICS_TACTICS, ICS_TECHNIQUES, type IcsTacticName, type IcsTechniqueId } from './attack/icsTechniques';
+import { findAttackPaths } from './attack/paths';
 import { kindLabel } from './catalog';
 import { checkById, runChecks } from './checks';
 import { deriveConduits } from './conduits';
@@ -70,6 +72,21 @@ export function projectToMarkdown(project: Project, generatedAt = new Date()): s
     out.push('### Company policies\n');
     out.push(table(['Rule', 'Forbids', 'Severity', 'Enabled'], project.policies.map((r) => [r.name, describePolicy(r, project), r.severity, r.enabled ? 'yes' : 'no'])));
   }
+
+  out.push('## Attack paths (MITRE ATT&CK for ICS)\n');
+  const report = findAttackPaths(project);
+  const label = (id: string) => project.devices.find((d) => d.id === id)?.label ?? id;
+  const step = (s: { tactic: IcsTacticName; technique: IcsTechniqueId }) => `${ICS_TACTICS[s.tactic].name} · ${s.technique} ${ICS_TECHNIQUES[s.technique].name}`;
+  out.push(
+    `Possible paths based on the design, from the default entry points to the default targets, honouring firewall rules; not predictions. ` +
+      `Labelled with MITRE ATT&CK® for ICS (${ATTACK_ICS_RELEASE}). ${report.total > report.paths.length ? `The ${report.paths.length} highest ranked of ${report.total} paths are listed.` : ''}\n`,
+  );
+  out.push(
+    table(
+      ['#', 'From', 'To', 'Steps', 'Impact'],
+      report.paths.map((p, i) => [i + 1, label(p.entryId), label(p.targetId), p.steps.map((s) => `${label(s.deviceId)}: ${step(s)}`).join(' → '), step(p.impact)]),
+    ),
+  );
 
   for (const site of project.sites) {
     const devices = project.devices.filter((d) => d.siteId === site.id).sort((a, b) => b.purdueLevel - a.purdueLevel || a.label.localeCompare(b.label));

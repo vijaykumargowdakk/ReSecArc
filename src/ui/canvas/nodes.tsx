@@ -57,6 +57,11 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
           {data.security.count}
         </span>
       )}
+      {data.pathStep !== undefined && (
+        <span className="path-step-badge" title={`Step ${data.pathStep} of the selected attack path`} aria-hidden="true">
+          {data.pathStep}
+        </span>
+      )}
       {device.locked && (
         <span className="lock-badge" title="Locked: cannot be moved" aria-hidden="true">
           <Lock size={10} />
