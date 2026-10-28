@@ -148,6 +148,8 @@ flowchart LR
 
 From that drawing the app lists three conduits: Enterprise ↔ DMZ, DMZ ↔ Operations and Operations ↔ Control.
 
+**Zones are not Purdue levels.** Levels come from the Purdue model and say what a device does; zones and conduits come from IEC 62443 and group devices by their security requirements. One level can hold several zones, and one zone can span several levels: in the water treatment demo, the Control zone holds the HMI (L2), the PLCs and RTU (L1) and the field devices (L0). ConduitOT keeps the two separate. A device's level and zone are set independently, and each security finding names whichever one its check looks at: levels for the IT/OT and remote access checks, zones for the zone boundary, protocol and safety separation checks.
+
 ### 2.3 The building blocks of a design
 
 ```mermaid

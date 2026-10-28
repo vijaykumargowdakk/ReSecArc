@@ -348,3 +348,13 @@ Also fixed:
 **Decision:** PR #2 (M25) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/attack-paths` branch stays on GitHub. M26 (touch and text size) starts in a separate session on a new branch from `main`, loading new code on demand (see the budget entry above).
 **Why:** The branch-and-PR workflow adopted on 2026-10-28.
 **User input:** The owner asked to merge and said they will start the next milestone in a new session.
+
+## 2026-10-28 — Zone-based findings name zones, not Purdue levels
+**Decision:**
+- Findings from the zone-based checks now name each device's **zone** instead of its Purdue level. Before: "Operations switch (L3) and Control switch (L2) are in different zones with no boundary device between them". After: "Operations switch (zone Operations) and Control switch (zone Control) are linked with no boundary device between the zones". The same applies to the unsecured-protocol and safety-separation messages.
+- Level-based checks keep levels: direct IT/OT connection, remote access at L0–L2, OT device without a zone.
+- The check logic itself is unchanged: it always compared zone assignments, never levels.
+- README section 2.2 now explains that zones and levels are separate. One level can hold several zones, and one zone can span several levels, as the demo's Control zone does (L2–L0).
+- A test pins the new wording and checks that no zone-based finding shows a level.
+**Why:** A user pointed out that the old message put levels next to "different zones", which reads as if L3 and L2 were the zones. Levels come from the Purdue model; zones and conduits come from IEC 62443.
+**User input:** The owner passed on a user's comment: "Zones are different from Levels. Single level can have multiple zones and a single zone can be spread across multiple levels. Levels are from Purdue model; zones and conduits are from IEC 62443."
