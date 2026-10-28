@@ -99,6 +99,12 @@ test('attack paths: ATT&CK labels, canvas highlight and the Attack Flow export',
   const actions = bundle.objects.filter((o: { type: string }) => o.type === 'attack-action');
   expect(actions.map((a: { technique_id: string }) => a.technique_id)).toEqual(['T0865', 'T0886', 'T0886', 'T1692.001', 'T0831']);
 
+  // The header button exports every path shown.
+  const all = page.waitForEvent('download');
+  await panel.getByRole('button', { name: 'Export', exact: true }).click();
+  const allBundle = JSON.parse(await readFile(await (await all).path(), 'utf8'));
+  expect(allBundle.objects.find((o: { type: string }) => o.type === 'attack-flow').start_refs).toHaveLength(12);
+
   // Choosing it again stops the highlight.
   await path.getByRole('button', { name: 'Office workstation → Pump station RTU' }).click();
   await expect(page.locator('.path-step-badge')).toHaveCount(0);

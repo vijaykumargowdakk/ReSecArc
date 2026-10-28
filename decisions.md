@@ -306,3 +306,35 @@ Also fixed:
 **Decision:** PR #1 (M24) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/security-checks` branch stays on GitHub. M25 starts in a separate session, from `docs/roadmap/security-analysis.md`.
 **Why:** This is the first milestone merged through a pull request, under the branch-and-PR workflow adopted on the same day.
 **User input:** The owner approved the merge and said they will start M25 in another session.
+
+## 2026-10-28 — M25 data: ATT&CK for ICS v20.0, generated; T0855 replaced by T1692.001
+**Decision:**
+- `scripts/attack-ics.mjs` downloads `ics-attack/ics-attack.json` from mitre/cti at the pinned tag **`ATT&CK-v20.0`** (the newest release on 2026-10-28) and writes `src/model/attack/icsTechniques.ts`: all 12 tactics in matrix order and the 10 techniques we use, with IDs, names, tactics and URLs. It fails if a technique is missing, revoked or deprecated, or is not under the tactic we show it in. Nothing in the table is typed by hand.
+- **T0855 Unauthorized Command Message is revoked in this release**, replaced by **T1692.001 Command Message** (Evasion, Impair Process Control). The plan's candidate mapping is updated to it. T0886 Remote Services sits under both Initial Access and Lateral Movement, which settles the disagreement the plan noted; we show it under Lateral Movement.
+- Left out for now: T0836 Modify Parameter and the optional hop notes (T0842 Network Sniffing, T0830 Adversary-in-the-Middle). Each label we show has one clear rule; fewer guesses, fewer arguable labels.
+**Why:** The plan asked for generated data, a pinned release and a check against revoked IDs. The check caught T0855 on its first run.
+**User input:** The owner asked to start the next milestone (M25) on a new branch and keep it updated in git.
+
+## 2026-10-28 — M25 path finding: where it differs from the plan
+**Decision:**
+- **Firewalls:** a firewall passes traffic from A to B when, reading rules top to bottom, an allow rule matches before a deny of everything, and no earlier deny already covers that allow's protocol and port; otherwise the default action applies. The plan's "first match is an allow" would let a narrow deny (say, Modbus) hide a later HTTPS allow.
+- **Flows** give reach unless a firewall on the link route between their ends denies that protocol and port; a flow with no link route at all (a design drawn with flows only) still counts.
+- **Default entries** leave out hosts below L3.5 that offer a remote service. In the water demo SCADA and the engineering workstation offer RDP; treating them as entry points would claim they can be reached from outside, when the design only allows it through the jump host. The path through the jump host is shown instead. Hosts at L3.5 or above with a remote service are entries, as are internet, wireless access point and jump host devices and every L4–L5 host.
+- **Default targets** leave out L0 sensors and actuators: they are reached through their controller, which is already a target, and listing them doubled the paths. SIS, PLC, RTU and other high-criticality L1–L2 devices are targets.
+- **Last hop:** among the hosts one hop before the target, one with a flow into the target is preferred, then an engineering workstation (for controllers), so the step carries Command Message or Program Download rather than a generic label. Earlier hops keep the search's first choice.
+- **Search cost:** hosts that firewall rules treat alike (same segment and zone, not named in a rule) share a class, so crossing a firewall is decided once per class pair. The 1,000-device unit test runs in well under a second.
+- **Templates:** water treatment 12 paths, substation 4, manufacturing 8, building 12, pipeline 0. No template floods the list.
+- **Overrides** of entries and targets live in the security store for the visit, as planned; the Markdown record uses the defaults.
+**Why:** Fewer false alarms, as the plan asks, and firewall verdicts that match how the rule editor reads.
+**User input:** The owner asked to start M25.
+
+## 2026-10-28 — M25 interface and Attack Flow export
+**Decision:**
+- **Attack paths tab** between Findings and Rules, titled "MITRE ATT&CK® for ICS — possible attack paths". Each path is a button (pressed while highlighted) and a stacked chain of chips: device, tactic · technique ID (linked to attack.mitre.org), technique name, ending with the impact. The chips stack vertically because a horizontal chain wrapped one chip per line in the side panel. Each path lists the findings on its links, flows and crossed firewalls ("Relies on").
+- **Canvas:** choosing a path numbers its steps with a badge and draws its links, flows and crossed devices in a new violet `--path` colour (dashed outline for crossed devices), defined in every theme. It shows even with the security layer off, because the user chose the path on purpose. The path finder loads only when a path is chosen (`usePathMarks`), and choosing a path frames it without selecting anything, so the panel stays open.
+- **Export:** Attack Flow 2.0.0, as planned. The extension definition and its MITRE identity are copied exactly from `attack-flow-extension-2.0.0.json` (a test compares them). An `identity` "ConduitOT" (class system) is the author. Each path becomes a chain of `attack-action` objects joined by `effect_refs`, ending in its impact action; one `attack-asset` per device; `scope: "attack-tree"`. IDs are random v4 UUIDs from `crypto.getRandomValues`, which, unlike `crypto.randomUUID`, also works outside secure contexts.
+- **Validation:** the plan's `af validate` was not used. The Attack Flow repo's corpus is now in the Builder's `.afb` format, and its validator is a Python package. Instead, unit tests check every object against the vendored official schemas with ajv (dev dependency only): Attack Flow 2.0.0 for the attack objects, OASIS STIX 2.1 for the identity and extension definition. A test also checks that broken objects fail, so the validator is not passing everything.
+- **Builder import, checked by hand:** MITRE's hosted Attack Flow Builder (version 4.0) has **Import STIX**. The demo's export opened there with "Valid Attack Flow" and no problems; name, description, author and scope came through. The UI wording therefore says the file opens through Import STIX.
+- **Bundle:** 573.3 kB at startup (budget 575 kB, was 571 kB). The path finder (7.5 kB) and the exporter (3.4 kB) are separate chunks. The next milestone has under 2 kB left, so new features must load on demand or the budget needs a decision.
+**Why:** The plan in `docs/roadmap/security-analysis.md`, adjusted where the data or the tools disagreed with it.
+**User input:** The owner asked to start M25 on a new branch and keep it updated in git.

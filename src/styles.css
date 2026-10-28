@@ -3191,15 +3191,15 @@ textarea {
   color: var(--ink-soft);
 }
 
-/* Each step is a chip; arrows between them come from CSS so screen readers read only the list. */
+/* Each step is a chip, stacked to fit the panel; the arrows between them come from CSS so screen
+   readers read only the list. */
 .attack-chain {
   list-style: none;
   margin: 6px 0 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  gap: 4px 18px;
+  display: grid;
+  justify-items: start;
+  gap: 16px;
 }
 
 .attack-chip {
@@ -3215,11 +3215,11 @@ textarea {
 }
 
 .attack-chip + .attack-chip::before {
-  content: '→';
+  content: '↓';
   position: absolute;
-  left: -15px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: 10px;
+  top: -16px;
+  line-height: 16px;
   color: var(--ink-soft);
 }
 

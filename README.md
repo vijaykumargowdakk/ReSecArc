@@ -317,6 +317,31 @@ On the canvas, links and flows in a high-severity finding are drawn red and thic
 
 ![Security panel: a direct office-to-RTU link reported as an IEC 62443 communication violation and as a company policy violation](docs/images/security.png)
 
+### 4.10 Attack paths (MITRE ATT&CK for ICS)
+
+The **Attack paths** tab of the Security panel lists possible attack paths from entry points to critical OT devices. They are possible paths based on the design, not predictions.
+
+- **Reach.** Devices joined by links with no firewall between them reach each other; switches and routers are crossed, not counted as steps. Crossing a firewall needs a rule that lets some traffic from the one device to the other through (rules are read top to bottom, as in the rule editor). A protocol flow also gives reach, unless a firewall on its route denies that protocol.
+- **Entry points** (by default): internet connections, wireless access points, jump hosts, every L4–L5 host, and hosts at L3.5 or above that offer a remote service.
+- **Targets** (by default): safety systems, PLCs, RTUs and other high-criticality devices at L1–L2. Field devices are reached through their controller.
+- Both lists can be changed in the tab for the current visit; the change is not saved in the project file.
+- The shortest path for each entry and target is kept. Safety system targets come first, then criticality, then the number of hops; at most 50 paths are shown.
+
+Each step is a chip with an ATT&CK for ICS tactic and technique. The IDs, names and tactics are generated from MITRE's published data (`scripts/attack-ics.mjs`, ATT&CK v20.0) and link to attack.mitre.org.
+
+| Step | Technique |
+|------|-----------|
+| Start at an internet connection / a wireless access point / a jump host or remote service / a workstation or HMI | T0883 Internet Accessible Device / T0860 Wireless Compromise / T0822 External Remote Services / T0865 Spearphishing Attachment (otherwise T0866) |
+| Move to a jump host or a host offering RDP, VNC or SSH | T0886 Remote Services |
+| Move to any other host | T0866 Exploitation of Remote Services |
+| Engineering workstation to a controller | T0843 Program Download |
+| Last hop along an existing protocol flow | T1692.001 Command Message (Impair Process Control) |
+| Impact at a safety system / any other target | T0880 Loss of Safety / T0831 Manipulation of Control |
+
+Choosing a path numbers its steps on the canvas and draws its links, flows and crossed devices in violet; choosing it again clears the highlight. Each path lists the findings it relies on, such as the `it-ot-direct` link. **Export** saves the paths shown, and **Export this path** the chosen one, as a MITRE **Attack Flow** file: a STIX 2.1 bundle with one `attack-flow` (scope "attack-tree"), an `attack-action` per step and an `attack-asset` per device. The file passes the official Attack Flow 2.0.0 schema and opens in MITRE's Attack Flow Builder through **Import STIX**. The Markdown architecture record has an "Attack paths (MITRE ATT&CK for ICS)" section.
+
+![Attack paths tab: the office workstation reaches the pump station RTU through the jump host and SCADA, highlighted on the canvas with numbered steps](docs/images/attack-paths.png)
+
 ### 4.8 Import, export and sharing
 
 | Output | Format | Notes |
@@ -324,7 +349,8 @@ On the canvas, links and flows in a high-severity finding are drawn red and thic
 | Project file | `.conduitot.json` | The complete design, including revisions |
 | Diagram | SVG, PNG | The open site, as drawn |
 | Printable diagram | PDF via the browser's print dialog | Uses a print stylesheet |
-| Architecture record | Markdown | Zones, networks, conduits, and per site: devices, flows, firewall rules and notes |
+| Architecture record | Markdown | Zones, networks, conduits, security findings, attack paths, and per site: devices, flows, firewall rules and notes |
+| Attack paths | MITRE Attack Flow (STIX 2.1 JSON) | `<project>-attack-flow.json`; see [section 4.10](#410-attack-paths-mitre-attck-for-ics) |
 | Change record | Markdown | Changes since a chosen revision |
 | Tables | CSV | Devices, links, flows, firewall rules, IP plan |
 | Share link | URL | The whole design inside the link; see [section 15](#15-share-links) |
@@ -439,7 +465,7 @@ flowchart TB
 |-----------|-------------|
 | **The schema is the source of truth** | `src/model/schema.ts` defines the file format with zod; TypeScript types are inferred from it, so types and validation cannot drift apart |
 | **Edits are pure functions** | Every change is `(project) => project` in the model layer. The store applies it, records undo history and notifies the UI |
-| **Views are derived, never stored** | Conduits, the canvas nodes, the IP report and the change list are all computed from the project on demand |
+| **Views are derived, never stored** | Conduits, the canvas nodes, the IP report, the change list, security findings and attack paths are all computed from the project on demand |
 | **Warnings are not errors** | Half-typed IP addresses or subnets never block saving; they show as warnings. Only structural problems stop a file from opening |
 | **Storage is optional** | Every `localStorage` access is wrapped so the editor still works in private windows or with site data blocked |
 
@@ -485,6 +511,9 @@ flowchart LR
 | `src/model/ipam.ts` | IPv4 parsing, subnet matching and address warnings |
 | `src/model/checks.ts` | Built-in IEC 62443 checks, company policy findings, firewall rule verdicts |
 | `src/model/policies.ts` | Company policy rules: editing, matching devices, one-line descriptions |
+| `src/model/attack/paths.ts` | Attack path finding over segments and firewall rules, ATT&CK step labels, canvas marks; loaded on demand |
+| `src/model/attack/attackFlow.ts` | The MITRE Attack Flow (STIX 2.1) export; loaded on demand |
+| `src/model/attack/icsTechniques.ts` | ATT&CK for ICS tactics and techniques, generated by `scripts/attack-ics.mjs`; never edited by hand |
 | `src/model/revisions.ts` | Saving and restoring revisions; the change diff; Markdown change records |
 | `src/model/share.ts` | Encoding and decoding share links |
 | `src/model/csv.ts`, `csvImport.ts` | CSV export of every table; CSV import of devices, flows and rules |
@@ -496,7 +525,8 @@ flowchart LR
 | `src/ui/canvas/view.ts` | Pure function that turns the project into React Flow nodes and edges for one site |
 | `src/ui/canvas/useKeyboardConnect.ts` | L / F, arrow keys, Enter and Esc for connecting devices on the canvas |
 | `src/ui/Outline.tsx` | The Outline view (WAI-ARIA tree), loaded on demand |
-| `src/ui/security/SecurityPanel.tsx` | The Security panel: findings, built-in checks and company policies, loaded on demand |
+| `src/ui/security/SecurityPanel.tsx` | The Security panel: findings, attack paths, built-in checks and company policies, loaded on demand |
+| `src/ui/canvas/usePathMarks.ts` | The chosen attack path as canvas marks; loads the path finder once a path is chosen |
 
 ---
 
@@ -1229,7 +1259,7 @@ gitGraph
 Testing has three layers:
 
 - **Unit tests** (Vitest) cover the model layer, which is pure TypeScript, so its rules are tested directly without a browser.
-- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline, keyboard-only connections and security findings.
+- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline, keyboard-only connections, security findings and attack paths.
 - **Accessibility scans** (axe) check every main view and dialog against WCAG 2.1 A and AA in all three themes. Any violation fails CI.
 
 A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and checks that opening it, switching sites and editing each stay within time budgets. It also checks that a diagram export of a 200-device site contains every device.
@@ -1279,6 +1309,8 @@ pie showData
 | `outline.test.ts` | The outline tree, visible rows, type-ahead, the nearest device in a direction |
 | `checks.test.ts` | Every built-in check, the office → RTU example, company policy matching, firewall verdicts |
 | `v5.test.ts` | v4 migration, policies in files and share links, reference checks, the change diff and Markdown record |
+| `attack/paths.test.ts` | The office → RTU paths with and without the direct link, deny and allow rules, ranking, overrides, flows, firewall passes, a 1,000-device design |
+| `attack/attackFlow.test.ts` | The Attack Flow export against the official Attack Flow and STIX 2.1 schemas, references, ATT&CK labels |
 
 | Browser test file | Covers |
 |-------------------|--------|
@@ -1289,7 +1321,7 @@ pie showData
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour, the empty-site hint |
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
-| `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer |
+| `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 
 ---
