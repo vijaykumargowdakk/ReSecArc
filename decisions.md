@@ -338,3 +338,8 @@ Also fixed:
 - **Bundle:** 573.3 kB at startup (budget 575 kB, was 571 kB). The path finder (7.5 kB) and the exporter (3.4 kB) are separate chunks. The next milestone has under 2 kB left, so new features must load on demand or the budget needs a decision.
 **Why:** The plan in `docs/roadmap/security-analysis.md`, adjusted where the data or the tools disagreed with it.
 **User input:** The owner asked to start M25 on a new branch and keep it updated in git.
+
+## 2026-10-28 — Startup bundle budget stays at 575 kB for M26
+**Decision:** The 575 kB startup budget stays. M26 loads its new code on demand wherever it can. The budget is raised only if a feature truly cannot wait to load, and that would be decided and logged then.
+**Why:** After M25 the startup bundle is 573.3 kB (about 179 kB compressed), leaving under 2 kB. Loading on demand keeps the first load fast; raising the limit is a one-line change kept in reserve.
+**User input:** The owner asked what the budget was, then agreed to try on-demand loading in M26 before raising the limit.

@@ -62,7 +62,7 @@ Work is committed on feature branches, **pushed to `origin`** (github.com/vijayk
 
 ## Notes for the next session
 - Run both `npm run ci` and `npm run e2e` before merging; browser tests need `npx playwright install chromium` once.
-- The startup bundle budget is 575 kB (`scripts/check-bundle.mjs`); it is at 573.3 kB after M25, so less than 2 kB is left. M26 must load new code on demand, or the owner must decide to raise the budget. Load new dialogs and panels with `lazy()` / `import()`.
+- The startup bundle budget is 575 kB (`scripts/check-bundle.mjs`); it is at 573.3 kB after M25, so less than 2 kB is left. The owner agreed (decisions.md, 2026-10-28): M26 loads new code on demand wherever it can, and the budget is raised only if a feature truly cannot wait. Load new dialogs and panels with `lazy()` / `import()`.
 - Unit tests run in Node: modules imported by tests must not touch `document` at import time (see the guard in `src/store/theme.ts`).
 - If `gh` fails with a TLS certificate error while `git push` works, check the PC clock. On 2026-10-28 the clock was found days behind with the Windows Time service stopped, so GitHub's API certificate was not yet valid by local time; once the clock was right, `gh` worked again. Fix: Settings → Time & language → Date & time → "Set time automatically" and "Sync now" (or, as administrator, `net start w32time` then `w32tm /resync`).
 - Security checks live in `src/model/checks.ts` (pure, at startup because the canvas badges need them); policy rule operations in `src/model/policies.ts`; panel state in `src/store/security.ts`, outside undo history. The panel (`src/ui/security/SecurityPanel.tsx`) is lazy. `findingsOf` / `findingsByItemOf` in `src/store/derived.ts` cache findings per project object.
