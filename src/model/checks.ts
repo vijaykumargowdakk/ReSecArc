@@ -35,6 +35,8 @@ export interface Finding {
 interface Context {
   project: Project;
   device: Map<string, Device>;
+  /** Zone names by id. */
+  zone: Map<string, string>;
 }
 
 type Hit = { message: string; items: Partial<FindingItems> };
@@ -58,7 +60,12 @@ export const isOT = (d: Device) => d.purdueLevel <= 3;
 export const isBoundary = (d: Device) => d.type === 'firewall';
 
 const isNetwork = (d: Device) => d.type === 'switch' || d.type === 'router';
+// Purdue levels and IEC 62443 zones are separate things: one level can hold several zones and one
+// zone can span several levels. Each message names a device by what its check looks at, the level
+// for level-based checks and the zone for zone-based ones, so neither is mistaken for the other.
 const name = (d: Device) => `${d.label} (${levelLabel(d.purdueLevel)})`;
+const zoneName = (ctx: Context, d: Device) => (d.zoneId === null ? 'no zone' : `zone ${ctx.zone.get(d.zoneId) || d.zoneId}`);
+const zoned = (ctx: Context, d: Device) => `${d.label} (${zoneName(ctx, d)})`;
 const protocolName = (f: Flow) => getProtocol(f.protocol)?.label ?? f.protocol;
 const REMOTE = new Set(['rdp', 'vnc', 'ssh', 'https']);
 /** Device types that may share a zone with a safety system: its own network and field devices. */
@@ -79,7 +86,10 @@ export const BUILTIN_CHECKS: readonly CheckDef[] = [
     title: 'Direct connection between IT and OT',
     headline: COMMUNICATION_VIOLATION,
     reference: 'IEC 62443-3-2 ZCR 3.2; IEC 62443-3-3 SR 5.1, SR 5.2',
-    rationale: 'Business systems (L4–L5) and control systems (L0–L3) belong in separate zones, joined only through a boundary device and the DMZ.',
+    // Levels classify the assets (business or control); IEC 62443 then asks for the two kinds to be in
+    // separate zones. So this check reads levels, and a zone-based check covers zone boundaries.
+    rationale:
+      'The Purdue level tells business systems (L4–L5) from control systems (L0–L3). IEC 62443 asks for business and control assets to be kept in separate zones, joined only through a boundary device and the DMZ.',
     fix: 'Route the connection through the IT/OT firewall and terminate it in the DMZ (L3.5).',
     severity: 'high',
     run: (ctx) => {
@@ -115,7 +125,7 @@ export const BUILTIN_CHECKS: readonly CheckDef[] = [
         // A device plugged into a switch drawn in a neighbouring zone is not a conduit by itself;
         // the conduit is where two zones' networks (or two end devices) meet.
         if (isNetwork(pair[0]) !== isNetwork(pair[1])) continue;
-        hits.push({ message: `${name(pair[0])} and ${name(pair[1])} are in different zones with no boundary device between them`, items: { links: [l.id] } });
+        hits.push({ message: `${zoned(ctx, pair[0])} and ${zoned(ctx, pair[1])} are linked with no boundary device between the zones`, items: { links: [l.id] } });
       }
       return hits;
     },
@@ -164,7 +174,7 @@ export const BUILTIN_CHECKS: readonly CheckDef[] = [
         const pair = ends(ctx, f);
         const def = getProtocol(f.protocol);
         if (!pair || !def || !crossesZones(...pair) || def.isSecured(f.settings)) continue;
-        hits.push({ message: `${protocolName(f)} from ${name(pair[0])} to ${name(pair[1])} crosses zones without authentication or encryption`, items: { flows: [f.id] } });
+        hits.push({ message: `${protocolName(f)} from ${zoned(ctx, pair[0])} to ${zoned(ctx, pair[1])} crosses zones without authentication or encryption`, items: { flows: [f.id] } });
       }
       return hits;
     },
@@ -199,7 +209,7 @@ export const BUILTIN_CHECKS: readonly CheckDef[] = [
         const shared = sis.zoneId === null ? [] : ctx.project.devices.filter((d) => d.zoneId === sis.zoneId && !SAFETY_ZONE_PEERS.has(d.type));
         if (shared.length) {
           hits.push({
-            message: `${name(sis)} shares its zone with ${shared.map((d) => d.label).join(', ')}`,
+            message: `${sis.label} shares ${zoneName(ctx, sis)} with ${shared.map((d) => d.label).join(', ')}`,
             items: { devices: [sis.id, ...shared.map((d) => d.id)] },
           });
         }
@@ -208,7 +218,7 @@ export const BUILTIN_CHECKS: readonly CheckDef[] = [
           const other = ctx.device.get(l.source === sis.id ? l.target : l.source);
           if (!other || isBoundary(other) || other.type === 'sis') continue;
           if (sis.zoneId !== null && other.zoneId === sis.zoneId) continue;
-          hits.push({ message: `${name(sis)} is linked to ${name(other)} without a boundary device`, items: { links: [l.id] } });
+          hits.push({ message: `${zoned(ctx, sis)} is linked to ${zoned(ctx, other)} without a boundary device`, items: { links: [l.id] } });
         }
       }
       return hits;
@@ -238,6 +248,12 @@ function policyFindings(ctx: Context): Finding[] {
     const forbidden = (a: Device, b: Device, either: boolean) =>
       (selectorMatches(rule.from, a) && selectorMatches(rule.to, b)) ||
       ((either || rule.bothWays) && selectorMatches(rule.from, b) && selectorMatches(rule.to, a));
+    // Name devices by what the rule's selectors look at: levels, zones, both, or neither.
+    const kinds = new Set([rule.from.kind, rule.to.kind]);
+    const who = (d: Device) => {
+      const parts = [...(kinds.has('levels') ? [levelLabel(d.purdueLevel)] : []), ...(kinds.has('zone') ? [zoneName(ctx, d)] : [])];
+      return parts.length ? `${d.label} (${parts.join(', ')})` : d.label;
+    };
     const finding = (message: string, items: Partial<FindingItems>, itemId: string): Finding => ({
       id: `${rule.id}:${itemId}`,
       source: 'policy',
@@ -253,14 +269,14 @@ function policyFindings(ctx: Context): Finding[] {
       for (const l of ctx.project.links) {
         const pair = ends(ctx, l);
         // Links have no direction, so they match either way round.
-        if (pair && forbidden(...pair, true)) out.push(finding(`${name(pair[0])} is linked to ${name(pair[1])}`, { links: [l.id] }, l.id));
+        if (pair && forbidden(...pair, true)) out.push(finding(`${who(pair[0])} is linked to ${who(pair[1])}`, { links: [l.id] }, l.id));
       }
     }
     if (rule.connection !== 'link') {
       for (const f of ctx.project.flows) {
         const pair = ends(ctx, f);
         if (!pair || (rule.protocols.length && !rule.protocols.includes(f.protocol))) continue;
-        if (forbidden(...pair, false)) out.push(finding(`${name(pair[0])} sends ${protocolName(f)} to ${name(pair[1])}`, { flows: [f.id] }, f.id));
+        if (forbidden(...pair, false)) out.push(finding(`${who(pair[0])} sends ${protocolName(f)} to ${who(pair[1])}`, { flows: [f.id] }, f.id));
       }
     }
   }
@@ -271,7 +287,7 @@ const SEVERITY_ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
 
 /** Every finding for the project, most severe first. */
 export function runChecks(project: Project): Finding[] {
-  const ctx: Context = { project, device: new Map(project.devices.map((d) => [d.id, d])) };
+  const ctx: Context = { project, device: new Map(project.devices.map((d) => [d.id, d])), zone: new Map(project.zones.map((z) => [z.id, z.name])) };
   const disabled = new Set(project.disabledChecks);
   const findings: Finding[] = [];
   for (const check of BUILTIN_CHECKS) {

@@ -36,6 +36,20 @@ describe('water-treatment template', () => {
     expect(runChecks(p).filter((x) => x.items.links.includes('link-bad'))).toHaveLength(1);
   });
 
+  it('names zones, not Purdue levels, in zone-based findings', () => {
+    const fs = runChecks(water());
+    expect(ids(fs, 'zone-boundary-unprotected')[0].message).toBe(
+      'Operations switch (zone Operations) and Control switch (zone Control) are linked with no boundary device between the zones',
+    );
+    expect(ids(fs, 'sis-not-separated')[0].message).toBe('Dosing safety controller (zone Safety) is linked to Chemical dosing PLC (zone Control) without a boundary device');
+    expect(ids(fs, 'insecure-protocol-cross-zone')[0].message).toBe(
+      'Modbus from SCADA server (zone Operations) to Filtration PLC (zone Control) crosses zones without authentication or encryption',
+    );
+    // A level is never shown where the check is about zones, so one is not mistaken for the other.
+    const zoneChecks = ['zone-boundary-unprotected', 'sis-not-separated', 'insecure-protocol-cross-zone'];
+    for (const f of fs.filter((x) => zoneChecks.includes(x.checkId))) expect(f.message).not.toMatch(/\(L\d/);
+  });
+
   it('raises nothing for the same connection made through the firewall', () => {
     let p = addLink(water(), 'office-ws', 'fw-itot', 'l1');
     p = addLink(p, 'fw-itot', 'rtu-pump', 'l2');
@@ -193,6 +207,19 @@ describe('company policies', () => {
 
   it('ignores disabled rules', () => {
     expect(policy(addPolicy(base(), { ...examplePolicy('pol'), enabled: false }))).toEqual([]);
+  });
+
+  it('names devices by what the rule looks at: levels, zones or neither', () => {
+    const message = (rule: Partial<ReturnType<typeof newPolicy>>) =>
+      policy(addPolicy(addLink(water(), 'office-ws', 'rtu-pump', 'link-bad'), { ...newPolicy('pol'), ...rule })).find((f) => f.items.links.includes('link-bad'))?.message;
+    expect(message(examplePolicy('pol'))).toBe('Office workstation (L4) is linked to Pump station RTU (L1)');
+    expect(message({ from: { kind: 'zone', id: 'zone-enterprise' }, to: { kind: 'zone', id: 'zone-control' } })).toBe(
+      'Office workstation (zone Enterprise) is linked to Pump station RTU (zone Control)',
+    );
+    expect(message({ from: { kind: 'levels', levels: [4] }, to: { kind: 'zone', id: 'zone-control' } })).toBe(
+      'Office workstation (L4, zone Enterprise) is linked to Pump station RTU (L1, zone Control)',
+    );
+    expect(message({ from: { kind: 'type', types: ['workstation'] }, to: { kind: 'type', types: ['rtu'] } })).toBe('Office workstation is linked to Pump station RTU');
   });
 
   it('is reported alongside the IEC 62443 finding', () => {

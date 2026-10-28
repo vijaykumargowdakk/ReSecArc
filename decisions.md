@@ -348,3 +348,24 @@ Also fixed:
 **Decision:** PR #2 (M25) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/attack-paths` branch stays on GitHub. M26 (touch and text size) starts in a separate session on a new branch from `main`, loading new code on demand (see the budget entry above).
 **Why:** The branch-and-PR workflow adopted on 2026-10-28.
 **User input:** The owner asked to merge and said they will start the next milestone in a new session.
+
+## 2026-10-28 — Zone-based findings name zones, not Purdue levels
+**Decision:**
+- Findings from the zone-based checks now name each device's **zone** instead of its Purdue level. Before: "Operations switch (L3) and Control switch (L2) are in different zones with no boundary device between them". After: "Operations switch (zone Operations) and Control switch (zone Control) are linked with no boundary device between the zones". The same applies to the unsecured-protocol and safety-separation messages.
+- Level-based checks keep levels: direct IT/OT connection, remote access at L0–L2, OT device without a zone.
+- The check logic itself is unchanged: it always compared zone assignments, never levels.
+- README section 2.2 now explains that zones and levels are separate. One level can hold several zones, and one zone can span several levels, as the demo's Control zone does (L2–L0).
+- A test pins the new wording and checks that no zone-based finding shows a level.
+**Why:** A user pointed out that the old message put levels next to "different zones", which reads as if L3 and L2 were the zones. Levels come from the Purdue model; zones and conduits come from IEC 62443.
+**User input:** The owner passed on a user's comment: "Zones are different from Levels. Single level can have multiple zones and a single zone can be spread across multiple levels. Levels are from Purdue model; zones and conduits are from IEC 62443."
+
+## 2026-10-28 — Policy findings follow their selectors; the IT/OT check stays level-based
+**Decision:**
+- **Company policy findings** name devices by what the rule selects on: levels ("Office workstation (L4)"), zones ("(zone Enterprise)"), both, or just the label for type and tag rules. Before, they always showed levels, so a zone-to-zone rule reported levels it never looked at. This turned up when the zone wording fix was checked against every message.
+- **"Direct connection between IT and OT" stays based on Purdue levels.** No zone property ("business" / "control") is added. Reasons:
+  - IEC 62443-3-2 ZCR 3.2 is "Separate business and IACS assets" (ISA 62443-3-2 table of contents). It is about two kinds of *asset* being in separate zones. The Purdue level is how the design says which kind an asset is, so the level classifies the asset; it does not stand in for a zone.
+  - A zone property would repeat what the levels already say. Every user would have to set it. Where it was not set, the check would stay silent, and the office-to-RTU link that started this work would go unreported.
+  - Zone boundaries are already checked from zones by `zone-boundary-unprotected`, and policies can select on zones.
+- The check's rationale now says this in plain words, and so does README section 2.2.
+**Why:** The owner asked for the earlier proposal to be checked again before deciding.
+**User input:** "Do what is right and decide after cross-inspecting your decision again."
