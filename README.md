@@ -91,7 +91,7 @@ flowchart TB
 
 ### What it is not
 
-ConduitOT is a design and documentation tool. It does not connect to, scan or configure real devices, and it does not score or audit security. It records what you design.
+ConduitOT is a design and documentation tool. It does not connect to, scan or configure real devices. Its security checks read the design only: they are hints based on IEC 62443 zone and conduit principles, not an audit or a compliance assessment.
 
 ---
 
@@ -294,6 +294,29 @@ The change list can be downloaded as a Markdown change record. See [section 13](
 
 ![Comparing with a saved revision: one device changed, one added, one removed](docs/images/compare.png)
 
+### 4.9 Security checks and company policies
+
+The **Security** button in the toolbar shows how many findings the design has and opens the Security panel. Checks run on every edit, never block saving, and can be switched off one by one for a project.
+
+| Check | Flags | Reference | Severity |
+|-------|-------|-----------|----------|
+| Direct connection between IT and OT | A link or flow between L4–L5 and L0–L3 with no firewall at either end | IEC 62443-3-2 ZCR 3.2; IEC 62443-3-3 SR 5.1, SR 5.2 | high |
+| Zone boundary without a boundary device | A link between two zones' networks, or two end devices, with no firewall | IEC 62443-3-3 SR 5.2 | high |
+| Firewall allows by default | A firewall whose default action is allow | IEC 62443-3-3 SR 5.2 | high |
+| Firewall rule allows anything | An allow rule for any source, destination and protocol | IEC 62443-3-3 SR 5.2 | high |
+| Unsecured protocol between zones | A flow between zones without the protocol's security option (TLS, secure authentication, BACnet/SC…) | IEC 62443-3-3 SR 3.1, SR 4.1 | medium |
+| Remote access at the control levels | RDP, VNC, SSH or HTTPS offered by an L0–L2 device | IEC 62443-3-3 SR 1.13, SR 2.6 | medium |
+| Safety system not separated | A safety system sharing a zone with control devices, or linked to one without a firewall | IEC 62443-3-2 ZCR 3.3 | high |
+| OT device without a zone | An L0–L3 device not assigned to a zone | IEC 62443-3-2 ZCR 3.1 | low |
+
+The first two and the protocol check report an **"IEC 62443 communication violation"**; the others an **"IEC 62443 configuration issue"**. Clauses are cited by number only.
+
+**Company policies** are your own rules. Each one forbids direct links or flows from one group of devices to another. A group can be any device, some Purdue levels, a zone, some device types or a tag. A rule can also apply both ways or only to some protocols. A match is reported as **"Company policy violation: (rule name)"**. "Add example: no direct IT → OT" creates a typical first rule.
+
+On the canvas, links and flows in a high-severity finding are drawn red and thicker. Devices show a badge with their finding count, and screen readers hear the count with the device. Choosing a finding in the panel selects its items and frames them; their properties list the findings that concern them. **View → Security findings** hides the marks. The Markdown architecture record has a "Security findings" section.
+
+![Security panel: a direct office-to-RTU link reported as an IEC 62443 communication violation and as a company policy violation](docs/images/security.png)
+
 ### 4.8 Import, export and sharing
 
 | Output | Format | Notes |
@@ -438,20 +461,20 @@ flowchart LR
     MODEL --> MA["schema · io · migrate"]
     MODEL --> MB["ops · structure · notes · areas · layout"]
     MODEL --> MC["catalog · protocols · purdue · conduits · filter · search · outline · direction"]
-    MODEL --> MD["ipam · revisions · share"]
+    MODEL --> MD["ipam · revisions · share · checks · policies"]
     MODEL --> ME["csv · csvImport · exportDoc"]
     STORE --> SA["useProject · history"]
-    STORE --> SB["autosave · blocks · theme · compare · announcer"]
+    STORE --> SB["autosave · blocks · theme · compare · security · announcer"]
     UI --> UA["canvas/<br/>Canvas · nodes · edges · view · useKeyboardConnect · Legend · NodeMenu · TidyButton"]
     UI --> UB["inspector/<br/>Inspector · Bulk · Area · Note · FirewallRules · ProjectPanel · Networks · Revisions · Changes"]
     UI --> UC["icons/<br/>control · field · supervisory · network · enterprise"]
-    UI --> UD["Toolbar · Palette · SiteTabs · FilterBar · Inventory · Outline · dialogs"]
+    UI --> UD["Toolbar · Palette · SiteTabs · FilterBar · Inventory · Outline · security/SecurityPanel · dialogs"]
 ```
 
 | Path | Responsibility |
 |------|----------------|
 | `src/model/schema.ts` | zod schema for the whole project file; exported TypeScript types |
-| `src/model/migrate.ts` | Upgrades older files step by step (v1 → v2 → v3 → v4) |
+| `src/model/migrate.ts` | Upgrades older files step by step (v1 → v2 → v3 → v4 → v5) |
 | `src/model/io.ts` | Parse, migrate, validate and cross-check a file; serialise a project |
 | `src/model/ops.ts` | Device, link, flow, zone and rule operations; copy and paste; align and distribute |
 | `src/model/structure.ts` | Sites and areas |
@@ -460,6 +483,8 @@ flowchart LR
 | `src/model/catalog.ts` | Device types, kinds, default levels and palette groups |
 | `src/model/protocols.ts` | Protocol registry: roles, ports, settings, colours, labels |
 | `src/model/ipam.ts` | IPv4 parsing, subnet matching and address warnings |
+| `src/model/checks.ts` | Built-in IEC 62443 checks, company policy findings, firewall rule verdicts |
+| `src/model/policies.ts` | Company policy rules: editing, matching devices, one-line descriptions |
 | `src/model/revisions.ts` | Saving and restoring revisions; the change diff; Markdown change records |
 | `src/model/share.ts` | Encoding and decoding share links |
 | `src/model/csv.ts`, `csvImport.ts` | CSV export of every table; CSV import of devices, flows and rules |
@@ -471,12 +496,13 @@ flowchart LR
 | `src/ui/canvas/view.ts` | Pure function that turns the project into React Flow nodes and edges for one site |
 | `src/ui/canvas/useKeyboardConnect.ts` | L / F, arrow keys, Enter and Esc for connecting devices on the canvas |
 | `src/ui/Outline.tsx` | The Outline view (WAI-ARIA tree), loaded on demand |
+| `src/ui/security/SecurityPanel.tsx` | The Security panel: findings, built-in checks and company policies, loaded on demand |
 
 ---
 
 ## 8. Data model and file format
 
-A project is one JSON document, currently `schemaVersion: 4`. The full field reference is in [docs/data-model.md](docs/data-model.md).
+A project is one JSON document, currently `schemaVersion: 5`. The full field reference is in [docs/data-model.md](docs/data-model.md).
 
 ```mermaid
 erDiagram
@@ -485,6 +511,7 @@ erDiagram
     PROJECT ||--o{ NETWORK : plans
     PROJECT ||--o{ REVISION : keeps
     PROJECT ||--o{ FIELD_DEF : "defines custom fields"
+    PROJECT ||--o{ POLICY_RULE : "forbids connections by"
     NETWORK |o--o{ LINK : carries
     SITE ||--o{ DEVICE : hosts
     SITE ||--o{ AREA : contains
@@ -600,7 +627,7 @@ A shortened example:
 
 ```jsonc
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites":   [{ "id": "site-main", "name": "Main site" }],
   "devices": [{ "id": "plc-filter", "type": "plc", "variant": "modular", "label": "Filtration PLC",
@@ -615,6 +642,8 @@ A shortened example:
   "notes":   [/* … */],
   "networks": [{ "id": "net-ctl", "name": "Control LAN", "cidr": "10.50.2.0/24", "vlan": 50,
                  "zoneId": "zone-control", "siteId": "site-main" }],
+  "policies": [],
+  "disabledChecks": [],
   "revisions": []
 }
 ```
@@ -713,7 +742,8 @@ flowchart TD
     C --> C1["v1 → v2<br/>add sites, kinds and asset fields;<br/>move protocol fields into settings"]
     C1 --> C2["v2 → v3<br/>add notes, networks, revisions"]
     C2 --> C3["v3 → v4<br/>add ports, VLANs, bend points, locks,<br/>tags and custom fields, also in revisions"]
-    C3 --> D{"Format newer than<br/>this app?"}
+    C3 --> C4["v4 → v5<br/>add company policies and switched-off<br/>checks, also in revisions"]
+    C4 --> D{"Format newer than<br/>this app?"}
     D -- "yes" --> E2["One clear error:<br/>format not supported"]
     D -- "no" --> F{"Matches the zod schema?"}
     F -- "no" --> E3["Every schema problem listed<br/>with its path"]
@@ -726,7 +756,7 @@ flowchart TD
 Reference checks cover what a schema alone cannot:
 
 - every id is unique;
-- links, flows, sites, zones, areas, notes, networks and rule endpoints point at things that exist;
+- links, flows, sites, zones, areas, notes, networks, rule endpoints and policy zones point at things that exist;
 - every device kind is in the catalog, and every flow's settings match its protocol;
 - nothing connects a device to itself, and only firewalls carry rules.
 
@@ -800,6 +830,7 @@ flowchart TD
 
 - Zone, site and area names are resolved inside each design, so renaming a zone is one change, not one per device.
 - Firewall rule edits are listed as rule changes, with their position in the rule list.
+- Company policy rules are listed as added, removed or changed, with a one-line summary of what the rule forbids; built-in checks switched on or off are listed too.
 - Restoring a revision replaces the design but keeps the revision list, and can be undone.
 
 ---
@@ -1159,7 +1190,7 @@ flowchart TB
 
 ### 22.3 Branching
 
-Work happens on short-lived feature branches that are merged into `main` with a merge commit once CI passes.
+Work happens on short-lived feature branches. Each branch is pushed to GitHub and merged into `main` through a pull request, with a merge commit, once CI passes.
 
 ```mermaid
 gitGraph
@@ -1198,14 +1229,15 @@ gitGraph
 Testing has three layers:
 
 - **Unit tests** (Vitest) cover the model layer, which is pure TypeScript, so its rules are tested directly without a browser.
-- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline and keyboard-only connections.
+- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline, keyboard-only connections and security findings.
 - **Accessibility scans** (axe) check every main view and dialog against WCAG 2.1 A and AA in all three themes. Any violation fails CI.
 
 A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and checks that opening it, switching sites and editing each stay within time budgets. It also checks that a diagram export of a 200-device site contains every device.
 
 ```mermaid
 pie showData
-    title Unit tests by file (153)
+    title Unit tests by file (182)
+    "checks" : 22
     "v3" : 15
     "schema-v2" : 13
     "model" : 13
@@ -1218,6 +1250,7 @@ pie showData
     "outline" : 8
     "fields" : 8
     "v4" : 7
+    "v5" : 7
     "export" : 6
     "csvImport" : 5
     "icons" : 4
@@ -1244,16 +1277,19 @@ pie showData
 | `fields.test.ts` | Custom field definitions, tags, bulk edits, CSV columns |
 | `history-names.test.ts` | Names of undo steps, history jumps, command palette matching |
 | `outline.test.ts` | The outline tree, visible rows, type-ahead, the nearest device in a direction |
+| `checks.test.ts` | Every built-in check, the office → RTU example, company policy matching, firewall verdicts |
+| `v5.test.ts` | v4 migration, policies in files and share links, reference checks, the change diff and Markdown record |
 
 | Browser test file | Covers |
 |-------------------|--------|
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
 | `e2e/data.spec.ts` | Save and open, broken files, autosave restore, share links, IP warnings, revisions, CSV import |
-| `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs and comparison in each theme |
+| `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour, the empty-site hint |
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
+| `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 
 ---

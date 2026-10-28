@@ -65,6 +65,16 @@ for (const theme of THEMES) {
       await expectNoViolations(page, 'pending keyboard connection');
     });
 
+    test('security panel has no violations', async ({ page }) => {
+      await page.getByRole('button', { name: /^Security/ }).click();
+      await expect(page.getByRole('tab', { name: /^Findings/ })).toBeVisible();
+      await expectNoViolations(page, 'security findings');
+      await page.getByRole('tab', { name: 'Rules' }).click();
+      await page.getByRole('button', { name: 'Add example: no direct IT → OT' }).click();
+      await page.locator('.policy summary').click();
+      await expectNoViolations(page, 'security rules with an open policy');
+    });
+
     test('comparison view has no violations', async ({ page }) => {
       await clearSelection(page);
       await page.getByLabel('Revision name').first().fill('Baseline');

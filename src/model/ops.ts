@@ -34,6 +34,8 @@ export function emptyProject(name = 'Untitled architecture'): Project {
     notes: [],
     networks: [],
     fieldDefs: [],
+    policies: [],
+    disabledChecks: [],
     revisions: [],
   };
 }

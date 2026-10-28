@@ -37,8 +37,8 @@ interface ProjectState {
   filter: Filter;
   /** Increases each time a project is loaded, so the canvas can frame the new design. */
   loadCount: number;
-  /** A device the canvas should centre on once it is rendered. */
-  focus: { deviceId: string; nonce: number } | null;
+  /** Devices the canvas should centre on (one) or frame (several) once they are rendered. */
+  focus: { deviceIds: string[]; nonce: number } | null;
   pendingConnect: PendingConnect | null;
   /** Applies a pure operation from model/ops. Edits sharing a `coalesceKey` in quick succession undo as one step. */
   apply: (op: (project: Project) => Project, coalesceKey?: string) => void;
@@ -58,6 +58,8 @@ interface ProjectState {
   setActiveSite: (siteId: string) => void;
   /** Switches to the device's site, selects it and centres the canvas on it. */
   focusDevice: (deviceId: string) => void;
+  /** Selects items and frames the given devices, on the first device's site. */
+  focusItems: (selection: Partial<Selection>, deviceIds: string[]) => void;
   clearFocus: () => void;
   setFilter: (filter: Filter) => void;
   setConnectMode: (mode: ConnectMode) => void;
@@ -161,7 +163,14 @@ export const useProject = create<ProjectState>((set, get) => {
     focusDevice: (deviceId) => {
       const device = get().project.devices.find((d) => d.id === deviceId);
       if (!device) return;
-      set({ activeSiteId: device.siteId, selection: { ...NO_SELECTION, devices: [deviceId] }, focus: { deviceId, nonce: Date.now() } });
+      set({ activeSiteId: device.siteId, selection: { ...NO_SELECTION, devices: [deviceId] }, focus: { deviceIds: [deviceId], nonce: Date.now() } });
+    },
+    focusItems: (selection, deviceIds) => {
+      const devices = get().project.devices;
+      const first = devices.find((d) => d.id === deviceIds[0]);
+      if (!first) return;
+      const onSite = deviceIds.filter((id) => devices.find((d) => d.id === id)?.siteId === first.siteId);
+      set({ activeSiteId: first.siteId, selection: { ...NO_SELECTION, ...selection }, focus: { deviceIds: onSite, nonce: Date.now() }, pendingConnect: null });
     },
     clearFocus: () => set({ focus: null }),
     setFilter: (filter) => set({ filter }),

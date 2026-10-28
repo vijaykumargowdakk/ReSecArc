@@ -1,6 +1,6 @@
 # Security checks, company policies and attack paths (M24–M25)
 
-*Planned 2026-10-25. Not started. Begin once M23 (outline view and keyboard connections) is merged.*
+*Planned 2026-10-25. M24 built on 2026-10-28 (see decisions.md for where it differs from this plan); M25 not started.*
 
 This is the agreed plan. A future session can build these milestones from it. Read
 `PROJECT_STATUS.md` and `decisions.md` first, as usual.

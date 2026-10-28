@@ -1,14 +1,16 @@
-import { Cable, CircleHelp, Command, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, Undo2, Workflow } from 'lucide-react';
+import { Cable, CircleHelp, Command, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, ShieldAlert, Undo2, Workflow } from 'lucide-react';
 import { useRef, type ReactElement } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
+import { useFindings } from '../store/derived';
+import { useSecurity } from '../store/security';
 import { useTheme, type Theme } from '../store/theme';
 import type { CanvasEdge } from './canvas/edges';
 import type { CanvasNode } from './canvas/nodes';
 import { chooseProjectFile, exportImage, exportText, openProjectFile, PROJECT_FILE_INPUT_ID, saveProjectFile, type TextExport } from './actions';
 import { HistoryMenu } from './HistoryMenu';
-import { useProject, type ConnectMode } from '../store/useProject';
+import { NO_SELECTION, useProject, type ConnectMode } from '../store/useProject';
 
 const clock = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
 
@@ -49,6 +51,15 @@ export function Toolbar({
   const snapToGrid = useProject((s) => s.snapToGrid);
   const toggleSnap = useProject((s) => s.toggleSnap);
   const autosave = useAutosaveStatus();
+  const findings = useFindings();
+  const securityOpen = useSecurity((s) => s.open);
+  const select = useProject((s) => s.select);
+  const showSecurity = () => {
+    if (securityOpen) return useSecurity.getState().close();
+    useSecurity.getState().show('findings');
+    select(NO_SELECTION);
+    if (drawer !== 'inspector') onDrawer('inspector');
+  };
 
   const closeMenu = () => exportMenu.current?.removeAttribute('open');
   const exportAs = (format: 'svg' | 'png') => {
@@ -86,7 +97,7 @@ export function Toolbar({
 
       <button type="button" className="button search-trigger" onClick={onSearch} title="Find a device (Ctrl+K or /)">
         <Search size={16} />
-        Find
+        <span className="toolbar-text">Find</span>
         <kbd>Ctrl K</kbd>
       </button>
       <button type="button" className="button icon-only" onClick={onCommands} title="Run a command (Ctrl+Shift+P)" aria-label="Command palette">
@@ -141,6 +152,21 @@ export function Toolbar({
           ))}
         </select>
       </div>
+
+      <button
+        type="button"
+        className={`button security-trigger${securityOpen ? ' is-active' : ''}`}
+        aria-pressed={securityOpen}
+        onClick={showSecurity}
+        title="Security checks based on IEC 62443, and company policies"
+      >
+        <ShieldAlert size={16} />
+        <span className="toolbar-text">Security</span>{' '}
+        <span className={`count-badge${findings.some((f) => f.severity === 'high') ? ' count-badge--high' : ''}`}>
+          {findings.length}
+          <span className="sr-only"> finding{findings.length === 1 ? '' : 's'}</span>
+        </span>
+      </button>
 
       <div className="toolbar__group">
         <button type="button" className="button" onClick={onNew} title="Start from a template or a blank canvas">

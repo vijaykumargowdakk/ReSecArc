@@ -281,12 +281,21 @@ button:focus-visible {
   gap: 10px;
   min-width: 0;
   margin-right: auto;
+  /* On a crowded toolbar the name is cut with an ellipsis rather than drawn over the buttons. */
+  overflow: hidden;
+}
+
+.brand img {
+  flex: none;
 }
 
 .brand__name {
   font-weight: 700;
   letter-spacing: 0.02em;
   font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand__project {
@@ -2439,6 +2448,16 @@ textarea {
   .search-trigger kbd {
     display: none;
   }
+
+  /* Button words hidden visually but kept in the accessible name, so the brand keeps its room. */
+  .toolbar-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 1100px) {
@@ -2934,4 +2953,166 @@ textarea {
 
 .canvas-empty p {
   margin: 0 0 4px;
+}
+
+/* Security findings: links and flows in a high-severity finding are red and thicker; devices get a
+   count badge, so the mark does not rely on colour alone */
+.link-edge.sec-violation,
+.flow-edge.sec-violation {
+  stroke: var(--danger) !important;
+  stroke-width: 3.5px !important;
+}
+
+.sec-badge {
+  position: absolute;
+  right: 8px;
+  bottom: -9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 5px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 16px;
+  color: var(--on-status);
+}
+
+.sec-badge--high {
+  background: var(--crit-high);
+}
+
+.sec-badge--medium {
+  background: var(--crit-medium);
+}
+
+.sec-badge--low {
+  background: var(--crit-low);
+}
+
+.count-badge {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--crit-low);
+  color: var(--on-status);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+.count-badge--high {
+  background: var(--crit-high);
+}
+
+/* Security panel */
+.finding-list,
+.check-list,
+.policy-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.finding {
+  padding-left: 8px;
+  border-left: 3px solid var(--crit-low);
+}
+
+.finding--high {
+  border-left-color: var(--crit-high);
+}
+
+.finding--medium {
+  border-left-color: var(--crit-medium);
+}
+
+.finding__message {
+  text-align: left;
+}
+
+.finding__reference {
+  margin: 2px 0 0;
+  color: var(--ink-soft);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.finding__fix {
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+
+.severity-tag {
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 16px;
+  text-transform: uppercase;
+  color: var(--on-status);
+  background: var(--crit-low);
+}
+
+.severity-tag--high {
+  background: var(--crit-high);
+}
+
+.severity-tag--medium {
+  background: var(--crit-medium);
+}
+
+.check-list .muted {
+  margin: 2px 0 0 24px;
+  font-size: 12px;
+}
+
+.policy {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.policy.is-disabled {
+  opacity: 0.75;
+}
+
+.policy summary {
+  cursor: pointer;
+}
+
+.policy__summary {
+  display: block;
+  font-size: 12px;
+}
+
+.policy details[open] > summary {
+  margin-bottom: 8px;
+}
+
+.selector,
+.choice-grid {
+  margin: 8px 0;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 2px 8px;
+}
+
+.selector .choice-grid {
+  border: none;
+  padding: 0;
+}
+
+.security-footer {
+  margin: 8px 12px 16px;
+  font-size: 11.5px;
 }

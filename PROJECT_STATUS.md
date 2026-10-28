@@ -1,6 +1,6 @@
 # ConduitOT — Project Status
 
-*Last updated 2026-10-25.*
+*Last updated 2026-10-28.*
 
 ## Read first
 - This file for status
@@ -8,11 +8,11 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is in progress: M18–M23 are done. **M24 and M25 (security checks and attack paths) come next, ahead of the rest of v0.4**; M24 starts only when the owner asks. The approved v0.4 plan is summarised in the milestone table below; M26 (touch and text size) no longer includes translation.
+ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is in progress: M18–M23 are done, and **M24 (security checks and company policies) is merged (PR #1)**. **M25 (attack paths) is next**, ahead of the rest of v0.4; the owner will start it in a new session. Branch: `feat/attack-paths`. The approved v0.4 plan is summarised in the milestone table below; M26 (touch and text size) no longer includes translation.
 
-Security analysis is now in scope, but nothing is built yet. M24 adds design checks that cite IEC 62443, plus the owner's company policy rules. M25 adds possible attack paths labelled with MITRE ATT&CK for ICS, and an export in MITRE's Attack Flow format. The full plan, with file names, rules, ATT&CK mapping, tests and verification, is in [`docs/roadmap/security-analysis.md`](docs/roadmap/security-analysis.md).
+M24 added design checks that cite IEC 62443, plus company policy rules (schema v5), a Security panel and canvas marks. M25 adds possible attack paths labelled with MITRE ATT&CK for ICS, and an export in MITRE's Attack Flow format. The full plan, with file names, rules, ATT&CK mapping, tests and verification, is in [`docs/roadmap/security-analysis.md`](docs/roadmap/security-analysis.md).
 
-Work is committed on feature branches and merged into `main` with merge commits, then pushed to `origin` (github.com/vijaykumargowdakk/conduitot). Before each push, sweep history for retired names and confirm no AI attribution lines.
+Work is committed on feature branches, **pushed to `origin`** (github.com/vijaykumargowdakk/conduitot) and merged into `main` **through a pull request** with a merge commit once CI passes. Never merge locally and push `main`, and never delete a branch before its PR is merged. Up to M23 every branch was merged locally and only `main` was pushed, so no branches or PRs exist on GitHub for M0–M23 (decisions.md, 2026-10-28). Before each push, sweep history for retired names and confirm no AI attribution lines.
 
 ## Dev loop
 - Install: `npm ci` (browser tests also need `npx playwright install chromium` once)
@@ -51,7 +51,7 @@ Work is committed on feature branches and merged into `main` with merge commits,
 | M21 | Custom fields and tags | Field definitions, editing, bulk edit, inventory columns, tag filter, search, CSV | Round-trips through CSV ✅ |
 | M22 | Command palette, tour, history panel | Action registry, first-run tour, named undo steps | Every toolbar action reachable from the palette ✅ |
 | M23 | Outline view, keyboard connections | Accessible tree view of the design, connect devices on the canvas by keyboard | Keyboard-only connection e2e passes ✅ |
-| M24 | Security checks and company policies | Schema v5 (policy rules, disabled checks), built-in checks citing IEC 62443 clauses (direct IT↔OT, unprotected zone boundary, firewall default-allow / any-any, insecure protocol across zones, remote access to L0–L2, safety system separation, device without zone), "IEC 62443 communication violation" and "Company policy violation" findings, Security panel, red links and badges on the canvas. Plan: `docs/roadmap/security-analysis.md` | Demo plus an Office workstation → Pump station RTU link shows the IEC 62443 finding; v4 files open |
+| M24 | Security checks and company policies | Schema v5 (policy rules, disabled checks), built-in checks citing IEC 62443 clauses (direct IT↔OT, unprotected zone boundary, firewall default-allow / any-any, insecure protocol across zones, remote access to L0–L2, safety system separation, device without zone), "IEC 62443 communication violation" and "Company policy violation" findings, Security panel, red links and badges on the canvas. Plan: `docs/roadmap/security-analysis.md` | Demo plus an Office workstation → Pump station RTU link shows the IEC 62443 finding; v4 files open ✅ (PR #1; 571 kB startup) |
 | M25 | Attack paths and MITRE Attack Flow export | Possible attack paths from entry points to critical OT devices, honouring firewall rules; each step labelled with MITRE ATT&CK for ICS tactics and techniques generated from MITRE's data; path highlight on the canvas; STIX 2.1 Attack Flow export. Plan: `docs/roadmap/security-analysis.md` | The office → RTU path appears with ATT&CK labels; a firewall deny rule removes it; the export passes the Attack Flow schema |
 | M26 | Touch and text size | Coarse-pointer targets, long-press menus, text size setting (no translation: dropped by the owner) | Tablet e2e passes; text size persists |
 | M27 | Report, draw.io, merge | Static SVG renderer, full HTML/PDF report including security findings and attack paths, draw.io export, merge sites from another project | Report includes every site |
@@ -62,15 +62,17 @@ Work is committed on feature branches and merged into `main` with merge commits,
 
 ## Notes for the next session
 - Run both `npm run ci` and `npm run e2e` before merging; browser tests need `npx playwright install chromium` once.
-- The startup bundle budget is 575 kB (`scripts/check-bundle.mjs`); it is at about 557 kB. Load new dialogs and panels with `lazy()` / `import()`.
+- The startup bundle budget is 575 kB (`scripts/check-bundle.mjs`); it is at about 571 kB after M24, so M25 must keep its path finding and Attack Flow export lazy. Load new dialogs and panels with `lazy()` / `import()`.
 - Unit tests run in Node: modules imported by tests must not touch `document` at import time (see the guard in `src/store/theme.ts`).
-- `gh` could not reach the GitHub API from this machine (TLS certificate error) late on 2026-10-25, although `git push` worked; CI results were read from the repository's public Actions page instead.
+- If `gh` fails with a TLS certificate error while `git push` works, check the PC clock. On 2026-10-28 the clock was found days behind with the Windows Time service stopped, so GitHub's API certificate was not yet valid by local time; once the clock was right, `gh` worked again. Fix: Settings → Time & language → Date & time → "Set time automatically" and "Sync now" (or, as administrator, `net start w32time` then `w32tm /resync`).
+- Security checks live in `src/model/checks.ts` (pure, at startup because the canvas badges need them); policy rule operations in `src/model/policies.ts`; panel state in `src/store/security.ts`, outside undo history. The panel (`src/ui/security/SecurityPanel.tsx`) is lazy. `findingsOf` / `findingsByItemOf` in `src/store/derived.ts` cache findings per project object.
+- When adding a check, run it over the five templates first: a new check that floods them with findings is probably noisy (decisions.md, 2026-10-28).
 - Shared actions (open, save, exports, tidy, add note, confirm-and-delete a device) live in `src/ui/actions.ts`; the command palette registry is `src/ui/commands.ts`. New features should add their commands there.
 - Keyboard connections: `src/ui/canvas/useKeyboardConnect.ts` listens in the capture phase so that, while a connection is pending, arrow keys and Enter never reach React Flow. `pendingConnect` in the store is cleared on load, on site change and when the canvas unmounts.
 - The Outline (`src/ui/Outline.tsx`) uses the treeitem-owns-group structure (`aria-owns`) so each item's accessible name is only its own row; nesting the group inside the treeitem fails axe's label-content-name-mismatch.
 
 ## Known issues
-- At 1440 px with a 12-hour clock, the autosave status ("Saved 11:45 PM") is long enough to squeeze the toolbar so the brand name is cut off. Seen while checking M23; the toolbar itself was not changed in M23.
+- The toolbar is over-full at 1440 px and below. Since M24 the brand name is cut with an ellipsis instead of being drawn over the Find button, and below 1600 px the words "Find" and "Security" are hidden visually (kept for screen readers). At 1280 px only the logo is left. A toolbar rework (for example, moving the connect-as controls to the canvas bar) would fix it properly.
 - Below 900px the palette and properties panel become slide-over drawers. The canvas itself is still best used with a mouse or trackpad on a larger screen.
 - `NODE_HEIGHT` in `src/model/purdue.ts` must match the `.device-node` height in `src/styles.css` (64px). If they drift apart, lane detection shifts slightly.
 - Chromium's synthetic drag in Playwright can't drive the palette's HTML5 drag-and-drop. In automated checks, dispatch `DragEvent`s on the canvas pane instead.

@@ -269,3 +269,40 @@ Also fixed:
 - **Bundle:** 557 kB at startup (budget 575 kB); the outline is a separate chunk.
 **Why:** Screen-reader and keyboard-only users could already edit everything, but had no overview of the design and had to connect devices through a filtered list. The outline gives them a structured reading order; keyboard connections make the canvas usable without a mouse.
 **User input:** Approved in the v0.4 plan. The owner asked to decide and log how the outline treats the filter, and to stop after M23.
+
+## 2026-10-28 — Branches are pushed and merged through pull requests from now on
+**Decision:** Every milestone branch is pushed to GitHub and merged into `main` through a pull request with a merge commit, once CI passes. A branch is not merged locally and is not deleted before its PR is merged.
+**Why:** The owner saw no branches on GitHub. Checking the history showed that all 25 branches up to M23 were merged into `main` on the dev machine. Only `main` was pushed, and each branch was then deleted locally, so no branch or PR ever reached GitHub. That broke the project rule that `main` changes only through merged PRs. The history itself is intact (each merge commit names its branch), and CI passed on `main`. Opening PRs from the dev machine was also blocked: its clock was behind (Windows Time service stopped). GitHub's API certificate was not yet valid by local time, so `gh` failed with a TLS error, while `git push`, which checks certificates differently, still worked.
+**User input:** The owner asked why no milestone branches appear on GitHub and asked for the git state to be checked before M24 starts.
+
+## 2026-10-28 — M24 model: schema v5 and the check engine
+**Decision:**
+- Schema v5 adds `policies` (company policy rules) and `disabledChecks` to the design, so revisions, share links and the change diff carry them. v4 files and revisions migrate with both empty. Unknown ids in `disabledChecks` are kept, because a newer version may add checks.
+- A policy rule forbids direct links and flows between two selectors (any, levels, zone, device type, tag; tags compare without case). **Links match either way round**, because a link has no direction. Flows respect the direction unless "both ways" is set. A protocol filter applies to flows only, so a rule with protocols never matches links.
+- **Boundary device = any firewall.** The data diode is a firewall variant in `catalog.ts`; no gateway variant is one-way, unlike what the plan assumed.
+- **Protocol security** (`isSecured`), checked against each registry entry's fields: Modbus `variant = tls`; DNP3 Secure Authentication or TLS; EtherNet/IP CIP Security; PROFINET Security; OPC UA security mode other than none; IEC 104 and MMS `tls` (the plan said IEC 104 `authenticated`, but that field does not exist); GOOSE `authenticated`; BACnet/SC; MQTT TLS; custom `encrypted`; S7 never.
+- **One finding per link:** `zone-boundary-unprotected` skips links that `it-ot-direct` or `sis-not-separated` already report.
+- **Less noise from `zone-boundary-unprotected`:** a link counts as a zone crossing only when both ends are network devices (switch or router) or both are end devices. Run over the five templates, the plan's version raised 13 high findings for end devices plugged into a switch drawn in the neighbouring zone (Line switch ↔ Cell A PLC, Station bus switch ↔ relays). Zones are drawn around devices, so the real conduit there is the switch. The narrower rule keeps the water demo's real gap (Operations switch ↔ Control switch with no firewall).
+- **Safety separation:** a SIS may share its zone with switches, routers, firewalls, sensors, actuators and other safety systems; any other device type in its zone is reported.
+- The clause numbers (62443-3-2 ZCR 3.1, 3.2, 3.3; 62443-3-3 SR 1.13, 2.6, 3.1, 4.1, 5.1, 5.2) were confirmed against the ISA 62443-3-2 table of contents and public summaries of 62443-3-3. Only numbers and our own descriptions are used.
+- `firewallVerdict` follows the inspector's wording: top to bottom, the first match applies, otherwise the default action. An `any` protocol or `null` port in a query matches every rule.
+**Why:** The plan in `docs/roadmap/security-analysis.md`, adjusted where the code or the template results disagreed with it, as the plan asked.
+**User input:** The owner asked to start M24.
+
+## 2026-10-28 — M24 interface: Security panel, canvas marks and toolbar
+**Decision:**
+- **Security panel** (lazy) replaces the project panel while it is open and nothing is selected, like the Changes panel. It takes precedence over a running comparison. It has two tabs, Findings and Rules, following the WAI-ARIA tabs pattern with arrow keys. The plan's "paths" tab is left for M25. Choosing a finding selects its links, flows and devices and frames those devices on the first device's site; the store's `focus` now holds a list of device ids for this.
+- **Findings tab** groups by headline (communication violation, configuration issue, each company policy), most severe first inside each group, and shows the reference and a suggested fix.
+- **Rules tab:** on/off switches for the built-in checks with their rationale and clause numbers, plus company policies with an editor for each one (selectors, severity, both ways, links/flows, protocols). "Add example: no direct IT → OT" appears while there are no policies. Every change is an ordinary undoable edit.
+- **Canvas:** a new "Security findings" layer, on by default. Links and flows in a high-severity finding are red and thicker. Devices get a badge with their finding count, coloured by worst severity, and their accessible name gets "N security findings", so the mark does not rely on colour.
+- **Inspectors** of devices, links and flows list the findings that concern them. The Markdown architecture record has a "Security findings" section with company policies and switched-off checks.
+- **Toolbar:** a Security button with a finding count. Below 1600 px its word, and Find's, are hidden visually but kept in the accessible name. The brand name now ends in an ellipsis instead of overlapping the buttons. The toolbar is still over-full at 1440 px and below; that is recorded as a known issue rather than reworked in M24.
+- **Commands:** "Show security findings" and "Add a company policy rule".
+- Startup bundle: 571 kB of the 575 kB budget. The panel is a separate chunk; the checks run at startup because the badges need them.
+**Why:** The plan in `docs/roadmap/security-analysis.md`. axe found the policy selector dropdowns unlabelled and the Security button's name not matching its visible text; both were fixed before commit.
+**User input:** The owner asked to start M24.
+
+## 2026-10-28 — M24 merged; M25 in a new session
+**Decision:** PR #1 (M24) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/security-checks` branch stays on GitHub. M25 starts in a separate session, from `docs/roadmap/security-analysis.md`.
+**Why:** This is the first milestone merged through a pull request, under the branch-and-PR workflow adopted on the same day.
+**User input:** The owner approved the merge and said they will start M25 in another session.

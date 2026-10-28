@@ -26,7 +26,8 @@ import { moveDevicesToSite } from '../../model/structure';
 import { AddressInfo } from './AddressInfo';
 import { Field, IntInput, Section, Select, TextInput, Toggle, VlanInput } from '../form';
 import { IssueList } from './AddressInfo';
-import { useLinkIssues } from '../../store/derived';
+import { useFindingsByItem, useLinkIssues } from '../../store/derived';
+import { useSecurity } from '../../store/security';
 import { ProjectPanel } from './ProjectPanel';
 
 // Panels for less common selections load on first use, keeping them out of the startup bundle.
@@ -35,6 +36,7 @@ const BulkInspector = lazy(() => import('./BulkInspector').then((m) => ({ defaul
 const ChangesPanel = lazy(() => import('./ChangesPanel').then((m) => ({ default: m.ChangesPanel })));
 const FirewallRules = lazy(() => import('./FirewallRules').then((m) => ({ default: m.FirewallRules })));
 const NoteInspector = lazy(() => import('./NoteInspector').then((m) => ({ default: m.NoteInspector })));
+const SecurityPanel = lazy(() => import('../security/SecurityPanel').then((m) => ({ default: m.SecurityPanel })));
 
 const LEVEL_OPTIONS = PURDUE_LANES.map((l) => ({ value: String(l.level), label: `${levelLabel(l.level)} · ${l.name}` }));
 const CRITICALITY = [
@@ -65,6 +67,29 @@ const ASSET_FIELDS: { key: Exclude<keyof Asset, 'notes'>; label: string; placeho
 function useDeviceLabel() {
   const devices = useProject((s) => s.project.devices);
   return (id: string) => devices.find((d) => d.id === id)?.label ?? id;
+}
+
+/** The security findings that concern one device, link or flow, as a section of its inspector. */
+function SecurityFindings({ id }: { id: string }) {
+  const findings = useFindingsByItem().get(id) ?? [];
+  const show = useSecurity((s) => s.show);
+  const select = useProject((s) => s.select);
+  if (findings.length === 0) return null;
+  return (
+    <Section title={`Security findings (${findings.length})`}>
+      <IssueList issues={findings.map((f) => `${f.headline}: ${f.message}${f.reference ? ` (${f.reference})` : ''}`)} />
+      <button
+        type="button"
+        className="link-button"
+        onClick={() => {
+          show('findings');
+          select(NO_SELECTION);
+        }}
+      >
+        Show all findings
+      </button>
+    </Section>
+  );
 }
 
 function DeleteButton({ label, onClick }: { label: string; onClick: () => void }) {
@@ -210,6 +235,7 @@ function DeviceInspector({ device }: { device: Device }) {
 
       {device.firewall && <FirewallRules device={device} />}
 
+      <SecurityFindings id={device.id} />
       <div className="panel-actions">
         <DeleteButton label="Delete device" onClick={remove} />
       </div>
@@ -302,6 +328,7 @@ function LinkInspector({ link }: { link: Link }) {
         </Field>
         <IssueList issues={issues} />
       </Section>
+      <SecurityFindings id={link.id} />
       <div className="panel-actions">
         <DeleteButton
           label="Delete link"
@@ -379,6 +406,7 @@ function FlowInspector({ flow }: { flow: Flow }) {
         ))}
         <BendPoints count={flow.waypoints.length} onStraighten={() => set({ ...flow, waypoints: [] })} />
       </Section>
+      <SecurityFindings id={flow.id} />
       <div className="panel-actions">
         <DeleteButton
           label="Delete flow"
@@ -401,7 +429,8 @@ export function Inspector() {
     selection.devices.length + selection.links.length + selection.flows.length + selection.areas.length + selection.notes.length;
 
   const comparison = useComparison();
-  let body = comparison ? <ChangesPanel comparison={comparison} /> : <ProjectPanel />;
+  const securityOpen = useSecurity((s) => s.open);
+  let body = securityOpen ? <SecurityPanel /> : comparison ? <ChangesPanel comparison={comparison} /> : <ProjectPanel />;
   if (selection.devices.length > 1) {
     body = <BulkInspector ids={selection.devices} />;
   } else if (count === 1) {

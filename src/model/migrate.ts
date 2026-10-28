@@ -59,8 +59,17 @@ function v3ToV4(p: Json): Json {
   return { ...designToV4(p), schemaVersion: 4, revisions };
 }
 
+/** v5 adds company policy rules and switched-off security checks. Revisions are upgraded too. */
+function designToV5(d: Json): Json {
+  return { policies: [], disabledChecks: [], ...d };
+}
 
-const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2, 2: v2ToV3, 3: v3ToV4 };
+function v4ToV5(p: Json): Json {
+  const revisions = list(p.revisions).map((r) => (isObject(r) && isObject(r.design) ? { ...r, design: designToV5(r.design) } : r));
+  return { ...designToV5(p), schemaVersion: 5, revisions };
+}
+
+const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2, 2: v2ToV3, 3: v3ToV4, 4: v4ToV5 };
 
 export function migrate(raw: unknown): unknown {
   if (!isObject(raw)) return raw;
