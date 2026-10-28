@@ -343,3 +343,8 @@ Also fixed:
 **Decision:** The 575 kB startup budget stays. M26 loads its new code on demand wherever it can. The budget is raised only if a feature truly cannot wait to load, and that would be decided and logged then.
 **Why:** After M25 the startup bundle is 573.3 kB (about 179 kB compressed), leaving under 2 kB. Loading on demand keeps the first load fast; raising the limit is a one-line change kept in reserve.
 **User input:** The owner asked what the budget was, then agreed to try on-demand loading in M26 before raising the limit.
+
+## 2026-10-28 — M25 merged; M26 in a new session
+**Decision:** PR #2 (M25) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/attack-paths` branch stays on GitHub. M26 (touch and text size) starts in a separate session on a new branch from `main`, loading new code on demand (see the budget entry above).
+**Why:** The branch-and-PR workflow adopted on 2026-10-28.
+**User input:** The owner asked to merge and said they will start the next milestone in a new session.
