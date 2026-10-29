@@ -464,3 +464,9 @@ Also fixed:
   - In the dark themes, low-severity badges (canvas, toolbar count, Security panel tag) had dark text on grey at 3.8:1; they now use white (4.8:1), as high-severity badges already did. A stack of devices without a zone was the first view to show a low-only badge to axe.
 **Why:** The approved M28 plan, with the three choices from the entry above.
 **User input:** "do the recomended things for a,b,c"
+
+## 2026-10-30 — M28 merged; M29 next
+**Decision:** PR #6 (M28) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/level-tabs-stacks` branch stays on GitHub. M29 (works offline: installable app, offline precache, update prompt) is next, on a new branch from `main`, within the 575 kB startup budget (4.6 kB left).
+**Also:** the first CI run of PR #6 failed one tablet test, the long-press menu, on both attempts, while it passed locally. Its trace showed the canvas still animating to frame the site when the test measured the device and pressed, so the finger landed where the device had been; framing now includes the lane labels, which changed that animation enough to show the race on the slower CI machine. The test now waits until the device has stopped moving. The app was not changed.
+**Why:** The owner gave the go-ahead to merge.
+**User input:** "merge it and tell what is next"

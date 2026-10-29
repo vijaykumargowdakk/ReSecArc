@@ -4,9 +4,21 @@ import { deviceCount, deviceNode, openApp } from './helpers';
 
 test.beforeEach(async ({ page }) => openApp(page));
 
-/** Holds a finger still on an element for longer than the long-press delay, then lifts it. */
+/**
+ * Holds a finger still on an element for longer than the long-press delay, then lifts it. The canvas
+ * animates to frame the site after loading, so the press waits until the element has stopped moving.
+ */
 async function longPress(page: Page, selector: string): Promise<void> {
-  const box = (await page.locator(selector).first().boundingBox())!;
+  const target = page.locator(selector).first();
+  let box = (await target.boundingBox())!;
+  await expect
+    .poll(async () => {
+      const before = box;
+      await page.waitForTimeout(100);
+      box = (await target.boundingBox())!;
+      return before.x === box.x && before.y === box.y && before.width === box.width;
+    })
+    .toBe(true);
   const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
