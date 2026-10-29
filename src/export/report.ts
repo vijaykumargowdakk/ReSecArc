@@ -13,8 +13,21 @@ import { describePolicy } from '../model/policies';
 import { flowLabel, getProtocol } from '../model/protocols';
 import { levelLabel } from '../model/purdue';
 import type { Device, Project } from '../model/schema';
+import { stacksOf } from '../model/stacks';
 import { escapeXml as h } from './markup';
 import { DIAGRAM_COLORS, renderSiteSvg } from './siteSvg';
+
+/** Names the stacks drawn in a site's diagram; every member is still listed in the tables. */
+function stackCaption(project: Project, siteId: string): string {
+  const { stacks } = stacksOf(project, siteId);
+  if (stacks.length === 0) return '';
+  const list = stacks.map((s) => {
+    const names = s.members.map((m) => m.label);
+    const span = names.length > 2 ? `${names[0]} … ${names[names.length - 1]}` : names.join(', ');
+    return `${levelLabel(s.level)}: ${s.members.length} × ${kindLabel(s.members[0].type, s.members[0].variant)} (${span})`;
+  });
+  return ` A card marked ×N is a stack of similar devices, all listed in the tables below: ${h(list.join('; '))}.`;
+}
 
 type Cell = string | number | { html: string };
 const cell = (c: Cell) => (typeof c === 'object' ? c.html : h(String(c)) || '—');
@@ -149,7 +162,9 @@ export function projectToHtmlReport(project: Project, generatedAt = new Date()):
       `<figure>${renderSiteSvg(project, s.id, { idPrefix: `s${i + 1}`, findings: byItem })}<figcaption>` +
         'Each device’s left edge shows its zone colour; the letter is its criticality. Solid grey lines are network links (dotted: serial, dashed: wireless); ' +
         'coloured dashed arrows are protocol flows. Red lines carry a high-severity security finding, and a number on a device counts its findings. ' +
-        'Rounded dashed boxes on the right stand for devices on other sites. Areas are drawn open.</figcaption></figure>',
+        'Rounded dashed boxes on the right stand for devices on other sites. Areas are drawn open.' +
+        stackCaption(project, s.id) +
+        '</figcaption></figure>',
     );
 
     out.push('<h3>Devices</h3>');

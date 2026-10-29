@@ -77,6 +77,16 @@ export function Palette() {
 
   // Keyboard and click alternative to dragging: drop into the type's default lane.
   const addToDefaultLane = (type: DeviceType, variant: string) => {
+    const tab = useProject.getState().activeLevel;
+    // In a level tab the device joins that level, placed by the level module.
+    if (tab !== null) {
+      const device = createDevice(type, { x: 0, y: 0 }, { siteId, variant });
+      void import('../model/levelLayout').then((m) => {
+        apply((p) => m.addToLevel(p, device, tab));
+        announce(`${device.label} added`);
+      });
+      return;
+    }
     const level = DEVICE_CATALOG[type].defaultLevel;
     const at = freeSpotInLane(useProject.getState().project, siteId, level);
     const device = createDevice(type, at, { siteId, variant });

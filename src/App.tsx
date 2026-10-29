@@ -29,6 +29,7 @@ const CommandPalette = lazy(() => import('./ui/CommandPalette').then((m) => ({ d
 const Tour = lazy(() => import('./ui/Tour').then((m) => ({ default: m.Tour })));
 const TemplateGallery = lazy(() => import('./ui/TemplateGallery').then((m) => ({ default: m.TemplateGallery })));
 const MergeDialog = lazy(() => import('./ui/MergeDialog').then((m) => ({ default: m.MergeDialog })));
+const LevelTabs = lazy(() => import('./ui/LevelTabs').then((m) => ({ default: m.LevelTabs })));
 
 const VIEW_NAMES: Record<ViewName, string> = { diagram: 'Diagram', inventory: 'Inventory', outline: 'Outline' };
 
@@ -67,6 +68,7 @@ export function App() {
     usePrefs.getState().setTourSeen();
   }, []);
   const panels = usePrefs((s) => s.panels);
+  const levelTabs = useProject((s) => s.levelTabs.length > 0);
   useShortcuts({ onSearch: openSearch, onHelp: openHelp, onCommands: openCommands });
   const commandContext = useMemo<CommandContext>(
     () => ({
@@ -249,6 +251,11 @@ export function App() {
               {view === 'diagram' && <LayersMenu />}
               {view !== 'inventory' && <FilterBar />}
             </div>
+            {view === 'diagram' && levelTabs && (
+              <Suspense fallback={null}>
+                <LevelTabs />
+              </Suspense>
+            )}
             {view === 'diagram' && <Canvas />}
             {view === 'outline' && (
               <Suspense fallback={<p className="muted inventory__loading">Loading outline…</p>}>

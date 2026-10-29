@@ -1,10 +1,14 @@
 // Which saved revision the live design is being compared with. Kept apart from the project store so
 // comparing never touches undo history; a revision that no longer exists simply ends the comparison.
-import { useMemo } from 'react';
+// The diff engine loads only once a comparison starts, so it stays out of the startup bundle.
+import { useEffect, useMemo, useState } from 'react';
 import { create } from 'zustand';
-import { designOf, diffDesigns, type Change } from '../model/revisions';
+import type { Change } from '../model/revisions';
 import type { Revision } from '../model/schema';
 import { useProject } from './useProject';
+
+type RevisionsModule = typeof import('../model/revisions');
+let loaded: RevisionsModule | null = null;
 
 export const useCompare = create<{ revisionId: string | null; hideMoves: boolean; compareWith: (id: string | null) => void; setHideMoves: (v: boolean) => void }>(
   (set) => ({
@@ -29,10 +33,19 @@ export function useComparison(): Comparison | null {
   const project = useProject((s) => s.project);
   const revisionId = useCompare((s) => s.revisionId);
   const hideMoves = useCompare((s) => s.hideMoves);
+  const [diff, setDiff] = useState(loaded);
+  useEffect(() => {
+    if (revisionId && !diff) {
+      void import('../model/revisions').then((m) => {
+        loaded = m;
+        setDiff(m);
+      });
+    }
+  }, [revisionId, diff]);
   return useMemo(() => {
     const revision = project.revisions.find((r) => r.id === revisionId);
-    if (!revision) return null;
-    const all = diffDesigns(revision.design, designOf(project));
+    if (!revision || !diff) return null;
+    const all = diff.diffDesigns(revision.design, diff.designOf(project));
     const changes = hideMoves ? all.filter((c) => !c.moveOnly) : all;
     const marks = new Map<string, 'added' | 'changed'>();
     for (const c of changes) {
@@ -45,5 +58,5 @@ export function useComparison(): Comparison | null {
       }
     }
     return { revision, all, changes, marks };
-  }, [project, revisionId, hideMoves]);
+  }, [project, revisionId, hideMoves, diff]);
 }

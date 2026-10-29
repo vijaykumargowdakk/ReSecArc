@@ -32,12 +32,26 @@ import { NO_SELECTION, useProject } from '../../store/useProject';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { Legend } from './Legend';
 import { AreaNode, DeviceNode, LaneNode, NoteNode, PortalNode, type CanvasNode, type LaneFlowNode } from './nodes';
-import { useKeyboardConnect } from './useKeyboardConnect';
+import { setDrawnDevices, useKeyboardConnect } from './useKeyboardConnect';
 import { usePathMarks } from './usePathMarks';
 import { buildView } from './view';
 
 // The device menu opens only on a right-click or long-press, so its code loads then.
 const NodeMenu = lazy(() => import('./NodeMenu').then((m) => ({ default: m.NodeMenu })));
+
+// Level tabs and stacks are drawn by a module that loads once either is in use on the open site.
+type Modes = typeof import('./levelView');
+let modesLoaded: Modes | null = null;
+function useModes(on: boolean): Modes | null {
+  const [modes, setModes] = useState(modesLoaded);
+  useEffect(() => {
+    if (on && !modes) void import('./levelView').then((m) => setModes((modesLoaded = m)));
+  }, [on, modes]);
+  return modes;
+}
+
+/** The devices a node stands for: a stack's members, or the device itself. */
+const deviceIdsOf = (n: CanvasNode) => (n.type === 'device' && n.data.stack) || [n.id];
 
 export const DEVICE_DND_MIME = 'application/x-conduitot-device';
 export const NOTE_DND_MIME = 'application/x-conduitot-note';
@@ -98,6 +112,9 @@ export function Canvas() {
   const snapToGrid = useProject((s) => s.snapToGrid);
   const flowProtocol = useProject((s) => s.flowProtocol);
   const pendingConnect = useProject((s) => s.pendingConnect);
+  const level = useProject((s) => s.activeLevel);
+  const stacked = useProject((s) => !!s.project.sites.find((x) => x.id === s.activeSiteId)?.stackedLevels?.length);
+  const modes = useModes(level !== null || stacked);
   const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
   const { screenToFlowPosition, setCenter, fitView, fitBounds, getInternalNode, getViewport } = useReactFlow();
   const theme = useTheme((s) => s.theme);
@@ -112,18 +129,28 @@ export function Canvas() {
   const layers = usePrefs((s) => s.layers);
   const findings = useFindingsByItem();
   const path = usePathMarks();
-  const view = useMemo(
-    () => buildView(project, siteId, selection, dimmed, marks, layers, pendingConnect, layers.security ? findings : undefined, path),
-    [project, siteId, selection, dimmed, marks, layers, pendingConnect, findings, path],
-  );
+  const view = useMemo(() => {
+    const args = [project, siteId, selection, dimmed, marks, layers, pendingConnect, layers.security ? findings : undefined, path] as const;
+    if (level !== null) return modes ? modes.levelView(level, ...args) : { nodes: [], edges: [] };
+    return modes && stacked ? modes.stackView(buildView(...args), ...args) : buildView(...args);
+  }, [project, siteId, selection, dimmed, marks, layers, pendingConnect, findings, path, level, modes, stacked]);
 
   const [nodes, setNodes] = useState<CanvasNode[]>(() => [...LANE_NODES, ...view.nodes]);
   const [edges, setEdges] = useState<CanvasEdge[]>(view.edges);
 
   useEffect(() => {
-    setNodes((prev) => mergeNodes([...LANE_NODES, ...view.nodes], prev));
+    // A level tab draws its own band instead of the lanes.
+    setNodes((prev) => mergeNodes([...(level === null ? LANE_NODES : []), ...view.nodes], prev));
     setEdges(view.edges);
-  }, [view]);
+    setDrawnDevices(view.drawn);
+  }, [view, level]);
+  useEffect(() => () => setDrawnDevices(undefined), []);
+
+  /** Moves a device or a stack, or in a level tab a device's place in that tab. */
+  const moveTo = useCallback(
+    (p: Project, id: string, position: { x: number; y: number }) => (modes ? modes.moveNode(p, id, position, level) : moveDevice(p, id, position)),
+    [modes, level],
+  );
 
   // Frame the newly shown site or newly loaded project (devices, areas, notes and stubs), unless a search
   // result is about to be centred instead.
@@ -139,18 +166,19 @@ export function Canvas() {
         fitView({ padding: 0.1, duration: reducedMotion() ? 0 : 250 });
         return;
       }
-      const xs = nodes.flatMap((n) => [n.position.x, n.position.x + (n.width ?? NODE_WIDTH)]);
+      // The lane labels at the left edge stay in view, with their buttons.
+      const xs = [0, ...nodes.flatMap((n) => [n.position.x, n.position.x + (n.width ?? NODE_WIDTH)])];
       const ys = nodes.flatMap((n) => [n.position.y, n.position.y + (n.height ?? NODE_HEIGHT)]);
       const x = Math.min(...xs);
       const y = Math.min(...ys);
       fitBounds({ x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y }, { padding: 0.1, duration: reducedMotion() ? 0 : 250 });
     });
     return () => cancelAnimationFrame(frame);
-  }, [siteId, loadCount, fitView, fitBounds]);
+  }, [siteId, level, loadCount, fitView, fitBounds]);
 
   useEffect(() => {
     if (!focus) return;
-    const targets = nodes.filter((n) => focus.deviceIds.includes(n.id));
+    const targets = nodes.filter((n) => deviceIdsOf(n).some((id) => focus.deviceIds.includes(id)));
     if (targets.length === 0 || !targets.every((n) => n.measured)) return;
     const duration = reducedMotion() ? 0 : 400;
     if (targets.length === 1) {
@@ -193,14 +221,14 @@ export function Canvas() {
       const move = (q: Project, m: (typeof moved)[number]) => {
         if (areaIds.has(m.id)) return moveArea(q, m.id, m.position);
         if (noteIds.has(m.id)) return moveNote(q, m.id, m.position);
-        return moveDevice(q, m.id, m.position);
+        return moveTo(q, m.id, m.position);
       };
       apply(
         (p) => moved.reduce(move, p),
         `nudge:${moved.map((m) => m.id).join(',')}`,
       );
     },
-    [apply],
+    [apply, moveTo],
   );
 
   const onEdgesChange = useCallback((changes: EdgeChange<CanvasEdge>[]) => {
@@ -231,11 +259,11 @@ export function Canvas() {
         const afterAreas = areas.reduce((q, n) => moveArea(q, n.id, n.position), p);
         return dragged.reduce((q, n) => {
           if (n.type === 'note') return moveNote(q, n.id, n.position);
-          return n.type === 'device' && !carried.has(n.id) ? moveDevice(q, n.id, n.position) : q;
+          return n.type === 'device' && !carried.has(n.id) ? moveTo(q, n.id, n.position) : q;
         }, afterAreas);
       });
     },
-    [apply],
+    [apply, moveTo],
   );
 
   // One callback for nodes and edges together, so a multi-delete is a single undo step.
@@ -244,14 +272,14 @@ export function Canvas() {
       apply((p) => {
         const afterEdges = delEdges.reduce((q, e) => (e.type === 'flow' ? removeFlow(q, e.id) : removeLink(q, e.id)), p);
         return delNodes.reduce((q, n) => {
-          if (n.type === 'device') return removeDevice(q, n.id);
+          if (n.type === 'device') return deviceIdsOf(n).reduce(removeDevice, q);
           if (n.type === 'area') return removeArea(q, n.id);
           if (n.type === 'note') return removeNote(q, n.id);
           return q;
         }, afterEdges);
       });
       select(NO_SELECTION);
-      const count = delNodes.filter((n) => n.type === 'device').length;
+      const count = delNodes.reduce((sum, n) => sum + (n.type === 'device' ? deviceIdsOf(n).length : 0), 0);
       announce(count ? `Deleted ${count} device${count === 1 ? '' : 's'}` : 'Deleted selection');
     },
     [apply, select],
@@ -260,7 +288,7 @@ export function Canvas() {
   const onSelectionChange = useCallback(
     ({ nodes: selNodes, edges: selEdges }: { nodes: Node[]; edges: Edge[] }) => {
       select({
-        devices: selNodes.filter((n) => n.type === 'device').map((n) => n.id),
+        devices: selNodes.filter((n) => n.type === 'device').flatMap((n) => deviceIdsOf(n as CanvasNode)),
         links: selEdges.filter((e) => e.type === 'link').map((e) => e.id),
         flows: selEdges.filter((e) => e.type === 'flow').map((e) => e.id),
         areas: selNodes.filter((n) => n.type === 'area').map((n) => n.id),
@@ -304,6 +332,11 @@ export function Canvas() {
     [focusDevice],
   );
 
+  // Double-clicking a stack opens its level in a tab of its own, where every member is drawn.
+  const onNodeDoubleClick = useCallback((_event: MouseEvent, node: CanvasNode) => {
+    if (node.type === 'device' && node.data.stack) useProject.getState().openLevel(node.data.device.purdueLevel);
+  }, []);
+
   const openMenu = useCallback((deviceId: string, clientX: number, clientY: number) => {
     const bounds = container.current?.getBoundingClientRect();
     setMenu({ deviceId, x: clientX - (bounds?.left ?? 0), y: clientY - (bounds?.top ?? 0) });
@@ -311,7 +344,7 @@ export function Canvas() {
 
   const onNodeContextMenu = useCallback(
     (event: MouseEvent, node: CanvasNode) => {
-      if (node.type !== 'device') return;
+      if (node.type !== 'device' || node.data.stack) return;
       event.preventDefault();
       openMenu(node.id, event.clientX, event.clientY);
     },
@@ -353,6 +386,8 @@ export function Canvas() {
       const at = screenToFlowPosition({ x: event.clientX, y: event.clientY });
       if (event.dataTransfer.types.includes(NOTE_DND_MIME)) {
         event.preventDefault();
+        // Notes belong to the overview; a level tab shows only devices.
+        if (level !== null) return announce('Notes are added in the overview.');
         const note = createNote(siteId, { x: at.x - 20, y: at.y - 20 });
         apply((p) => addNote(p, note));
         select({ ...NO_SELECTION, notes: [note.id] });
@@ -363,10 +398,10 @@ export function Canvas() {
       if (!kind) return;
       event.preventDefault();
       const device = createDevice(kind.type, { x: at.x - DROP_OFFSET.x, y: at.y - DROP_OFFSET.y }, { siteId, variant: kind.variant });
-      apply((p) => addDevice(p, device));
+      apply((p) => (level !== null && modes ? modes.addToLevel(p, device, level, device.position) : addDevice(p, device)));
       announce(`${device.label} added`);
     },
-    [apply, screenToFlowPosition, siteId, select],
+    [apply, screenToFlowPosition, siteId, select, level, modes],
   );
 
   return (
@@ -390,6 +425,7 @@ export function Canvas() {
         onNodeDragStop={onNodeDragStop}
         onDelete={onDelete}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={onNodeDoubleClick}
         onEdgeDoubleClick={onEdgeDoubleClick}
         onNodeContextMenu={onNodeContextMenu}
         onPaneClick={() => setMenu(null)}
@@ -430,9 +466,9 @@ export function Canvas() {
           <NodeMenu {...menu} onClose={() => setMenu(null)} />
         </Suspense>
       )}
-      {view.nodes.length === 0 && (
+      {view.nodes.length === 0 && (level === null || modes) && (
         <div className="canvas-empty" role="note">
-          <p>This site is empty.</p>
+          <p>{level === null ? 'This site is empty.' : 'This level of the site is empty.'}</p>
           <p className="muted">Drag a device here from the palette, or press Ctrl + Shift + P to run any command, such as “New architecture from a template”.</p>
         </div>
       )}

@@ -4,9 +4,21 @@ import { deviceCount, deviceNode, openApp } from './helpers';
 
 test.beforeEach(async ({ page }) => openApp(page));
 
-/** Holds a finger still on an element for longer than the long-press delay, then lifts it. */
+/**
+ * Holds a finger still on an element for longer than the long-press delay, then lifts it. The canvas
+ * animates to frame the site after loading, so the press waits until the element has stopped moving.
+ */
 async function longPress(page: Page, selector: string): Promise<void> {
-  const box = (await page.locator(selector).first().boundingBox())!;
+  const target = page.locator(selector).first();
+  let box = (await target.boundingBox())!;
+  await expect
+    .poll(async () => {
+      const before = box;
+      await page.waitForTimeout(100);
+      box = (await target.boundingBox())!;
+      return before.x === box.x && before.y === box.y && before.width === box.width;
+    })
+    .toBe(true);
   const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
@@ -58,6 +70,18 @@ test('a long press on a device opens its menu, and the lifting finger chooses no
 test('tapping a device selects it for editing', async ({ page }) => {
   await deviceNode(page, 'Site historian').tap();
   await expect(page.getByRole('complementary', { name: 'Properties' }).getByRole('textbox', { name: 'Name' })).toHaveValue('Site historian');
+});
+
+test('lane buttons are 44 px targets, and tapping one opens the level tab', async ({ page }) => {
+  const open = page.getByRole('button', { name: 'Open L3 in its own tab' });
+  const box = (await open.boundingBox())!;
+  // The canvas can be zoomed out, so the size is measured against the canvas zoom.
+  const zoom = await page.locator('.react-flow__viewport').evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+  expect(Math.round(box.width / zoom)).toBeGreaterThanOrEqual(44);
+  expect(Math.round(box.height / zoom)).toBeGreaterThanOrEqual(44);
+  await open.tap();
+  await expect(page.getByRole('navigation', { name: 'Levels' }).getByRole('button', { name: /L3 Site operations/ })).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('.react-flow__node-device')).toHaveCount(4);
 });
 
 test('the tablet layout has no accessibility violations', async ({ page }) => {

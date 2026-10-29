@@ -69,7 +69,10 @@ function v4ToV5(p: Json): Json {
   return { ...designToV5(p), schemaVersion: 5, revisions };
 }
 
-const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2, 2: v2ToV3, 3: v3ToV4, 4: v4ToV5 };
+/** v6 only adds optional fields (level tab positions, stacked levels), so nothing needs filling in. */
+const v5ToV6 = (p: Json): Json => ({ ...p, schemaVersion: 6 });
+
+const STEPS: Record<number, (p: Json) => Json> = { 1: v1ToV2, 2: v2ToV3, 3: v3ToV4, 4: v4ToV5, 5: v5ToV6 };
 
 export function migrate(raw: unknown): unknown {
   if (!isObject(raw)) return raw;

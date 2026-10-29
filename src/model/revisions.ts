@@ -76,6 +76,10 @@ function fieldChanges<T>(before: T, after: T, fields: [string, (x: T) => unknown
   });
 }
 
+/** Stacked levels in Purdue order, e.g. "L1, L0"; "none" when stacking is off everywhere. */
+const stackedText = (levels: Design['sites'][number]['stackedLevels']) =>
+  levels?.length ? [...levels].sort((x, y) => y - x).map(levelLabel).join(', ') : 'none';
+
 function byId<T extends { id: string }>(list: T[]): Map<string, T> {
   return new Map(list.map((x) => [x.id, x]));
 }
@@ -135,7 +139,13 @@ export function diffDesigns(before: Design, after: Design): Change[] {
   );
   const fieldLabel = (id: string) => after.fieldDefs.find((f) => f.id === id)?.label ?? before.fieldDefs.find((f) => f.id === id)?.label ?? id;
 
-  changes.push(...compare('site', before.sites, after.sites, (s) => s.name, (a, b) => fieldChanges(a, b, [['name', (s) => s.name]])));
+  changes.push(...compare('site', before.sites, after.sites, (s) => s.name, (a, b) =>
+      fieldChanges(a, b, [
+        ['name', (s) => s.name],
+        ['stacked levels', (s) => stackedText(s.stackedLevels)],
+      ]),
+    ),
+  );
   changes.push(
     ...compare('zone', before.zones, after.zones, (z) => z.name, (a, b) =>
       fieldChanges(a, b, [
@@ -207,6 +217,7 @@ export function diffDesigns(before: Design, after: Design): Change[] {
       const a = before.devices.find((d) => d.id === c.id)!;
       const b = after.devices.find((d) => d.id === c.id)!;
       if (!same(a.position, b.position)) changes.push({ ...c, details: ['moved on the canvas'], moveOnly: true });
+      else if (!same(a.levelPosition, b.levelPosition)) changes.push({ ...c, details: ['moved in its level tab'], moveOnly: true });
       continue;
     }
     changes.push(c);

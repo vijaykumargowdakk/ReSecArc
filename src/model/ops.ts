@@ -292,7 +292,8 @@ export function pasteFragment(
     return ep;
   };
 
-  const devices = fragment.devices.map((d): Device => {
+  // A copy starts without a level tab position, so it is placed afresh there instead of on top of the original.
+  const devices = fragment.devices.map(({ levelPosition: _, ...d }): Device => {
     const position = { x: d.position.x + offset.x, y: d.position.y + offset.y };
     const copy: Device = {
       ...d,

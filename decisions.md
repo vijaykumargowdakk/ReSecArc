@@ -428,3 +428,45 @@ Also fixed:
 **Decision:** PR #5 (M26) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/touch-panels` branch stays on GitHub. M28 (level tabs and stacks) is next, then M29 (works offline). With 0.1 kB of the startup budget left, the owner decides before M28 whether all of it loads on demand or the budget is raised.
 **Why:** The owner gave the go-ahead to merge.
 **User input:** "merge it"
+
+## 2026-10-30 — M28 keeps the startup budget; built on its own branch in a new session
+**Decision:** The 575 kB startup budget stays for M28 (0.1 kB is left after M26). All new M28 code loads on demand: a level tab exists only once opened, and stacks are drawn only on levels where stacking is switched on. If a piece truly cannot wait to load, work stops and the owner is asked before the budget changes. M28 is built on `feat/level-tabs-stacks`, started from `main` after the M26 merge, in a new session.
+**Why:** Loading on demand keeps the first load fast, and M28 is a natural fit for it.
+**User input:** The owner followed the recommendation ("ill follow your recomendation") and will continue M28 in another chat.
+
+## 2026-10-30 — M28 plan approved: room in startup, stack-aware Tidy, tabs on demand
+**Decision:**
+- **Startup budget:** a few small hooks cannot load on demand (the v6 schema fields and migration step, the lane label buttons, the canvas, card and edge hooks for level mode and stacks, level-aware palette adding and Tidy; about 2–2.5 kB). To pay for them without raising the 575 kB budget, the revision diff engine (`src/model/revisions.ts`, 8.6 kB) loads on demand: it was in startup only because `store/compare.ts` imported it, and it is needed only while comparing. Everything else new in M28 loads on demand.
+- **Tidy in the Overview with stacks on** treats each stack as one slot and moves all its members to that slot. When stacking is switched off again they sit in a pile until the next Tidy spreads them out.
+- **Level tabs** exist only once opened (lane label or command palette), are not saved in the project file, and close when the site changes or a project is loaded. The tab strip shows only while at least one level tab is open.
+**Why:** The plan given before M28 was built; the three points above were the open choices, each with a recommendation.
+**User input:** "do the recomended things for a,b,c"
+
+## 2026-10-30 — Level tabs and stacks (M28)
+**Decision:**
+- **File format 6:** `device.levelPosition` and `site.stackedLevels`, both optional, so the 5 → 6 step only changes the version. The diff lists a level-tab move as a move (hidden with moves) and stacking as a site change. Paste drops the level position, so copies are placed afresh in the level tab; merging sites keeps stacked levels.
+- **Level tabs:**
+  - The tab strip sits above the canvas, below the canvas bar, and shows only while a level tab is open; the canvas bar had no room.
+  - A level tab is the same canvas, built by an on-demand module on top of `buildView`, so filters, layers, findings, comparison marks, attack paths, keyboard connections and touch all work there.
+  - Dragging in a level tab sets only `levelPosition`; it never changes the level, area or overview position. Area frames are drawn around their members and cannot be moved there.
+  - Notes stay in the overview; adding one in a level tab says so.
+  - A device added in a level tab joins that level, at the first free cell of the tab and the first free spot of its lane in the overview.
+  - Clicking a stub for another level opens that level's tab. Search, Outline and Inventory follow one rule: from a level tab the device opens in its own level's tab, from the overview it stays in the overview. Security findings and attack paths, which can span levels, show in the overview.
+- **Stacks:**
+  - Drawn where the leftmost member is. The card shows as selected only when every member is, so selecting one member from search does not highlight the whole stack.
+  - Click selects all members (bulk inspector), Delete removes them all (one undo step), drag moves them all. A stack has no right-click menu and cannot be a connection end, because it would be unclear which member is meant.
+  - Merged links and flows carry a count and cannot be selected. An edge that is re-pointed at a stack but merges with no other keeps its own id and stays selectable.
+  - Criticality shows the highest among the members.
+- **Report and draw.io:** a stack is one card with two cards behind it and ×N, links and flows merge with a count, and the report caption names each stack while its tables still list every device. In draw.io the two back cards are separate cells, not a group, so the stack's cell stays a normal device that edges attach to. **Checked by hand on 2026-10-30:** the 15-sensor export opened in app.diagrams.net (through the URL fragment, which is not sent to a server) with no errors; the stack, its back cards and both ×15 counts showed.
+- **Startup bundle:** 570.4 kB of 575 kB. Loading the revision diff engine on demand brought it from 574.8 kB to 566.5 kB; the M28 startup hooks then cost 3.9 kB, more than the 2–2.5 kB estimated before building, mainly the lane buttons (1.0 kB) and the canvas hooks (1.0 kB). The level view (4.9 kB), stacks (2.7 kB), level layout (2.3 kB) and tab strip (1.3 kB) are separate chunks. The lane buttons reuse icons already in the bundle.
+- **Found and fixed on the way:**
+  - Framing a site now includes the lane labels at the left edge. On a wide site they were at the canvas's edge, under the palette's resize edge, so the new lane buttons could not be clicked (found by the browser test).
+  - In the dark themes, low-severity badges (canvas, toolbar count, Security panel tag) had dark text on grey at 3.8:1; they now use white (4.8:1), as high-severity badges already did. A stack of devices without a zone was the first view to show a low-only badge to axe.
+**Why:** The approved M28 plan, with the three choices from the entry above.
+**User input:** "do the recomended things for a,b,c"
+
+## 2026-10-30 — M28 merged; M29 next
+**Decision:** PR #6 (M28) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/level-tabs-stacks` branch stays on GitHub. M29 (works offline: installable app, offline precache, update prompt) is next, on a new branch from `main`, within the 575 kB startup budget (4.6 kB left).
+**Also:** the first CI run of PR #6 failed one tablet test, the long-press menu, on both attempts, while it passed locally. Its trace showed the canvas still animating to frame the site when the test measured the device and pressed, so the finger landed where the device had been; framing now includes the lane labels, which changed that animation enough to show the race on the slower CI machine. The test now waits until the device has stopped moving. The app was not changed.
+**Why:** The owner gave the go-ahead to merge.
+**User input:** "merge it and tell what is next"

@@ -4,7 +4,7 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
 
 ```jsonc
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites":   [ /* Site, at least one */ ],
   "devices": [ /* Device */ ],
@@ -21,7 +21,7 @@ A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.t
 }
 ```
 
-Files saved by older versions (`schemaVersion` 1 to 4) are upgraded, including the designs stored in their revisions, automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
+Files saved by older versions (`schemaVersion` 1 to 5) are upgraded, including the designs stored in their revisions, automatically when opened; see [`src/model/migrate.ts`](../src/model/migrate.ts).
 
 ## Device
 
@@ -43,6 +43,7 @@ Files saved by older versions (`schemaVersion` 1 to 4) are upgraded, including t
 | `fields` | `{ [fieldDefId]: string }` | Values of the project's custom fields |
 | `locked` | boolean | Locked devices cannot be dragged and are skipped by Tidy, align and distribute |
 | `firewall` | `{ defaultAction, rules[] }` | Present only on `firewall` devices, and required there |
+| `levelPosition` | `{ x, y }`, optional | Where the device sits in its level's own tab; left out until it is arranged there. Moving it never changes `position`, the level or the area |
 
 ### Firewall rule
 
@@ -105,7 +106,7 @@ Where two ports are listed, the port follows the setting unless the user has typ
 
 ## Site and area
 
-A site is `{ id, name }`; every project has at least one. An area is a named rectangle on one site, used for cells, lines or substations: `{ id, siteId, name, color, rect: { x, y, width, height }, collapsed, locked }`.
+A site is `{ id, name, stackedLevels? }`; every project has at least one. `stackedLevels` lists the Purdue levels where similar devices are drawn as stacks in the overview, the report and the draw.io export (devices of the same `type`, `variant`, level, `areaId` and `zoneId` that are not `locked`, two or more of them); it is left out when stacking is off everywhere. An area is a named rectangle on one site, used for cells, lines or substations: `{ id, siteId, name, color, rect: { x, y, width, height }, collapsed, locked }`.
 
 ## Note
 
@@ -152,7 +153,7 @@ Conduits are not stored. They are derived as the zone pairs joined directly by a
 A file is accepted only if:
 
 1. it parses as JSON,
-2. after any upgrade, it matches the schema, including `schemaVersion: 5`, and
+2. after any upgrade, it matches the schema, including `schemaVersion: 6`, and
 3. it passes the reference checks:
    - every id is unique;
    - links, flows, sites, zones, areas, notes, networks, custom fields, rule endpoints and policy zones point at things that exist, and policy protocols are in the registry;

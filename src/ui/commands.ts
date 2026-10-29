@@ -2,6 +2,8 @@
 // state when it runs, so the list can be built once when the palette opens.
 import type { ReactFlowInstance } from '@xyflow/react';
 import { addPolicy, newPolicy } from '../model/policies';
+import { levelLabel, PURDUE_LANES } from '../model/purdue';
+import { isStacked, setLevelStacked } from '../model/stacks';
 import { PROTOCOLS } from '../model/protocols';
 import { saveRevision } from '../model/revisions';
 import { announce } from '../store/announcer';
@@ -83,7 +85,7 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   add('Edit', 'select-all', 'Select every device on this site', () => useProject.getState().selectAll(), { shortcut: 'Ctrl+A', enabled: diagram });
   add('Edit', 'duplicate', 'Duplicate the selected devices', () => useProject.getState().duplicate(), { shortcut: 'Ctrl+D', enabled: selection.devices.length > 0 });
   add('Edit', 'note', 'Add a text note', () => addNoteInView(rf), { enabled: diagram, keywords: 'annotation comment' });
-  add('Edit', 'tidy', 'Tidy the layout of this site', () => tidyOpenSite(rf), { enabled: diagram, keywords: 'arrange auto layout' });
+  add('Edit', 'tidy', `Tidy the layout of this ${state.activeLevel === null ? 'site' : 'level'}`, () => void tidyOpenSite(rf), { enabled: diagram, keywords: 'arrange auto layout' });
   add('Edit', 'untidy', 'Undo tidy: put back the layout from before it', () => toggleTidy(rf), {
     enabled: diagram && canRestoreTidy(project, state.activeSiteId),
     keywords: 'arrange auto layout restore previous',
@@ -154,6 +156,31 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   add('Connect', 'mode-flow', 'Draw new connections as protocol flows', () => useProject.getState().setConnectMode('flow'));
   for (const p of PROTOCOLS) {
     add('Connect', `protocol-${p.id}`, `Use ${p.label} for new protocol flows`, () => useProject.getState().setFlowProtocol(p.id), { keywords: 'protocol' });
+  }
+
+  // Levels of the open site that have devices, plus the open level tab even if it is now empty.
+  const site = project.sites.find((s) => s.id === state.activeSiteId);
+  const showLevel = (level: (typeof PURDUE_LANES)[number]['level'] | null) => {
+    ctx.setView('diagram');
+    useProject.getState().openLevel(level);
+  };
+  add('Levels', 'overview', 'Show the overview of this site', () => showLevel(null), { enabled: state.activeLevel !== null, keywords: 'level tab all levels' });
+  for (const lane of PURDUE_LANES) {
+    const label = levelLabel(lane.level);
+    const used = project.devices.some((d) => d.siteId === state.activeSiteId && d.purdueLevel === lane.level);
+    if (!used && state.activeLevel !== lane.level) continue;
+    add('Levels', `level-${lane.level}`, `Open ${label} ${lane.name} in its own tab`, () => showLevel(lane.level), {
+      enabled: state.activeLevel !== lane.level || !diagram,
+      keywords: 'level tab purdue lane',
+    });
+    if (state.levelTabs.includes(lane.level)) {
+      add('Levels', `close-level-${lane.level}`, `Close the ${label} tab`, () => void import('./LevelTabs').then((m) => m.closeLevelTab(lane.level)), { keywords: 'level tab' });
+    }
+    const on = isStacked(site, lane.level);
+    add('Levels', `stack-${lane.level}`, `${on ? 'Stop stacking' : 'Stack similar'} devices on ${label}`, () => {
+      useProject.getState().apply((p) => setLevelStacked(p, state.activeSiteId, lane.level, !on));
+      announce(on ? `Stacking off for ${label}` : `Similar devices on ${label} are drawn as stacks`);
+    }, { enabled: used, keywords: 'stack group collapse similar devices overview level' });
   }
 
   if (project.sites.length > 1) {

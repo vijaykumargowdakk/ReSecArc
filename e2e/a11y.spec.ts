@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import pipeline from '../src/examples/templates/pipeline.json' with { type: 'json' };
+import { sensorLevelProject } from './fixtures';
 import { clearSelection, deviceNode, openApp, type Theme } from './helpers';
 
 /** Fails with a readable list of WCAG 2.1 A/AA violations on the current page. */
@@ -84,6 +85,16 @@ for (const theme of THEMES) {
       await page.getByRole('button', { name: 'Office workstation → Pump station RTU' }).click();
       await page.locator('summary', { hasText: 'Where an attacker could start' }).click();
       await expectNoViolations(page, 'attack paths with a highlighted path');
+    });
+
+    test('level tabs and stacks have no violations', async ({ page }) => {
+      await page.locator('input[type=file][accept*="json"]').setInputFiles({ name: 'sensors.json', mimeType: 'application/json', buffer: Buffer.from(sensorLevelProject()) });
+      await page.getByRole('button', { name: 'Stack similar devices on L0' }).click();
+      await page.locator('.react-flow__node.is-stack').click();
+      await expectNoViolations(page, 'overview with a selected stack');
+      await page.locator('.react-flow__node.is-stack').dblclick();
+      await expect(page.locator('.react-flow__node-device')).toHaveCount(15);
+      await expectNoViolations(page, 'level tab');
     });
 
     test('comparison view has no violations', async ({ page }) => {

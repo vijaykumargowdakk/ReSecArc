@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export const deviceTypeSchema = z.enum([
   'plc',
@@ -102,6 +102,8 @@ export const deviceSchema = z.object({
   fields: z.record(z.string()),
   locked: z.boolean(),
   firewall: firewallConfigSchema.optional(),
+  /** Where the device sits in its level's own tab; unset until it is arranged there. */
+  levelPosition: pointSchema.optional(),
 });
 
 export const linkSchema = z.object({
@@ -142,6 +144,8 @@ export const zoneSchema = z.object({
 export const siteSchema = z.object({
   id: idSchema,
   name: z.string(),
+  /** Purdue levels whose similar devices are drawn as stacks in the overview. */
+  stackedLevels: z.array(purdueLevelSchema).max(7).optional(),
 });
 
 export const areaSchema = z.object({
