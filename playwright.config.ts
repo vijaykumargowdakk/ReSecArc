@@ -12,6 +12,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
+    // Each test sees the files the server sends; e2e/offline.spec.ts turns the service worker on.
+    serviceWorkers: 'block',
   },
   projects: [
     { name: 'chromium', testIgnore: /tablet\.spec/, use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
