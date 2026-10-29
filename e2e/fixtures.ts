@@ -56,3 +56,56 @@ export function largeProject(sites = 5, perSite = 200): string {
     revisions: [],
   });
 }
+
+/**
+ * A format-5 file (from before level tabs and stacks): a SCADA server, a switch and a PLC above
+ * fifteen temperature sensors on L0, each sensor linked to the switch and polled by the PLC.
+ */
+export function sensorLevelProject(): string {
+  const asset = { vendor: '', model: '', firmware: '', serial: '', ip: '', notes: '' };
+  const device = (id: string, type: string, variant: string, label: string, level: number, x: number) => ({
+    id,
+    type,
+    variant,
+    label,
+    purdueLevel: level,
+    siteId: 'site-main',
+    zoneId: null,
+    areaId: null,
+    criticality: 'medium',
+    position: { x, y: LEVELS.indexOf(level) * 150 + 43 },
+    services: [],
+    asset,
+    tags: [],
+    fields: {},
+    locked: false,
+  });
+  const link = (id: string, source: string, target: string) => ({
+    id,
+    source,
+    target,
+    medium: 'ethernet',
+    sourcePort: '',
+    targetPort: '',
+    vlans: [],
+    networkId: null,
+    waypoints: [],
+  });
+  const sensors = Array.from({ length: 15 }, (_, i) => device(`tt-${i + 1}`, 'sensor', 'temperature', `TT-${101 + i}`, 0, 220 + i * 220));
+  return JSON.stringify({
+    schemaVersion: 5,
+    name: 'Sensor level (fictional)',
+    sites: [{ id: 'site-main', name: 'Main site' }],
+    devices: [device('scada', 'scada', 'generic', 'SCADA server', 3, 220), device('sw', 'switch', 'generic', 'Field switch', 1, 220), device('plc', 'plc', 'generic', 'Line PLC', 1, 500), ...sensors],
+    links: [link('l-scada', 'scada', 'plc'), ...sensors.map((s) => link(`l-${s.id}`, 'sw', s.id))],
+    flows: sensors.map((s) => ({ id: `f-${s.id}`, source: 'plc', target: s.id, protocol: 'modbus', port: 502, settings: { variant: 'tcp', access: 'read', authentication: false }, waypoints: [] })),
+    zones: [],
+    areas: [],
+    notes: [],
+    networks: [],
+    fieldDefs: [],
+    policies: [],
+    disabledChecks: [],
+    revisions: [],
+  });
+}

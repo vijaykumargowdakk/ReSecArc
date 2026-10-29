@@ -60,6 +60,18 @@ test('tapping a device selects it for editing', async ({ page }) => {
   await expect(page.getByRole('complementary', { name: 'Properties' }).getByRole('textbox', { name: 'Name' })).toHaveValue('Site historian');
 });
 
+test('lane buttons are 44 px targets, and tapping one opens the level tab', async ({ page }) => {
+  const open = page.getByRole('button', { name: 'Open L3 in its own tab' });
+  const box = (await open.boundingBox())!;
+  // The canvas can be zoomed out, so the size is measured against the canvas zoom.
+  const zoom = await page.locator('.react-flow__viewport').evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+  expect(Math.round(box.width / zoom)).toBeGreaterThanOrEqual(44);
+  expect(Math.round(box.height / zoom)).toBeGreaterThanOrEqual(44);
+  await open.tap();
+  await expect(page.getByRole('navigation', { name: 'Levels' }).getByRole('button', { name: /L3 Site operations/ })).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('.react-flow__node-device')).toHaveCount(4);
+});
+
 test('the tablet layout has no accessibility violations', async ({ page }) => {
   const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(', ')}`)).toEqual([]);
