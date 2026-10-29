@@ -4,7 +4,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProp
 import { decodeShare, isShareFragment } from './model/share';
 import type { Project } from './model/schema';
 import { useAnnouncer } from './store/announcer';
-import { clearAutosave, readAutosave, startAutosave, type Snapshot } from './store/autosave';
+import { clearAutosave, readAutosave, startAutosave, takeResume, type Snapshot } from './store/autosave';
 import { useCompare, useComparison } from './store/compare';
 import { hasEdits, NO_SELECTION, useProject } from './store/useProject';
 import { Canvas } from './ui/canvas/Canvas';
@@ -30,6 +30,7 @@ const Tour = lazy(() => import('./ui/Tour').then((m) => ({ default: m.Tour })));
 const TemplateGallery = lazy(() => import('./ui/TemplateGallery').then((m) => ({ default: m.TemplateGallery })));
 const MergeDialog = lazy(() => import('./ui/MergeDialog').then((m) => ({ default: m.MergeDialog })));
 const LevelTabs = lazy(() => import('./ui/LevelTabs').then((m) => ({ default: m.LevelTabs })));
+const OfflineNotices = lazy(() => import('./offline/OfflineNotices').then((m) => ({ default: m.OfflineNotices })));
 
 const VIEW_NAMES: Record<ViewName, string> = { diagram: 'Diagram', inventory: 'Inventory', outline: 'Outline' };
 
@@ -38,10 +39,14 @@ const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', tim
 /** Removes a share fragment from the address bar so a reload does not offer the same project again. */
 const clearShareFragment = () => history.replaceState(null, '', location.pathname + location.search);
 
+// After reloading to start a new version of the app, the work in progress opens again without asking.
+const resumed = takeResume();
+if (resumed) useProject.getState().load(resumed.project);
+
 export function App() {
   const [errors, setErrors] = useState<string[]>([]);
   // Read once: a pending snapshot must be restored or discarded before autosave may overwrite it.
-  const [pending, setPending] = useState<Snapshot | null>(readAutosave);
+  const [pending, setPending] = useState<Snapshot | null>(() => (resumed ? null : readAutosave()));
   const load = useProject((s) => s.load);
   const [searching, setSearching] = useState(false);
   const [choosingTemplate, setChoosingTemplate] = useState(false);
@@ -300,6 +305,12 @@ export function App() {
           {sharing && <ShareDialog onClose={() => setSharing(false)} />}
           {merging && <MergeDialog onClose={() => setMerging(false)} />}
         </Suspense>
+        {/* Offline use needs the built files, so the development server goes without it. */}
+        {import.meta.env.PROD && 'serviceWorker' in navigator && (
+          <Suspense fallback={null}>
+            <OfflineNotices />
+          </Suspense>
+        )}
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           <span key={seq}>{announcement}</span>
         </div>

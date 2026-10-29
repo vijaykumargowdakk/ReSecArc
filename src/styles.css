@@ -451,6 +451,33 @@ dialog {
   overflow: auto;
 }
 
+/* Notices about offline use float over the bottom of the window, so the layout does not shift when
+   one appears; below the tour, above panels and menus. */
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  z-index: 50;
+  display: grid;
+  gap: 8px;
+  width: min(600px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.toast {
+  border: 1px solid var(--info-line);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+}
+
+@media print {
+  .toasts {
+    display: none;
+  }
+}
+
 /* Side panels: a header that folds the panel, a scrolling body, and an edge that resizes it */
 .palette,
 .inspector {
