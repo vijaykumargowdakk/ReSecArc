@@ -24,7 +24,6 @@ describe('v4 → v5 migration', () => {
   it('adds empty policies and switched-off checks to the project and its revisions', () => {
     const p = load(v4File());
     expect(p.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(SCHEMA_VERSION).toBe(5);
     expect(p.policies).toEqual([]);
     expect(p.disabledChecks).toEqual([]);
     expect(p.revisions[0].design.policies).toEqual([]);

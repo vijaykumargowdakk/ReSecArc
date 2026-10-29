@@ -73,7 +73,7 @@ export function mergeSites(
       if (name !== s.name) summary.renamed.push({ from: s.name, to: name });
       const id = newId('site');
       siteMap.set(s.id, id);
-      return { id, name };
+      return { id, name, ...(s.stackedLevels?.length && { stackedLevels: [...s.stackedLevels] }) };
     });
 
   // Zones: matched by name, otherwise added. Only zones something copied refers to are brought over.
