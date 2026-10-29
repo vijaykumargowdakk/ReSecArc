@@ -1536,10 +1536,6 @@ button:focus-visible {
   background: var(--panel-alt);
 }
 
-.file-button input {
-  display: none;
-}
-
 .import-errors {
   max-height: 200px;
   overflow-y: auto;
