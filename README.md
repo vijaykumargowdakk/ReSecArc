@@ -379,6 +379,12 @@ Choosing a path numbers its steps on the canvas and draws its links, flows and c
 
 **The draw.io file** has a page per site, named after it. Each page has layers: *Purdue levels* (locked, so the lanes are not moved by accident), *Areas*, *Network links*, *Protocol flows*, *Devices* and *Notes*. Devices keep their icon and zone colour, and carry their kind, level, zone, criticality, IP address, vendor, model, firmware, serial and tags as shape data (**Edit Data** in draw.io). Bend points, port names and flow labels are kept. A device on another site appears as a stub that links to that site's page.
 
+### 4.11 Offline use and installing as an app
+
+- **Works offline.** The first time ConduitOT opens in a browser, it stores itself there; a notice says when that is done. After that it opens and runs with no network connection: every view, dialog, template, export and the report work as usual, and autosave keeps the work in the browser. A notice says when the network is gone.
+- **Installs as an app.** Chrome and Edge offer to install it (from the address bar, or **Install ConduitOT as an app** in the command palette when the browser allows it). Safari on iPhone and iPad adds it with **Share → Add to Home Screen**. It then opens in a window of its own and works offline in the same way.
+- **Updates when you choose.** The app looks for a new version each time it opens and every hour while it is open. When one is ready, a notice offers **Reload** or **Later**; nothing changes until you reload. Reloading saves the work first and opens it again straight away, without the restore question. If another tab starts the new version first, this tab offers the reload too.
+
 ---
 
 ## 5. Typical workflows
@@ -560,6 +566,10 @@ flowchart LR
 | `src/ui/PanelChrome.tsx`, `PanelEdge.tsx` | The side panels' header and fold button, and their resize edge (loaded just after first paint) |
 | `src/ui/canvas/longPress.ts` | The long-press device menu, loaded only on touch-screen devices |
 | `src/ui/canvas/usePathMarks.ts` | The chosen attack path as canvas marks; loads the path finder once a path is chosen |
+| `src/offline/sw.js` | The service worker: stores every built file per version, answers from that store, deletes old versions |
+| `scripts/offline-plugin.ts` | Writes `dist/sw.js` after each build, with the list of built files and a version taken from their contents |
+| `src/offline/OfflineNotices.tsx` | Registers the service worker and shows the ready, offline and update notices; loaded on demand, in production builds only |
+| `src/store/install.ts` | Keeps the browser's offer to install the app for the command palette; loaded at startup so the offer is not missed |
 
 ---
 
@@ -850,6 +860,8 @@ stateDiagram-v2
 ```
 
 Autosave is per browser and per device. Saving the project file remains the way to keep and share work.
+
+Reloading to start a new version of the app ([section 4.11](#411-offline-use-and-installing-as-an-app)) saves at once instead of waiting a second, and marks the snapshot in `sessionStorage` (`conduitot:resume`) so it opens again after the reload without the offer. The undo history starts afresh, as it does after a restore. While a found snapshot is still on offer, the reload leaves it alone, and it is offered again.
 
 ---
 
@@ -1184,8 +1196,8 @@ flowchart TB
 
 | Topic | Behaviour |
 |-------|-----------|
-| Network use | Only the initial download of the app. No fonts, scripts or images are fetched from third parties |
-| Storage | `localStorage` keys `conduitot:autosave`, `conduitot:blocks`, `conduitot:theme` and `conduitot:prefs` (layers, side panels, folded sections, text size), on your device only |
+| Network use | Only downloading the app: once to store it for offline use, and again for each new version. Its service worker only handles requests to the app's own address, and fetches anything it has not stored in the usual way. No fonts, scripts or images are fetched from third parties |
+| Storage | `localStorage` keys `conduitot:autosave`, `conduitot:blocks`, `conduitot:theme` and `conduitot:prefs` (layers, side panels, folded sections, text size); the app's own files in Cache Storage (`conduitot-` plus the version); `sessionStorage` key `conduitot:resume` for a moment while the app reloads to update. All on your device only |
 | Untrusted input | Files, autosaves and share links all go through the same schema and reference validation before use |
 | Share link size | Decompression is capped at 8 MB |
 | Coordinates | Positions and sizes are limited to ±1,000,000, so layout code always finishes, even on crafted files |
@@ -1209,6 +1221,7 @@ Treat project files, exports and share links as sensitive: they can contain addr
 | CSV | papaparse 5 | Robust parsing and quoting, formula escaping |
 | Image export | html-to-image 1.11.11 (pinned) | The version React Flow recommends for exporting diagrams |
 | Compression | Browser `CompressionStream` | Share links without an extra dependency |
+| Offline | A hand-written service worker (`src/offline/sw.js`) and a small Vite plugin that lists every built file in it | About 60 lines with nothing to configure; the list comes from the build, so no file can be missed |
 | Build | Vite 5 | Fast development server and small production bundles |
 | Tests | Vitest 2; Playwright with axe-core | Fast unit tests; real-browser flows and accessibility checks against the production build |
 | Lint | ESLint 9 with typescript-eslint | Consistent code |
@@ -1242,6 +1255,8 @@ Open the printed local URL. The fictional Riverbend water treatment plant loads 
 | `npm run e2e` | Browser tests with accessibility checks (Playwright; run `npx playwright install chromium` once) |
 
 The build uses relative asset paths, so `dist/` can be served from any static host or sub-path.
+
+The development server does not register the service worker, so offline use and updates can only be tried on a build: `npm run build`, then `npm run preview`. The browser keeps the service worker afterwards; remove it under DevTools → Application → Service workers (or clear the site's data) before going back to `npm run dev` on the same port. The app icons in `public/` are drawn by `node scripts/app-icons.mjs` from the favicon's design; run it again after changing `public/favicon.svg`.
 
 ### 22.2 Continuous integration
 
@@ -1304,7 +1319,7 @@ gitGraph
 Testing has three layers:
 
 - **Unit tests** (Vitest) cover the model layer, which is pure TypeScript, so its rules are tested directly without a browser.
-- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline, keyboard-only connections, security findings, attack paths, the full report, the draw.io export and merging sites.
+- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline, keyboard-only connections, security findings, attack paths, the full report, the draw.io export, merging sites, and offline use: the app opens and edits with the network off with every file answered from the service worker's store, a new version is offered and starts on reload with the work kept, and Chrome finds nothing missing for installing it. The other browser tests block the service worker, so they always see the files the server sends.
 - **Accessibility scans** (axe) check every main view and dialog against WCAG 2.1 A and AA in all three themes. Any violation fails CI.
 
 A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and checks that opening it, switching sites and editing each stay within time budgets. It also checks that a diagram export of a 200-device site contains every device.
@@ -1406,6 +1421,7 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **No live collaboration.** Two people editing the same design work on separate copies; revisions and change records help merge by hand.
 - **Share links are snapshots.** Edits after sharing are not synchronised, and very large designs make long links.
 - **Autosave is per browser.** Clearing site data removes it; save the project file to keep work.
+- **Offline needs one visit online.** A browser can only work offline after it has opened ConduitOT once with a connection. Clearing site data removes the stored app along with the autosave.
 - **Drawing works best with a mouse or trackpad.** Tablets are supported (larger targets, long-press menus), but devices are added from the palette by tapping rather than dragging; below 900 px the side panels become drawers.
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
 - **Level tabs change positions only.** Dragging a device in a level tab never changes its level or area; change those in the overview or the properties panel. Area frames in a level tab are drawn around their devices and cannot be moved or resized there.

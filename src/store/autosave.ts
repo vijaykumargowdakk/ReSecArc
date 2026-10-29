@@ -45,6 +45,9 @@ export function clearAutosave(): void {
   }
 }
 
+/** Set while autosave runs; it is not running while a found snapshot waits to be restored or discarded. */
+let flush: (() => boolean) | null = null;
+
 /** Saves the project one second after the last change. Returns an unsubscribe function. */
 export function startAutosave(): () => void {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -53,8 +56,40 @@ export function startAutosave(): () => void {
     clearTimeout(timer);
     timer = setTimeout(() => write(state.project), DEBOUNCE_MS);
   });
+  flush = () => {
+    clearTimeout(timer);
+    write(useProject.getState().project);
+    return !useAutosaveStatus.getState().failed;
+  };
   return () => {
     clearTimeout(timer);
+    flush = null;
     unsubscribe();
   };
+}
+
+const RESUME_KEY = 'conduitot:resume';
+
+/**
+ * Saves the project now and marks it to open again straight away after the page reloads, as it
+ * does to start a new version of the app. Does nothing while a found snapshot is still on offer.
+ */
+export function saveForReload(): void {
+  if (!flush?.()) return;
+  try {
+    sessionStorage.setItem(RESUME_KEY, '1');
+  } catch {
+    // The snapshot is still offered after the reload.
+  }
+}
+
+/** The snapshot saved by saveForReload, once; null on any other page load. */
+export function takeResume(): Snapshot | null {
+  try {
+    if (!sessionStorage.getItem(RESUME_KEY)) return null;
+    sessionStorage.removeItem(RESUME_KEY);
+  } catch {
+    return null;
+  }
+  return readAutosave();
 }

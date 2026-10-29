@@ -17,4 +17,9 @@ export default defineConfig(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
     },
   },
+  {
+    extends: [js.configs.recommended],
+    files: ['src/offline/sw.js'],
+    languageOptions: { ecmaVersion: 2022, sourceType: 'script', globals: globals.serviceworker },
+  },
 );
