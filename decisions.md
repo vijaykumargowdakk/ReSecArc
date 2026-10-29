@@ -392,3 +392,17 @@ Also fixed:
 **Decision:** PR #4 (M27) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/report-drawio-merge` branch stays on GitHub. M26 (touch and text size) is the next milestone, then M28 (works offline).
 **Why:** The owner gave the go-ahead to merge, as the hold from 2026-10-28 required.
 **User input:** "ok merge it and tell me what is the next milestone in plan"
+
+## 2026-10-30 — M26 gains panels and a Tidy toggle; level tabs and stacks become M28; offline moves to M29
+**Decision:**
+- **M26 (touch, text size and panels)** keeps its touch targets, long-press menus and text size setting, and adds:
+  - Left (palette) and right (properties) panels that collapse to a thin strip with an icon to reopen, each with a keyboard shortcut (checked against the existing ones), and resize by dragging their edge (double-click resets). Open state and widths persist per browser. Below 900 px the drawers stay as they are.
+  - Collapsible sections in both panels (palette groups, Annotate, Your blocks, inspector and Project panel sections), each remembered per browser.
+  - **Tidy as a toggle:** after tidying the button reads "Undo tidy" and a second click restores the previous positions, area sizes and bend points (through undo). Any edit after the tidy turns the button back to "Tidy", so a stale restore never discards work.
+- **New M28, level tabs and stacks** (schema v6, optional fields so v5 files open):
+  - A tab per Purdue level of the current site beside the **Overview** tab, opened from the lane label or the command palette. It shows only that level, with wrapped rows, the same palette and inspector, and stubs at the top and bottom for links to other levels (clicking one goes to the other end). Devices keep a separate position for the level tab, so arranging it never moves the Overview. Tidy there lays out a grid grouped by area.
+  - **Stacks** in the Overview, switched on per level and saved in the project file (like collapsed areas) so shared links, the report and draw.io match. Devices are stacked **automatically** when they share type, variant, level, area and zone and are not locked. A stack is one card with overlapping cards behind it and a ×N badge; links merge with a count, finding counts add up; click selects all members (bulk inspector), double-click opens the level tab.
+  - New code loads on demand to stay within the 575 kB startup budget.
+- **Works offline** is renumbered from M28 to M29. Order: M26 → M28 → M29.
+**Why:** With one row per area per level, about six devices fit a 1,500 px lane, so 10–15 devices in a level make the whole diagram tiny when fitted. Widening or heightening lanes shrinks the overview in the same way; a level tab for editing and stacks for reading fix both sides. Level tabs and stacks change the file format, the report renderer and draw.io, so they get their own milestone and PR; building touch support first means the level tab inherits it.
+**User input:** The owner asked for VS Code-style collapsible panels and sections, a Tidy that restores on a second click, and a per-layer editing tab with stacked devices ("show 1 temp sensor and the overlap design and the indication that there are 15"), and asked whether it fits M26 or a new milestone before M28. The proposal (automatic stacks, new milestone as M28 with offline as M29, drag-to-resize in M26) was approved with "ok".
