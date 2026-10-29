@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { IconGallery } from './ui/IconGallery';
+import './store/install';
 import './styles.css';
 
 const root = document.getElementById('root');
