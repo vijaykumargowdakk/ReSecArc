@@ -1,6 +1,6 @@
 import { useReactFlow } from '@xyflow/react';
 import { Boxes, ChevronRight, StickyNote, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { DEVICE_CATALOG, PALETTE_GROUPS } from '../model/catalog';
 import { freeSpotInLane } from '../model/layout';
 import { addDevice, createDevice } from '../model/ops';
@@ -12,7 +12,9 @@ import { addNoteInView } from './actions';
 import { DEVICE_DND_MIME, NOTE_DND_MIME } from './canvas/Canvas';
 import type { CanvasEdge } from './canvas/edges';
 import type { CanvasNode } from './canvas/nodes';
+import { FoldButton, useSectionOpen } from './form';
 import { DeviceIcon } from './icons';
+import { PanelEdge, PanelHeader } from './PanelChrome';
 
 function PaletteItem({
   type,
@@ -47,7 +49,24 @@ function PaletteItem({
   );
 }
 
+/** A palette group whose heading folds it away; the choice is remembered in this browser. */
+function PaletteGroup({ title, children }: { title: string; children: ReactNode }) {
+  const [open, toggle] = useSectionOpen('palette', title);
+  const body = useId();
+  return (
+    <div className={`palette__group${open ? '' : ' is-folded'}`}>
+      <h3>
+        <FoldButton title={title} open={open} controls={body} onToggle={toggle} />
+      </h3>
+      <div id={body} hidden={!open}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export function Palette() {
+  const bodyId = useId();
   const apply = useProject((s) => s.apply);
   const siteId = useProject((s) => s.activeSiteId);
   const [open, setOpen] = useState<Set<DeviceType>>(() => new Set());
@@ -75,97 +94,98 @@ export function Palette() {
 
   return (
     <aside className="palette" aria-label="Device palette">
-      <p className="palette__hint">Drag a device onto a Purdue level, or click to add it. Open the arrow for specific kinds.</p>
-      {PALETTE_GROUPS.map((group) => (
-        <div key={group.title} className="palette__group">
-          <h3>{group.title}</h3>
+      <PanelHeader panel="palette" bodyId={bodyId} />
+      <div id={bodyId} className="panel-body palette__body">
+        <p className="palette__hint">Drag a device onto a Purdue level, or click to add it. Open the arrow for specific kinds.</p>
+        {PALETTE_GROUPS.map((group) => (
+          <PaletteGroup key={group.title} title={group.title}>
+            <ul>
+              {group.types.map((type) => {
+                const info = DEVICE_CATALOG[type];
+                const expanded = open.has(type);
+                return (
+                  <li key={type}>
+                    <div className="palette__row">
+                      <PaletteItem type={type} variant="generic" label={info.label} description={info.description} onAdd={addToDefaultLane} />
+                      <button
+                        type="button"
+                        className={`palette__toggle${expanded ? ' is-open' : ''}`}
+                        aria-expanded={expanded}
+                        aria-label={`${expanded ? 'Hide' : 'Show'} kinds of ${info.label}`}
+                        onClick={() => toggle(type)}
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                    {expanded && (
+                      <ul className="palette__variants">
+                        {info.variants.slice(1).map((v) => (
+                          <li key={v.id}>
+                            <PaletteItem
+                              type={type}
+                              variant={v.id}
+                              label={v.label}
+                              description={v.description}
+                              onAdd={addToDefaultLane}
+                              small
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </PaletteGroup>
+        ))}
+        <PaletteGroup title="Annotate">
           <ul>
-            {group.types.map((type) => {
-              const info = DEVICE_CATALOG[type];
-              const expanded = open.has(type);
-              return (
-                <li key={type}>
-                  <div className="palette__row">
-                    <PaletteItem type={type} variant="generic" label={info.label} description={info.description} onAdd={addToDefaultLane} />
-                    <button
-                      type="button"
-                      className={`palette__toggle${expanded ? ' is-open' : ''}`}
-                      aria-expanded={expanded}
-                      aria-label={`${expanded ? 'Hide' : 'Show'} kinds of ${info.label}`}
-                      onClick={() => toggle(type)}
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                  {expanded && (
-                    <ul className="palette__variants">
-                      {info.variants.slice(1).map((v) => (
-                        <li key={v.id}>
-                          <PaletteItem
-                            type={type}
-                            variant={v.id}
-                            label={v.label}
-                            description={v.description}
-                            onAdd={addToDefaultLane}
-                            small
-                          />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+            <li>
+              <button
+                type="button"
+                className="palette__item"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData(NOTE_DND_MIME, 'note');
+                  e.dataTransfer.effectAllowed = 'copy';
+                }}
+                onClick={() => addNoteInView(reactFlow)}
+                title="A free text note on the canvas"
+              >
+                <StickyNote size={22} />
+                <span>Text note</span>
+              </button>
+            </li>
+          </ul>
+        </PaletteGroup>
+        <PaletteGroup title="Your blocks">
+          {blocks.length === 0 ? (
+            <p className="palette__hint">Select several devices and choose “Save as reusable block” to reuse them here.</p>
+          ) : (
+            <ul>
+              {blocks.map((b) => (
+                <li key={b.id} className="palette__row">
+                  <button type="button" className="palette__item" onClick={() => insertFragment(b.fragment)} title={`Insert ${b.fragment.devices.length} devices`}>
+                    <Boxes size={22} />
+                    <span>{b.name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="palette__toggle"
+                    aria-label={`Delete block ${b.name}`}
+                    title="Delete block"
+                    onClick={() => window.confirm(`Delete the block “${b.name}”?`) && removeBlock(b.id)}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
-      <div className="palette__group">
-        <h3>Annotate</h3>
-        <ul>
-          <li>
-            <button
-              type="button"
-              className="palette__item"
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData(NOTE_DND_MIME, 'note');
-                e.dataTransfer.effectAllowed = 'copy';
-              }}
-              onClick={() => addNoteInView(reactFlow)}
-              title="A free text note on the canvas"
-            >
-              <StickyNote size={22} />
-              <span>Text note</span>
-            </button>
-          </li>
-        </ul>
+              ))}
+            </ul>
+          )}
+        </PaletteGroup>
       </div>
-      <div className="palette__group">
-        <h3>Your blocks</h3>
-        {blocks.length === 0 ? (
-          <p className="palette__hint">Select several devices and choose “Save as reusable block” to reuse them here.</p>
-        ) : (
-          <ul>
-            {blocks.map((b) => (
-              <li key={b.id} className="palette__row">
-                <button type="button" className="palette__item" onClick={() => insertFragment(b.fragment)} title={`Insert ${b.fragment.devices.length} devices`}>
-                  <Boxes size={22} />
-                  <span>{b.name}</span>
-                </button>
-                <button
-                  type="button"
-                  className="palette__toggle"
-                  aria-label={`Delete block ${b.name}`}
-                  title="Delete block"
-                  onClick={() => window.confirm(`Delete the block “${b.name}”?`) && removeBlock(b.id)}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <PanelEdge panel="palette" />
     </aside>
   );
 }

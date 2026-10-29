@@ -69,6 +69,25 @@ test('tidies the layout in one undo step', async ({ page }) => {
   const before = await positions();
   await page.getByRole('button', { name: 'Tidy layout' }).click();
   await expect.poll(positions).not.toEqual(before);
-  await page.getByRole('button', { name: 'Undo' }).click();
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
   await expect.poll(positions).toEqual(before);
+});
+
+test('a second click on Tidy puts the previous layout back', async ({ page }) => {
+  const positions = () => page.locator('.react-flow__node-device').evaluateAll((ns) => ns.map((n) => (n as HTMLElement).style.transform));
+  const before = await positions();
+  await page.getByRole('button', { name: 'Tidy layout' }).click();
+  await expect.poll(positions).not.toEqual(before);
+  const tidied = await positions();
+  await page.getByRole('button', { name: 'Undo tidy' }).click();
+  await expect.poll(positions).toEqual(before);
+  await expect(page.getByRole('button', { name: 'Tidy layout' })).toBeVisible();
+
+  // An edit after tidying ends the offer, so the button tidies again instead of undoing that edit.
+  await page.getByRole('button', { name: 'Tidy layout' }).click();
+  await expect.poll(positions).toEqual(tidied);
+  await page.getByRole('button', { name: 'Snap to grid' }).click(); // not an edit: the offer stays
+  await expect(page.getByRole('button', { name: 'Undo tidy' })).toBeVisible();
+  await page.getByRole('button', { name: 'Text note' }).click();
+  await expect(page.getByRole('button', { name: 'Tidy layout' })).toBeVisible();
 });

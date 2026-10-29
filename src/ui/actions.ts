@@ -1,6 +1,7 @@
 // Actions shared by the toolbar, the palette and the command palette, so each behaves the same
 // wherever it is started from.
 import type { ReactFlowInstance } from '@xyflow/react';
+import { create } from 'zustand';
 import { parseProject, serializeProject } from '../model/io';
 import { tidyLayout } from '../model/layout';
 import { addNote, createNote } from '../model/notes';
@@ -61,10 +62,39 @@ export function deleteDeviceAfterConfirm(deviceId: string): boolean {
   return true;
 }
 
+/**
+ * The project as the last tidy left it, and the site it tidied. While the design is still exactly
+ * that, a second Tidy puts the earlier layout back; any edit in between ends the offer.
+ */
+export const useLastTidy = create<{ siteId: string; result: Project } | { siteId: null; result: null }>(() => ({ siteId: null, result: null }));
+
+/** True when the Tidy button would put back the layout from before the last tidy. */
+export function canRestoreTidy(project: Project, siteId: string): boolean {
+  const last = useLastTidy.getState();
+  return last.result === project && last.siteId === siteId && useProject.getState().history.past.length > 0;
+}
+
 /** Lays out the open site in one undoable step and frames the result. */
 export function tidyOpenSite(rf: Flow): void {
   const { apply, activeSiteId } = useProject.getState();
+  const before = useProject.getState().project;
   apply((p) => tidyLayout(p, activeSiteId));
-  announce('Layout tidied. Undo restores the previous positions.');
+  const after = useProject.getState().project;
+  if (after === before) {
+    announce('Nothing to tidy on this site.');
+    return;
+  }
+  useLastTidy.setState({ siteId: activeSiteId, result: after });
+  announce('Layout tidied. Tidy again, or Undo, to put the previous layout back.');
+  requestAnimationFrame(() => rf.fitView({ padding: 0.1, duration: 250 }));
+}
+
+/** The Tidy button: tidies, or, straight after a tidy with nothing changed since, undoes it. */
+export function toggleTidy(rf: Flow): void {
+  const { project, activeSiteId, undo } = useProject.getState();
+  if (!canRestoreTidy(project, activeSiteId)) return tidyOpenSite(rf);
+  undo();
+  useLastTidy.setState({ siteId: null, result: null });
+  announce('Previous layout put back.');
   requestAnimationFrame(() => rf.fitView({ padding: 0.1, duration: 250 }));
 }

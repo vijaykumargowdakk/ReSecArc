@@ -268,10 +268,34 @@ button:focus-visible {
 }
 
 .workspace {
+  /* Panel widths at the default text size; dragging a panel edge sets them on the element itself. */
+  --palette-w: 232px;
+  --inspector-w: 340px;
+  /* The panels grow with the text size, but always leave the canvas at least about a third of the screen. */
+  --palette-track: min(calc(var(--palette-w) * var(--ui-scale, 1)), 32vw);
+  --inspector-track: min(calc(var(--inspector-w) * var(--ui-scale, 1)), 38vw);
   flex: 1;
   display: grid;
-  grid-template-columns: 232px 1fr 340px;
+  grid-template-columns: var(--palette-track) minmax(0, 1fr) var(--inspector-track);
   min-height: 0;
+}
+
+/* Text size: the interface is scaled as a whole, so nothing inside it overflows; the canvas keeps its own zoom. */
+.toolbar,
+.notice,
+.canvas-bar,
+.palette,
+.inspector,
+.inventory,
+.outline,
+dialog {
+  zoom: var(--ui-scale, 1);
+}
+
+/* Larger text needs more room than one toolbar row at most screen widths. */
+:root[data-text-size] .toolbar,
+:root[data-text-size] .canvas-bar {
+  flex-wrap: wrap;
 }
 
 /* Toolbar */
@@ -426,12 +450,173 @@ button:focus-visible {
   overflow: auto;
 }
 
+/* Side panels: a header that folds the panel, a scrolling body, and an edge that resizes it */
+.palette,
+.inspector {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 38px;
+  padding: 4px 6px 4px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head__title {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.panel-head__toggle {
+  flex: none;
+  padding: 4px 6px;
+  border-color: transparent;
+  background: none;
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.panel-edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
+  width: 6px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.panel-edge--palette {
+  right: 0;
+}
+
+.panel-edge--inspector {
+  left: 0;
+}
+
+.panel-edge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.12s;
+}
+
+.panel-edge--palette::after {
+  right: 0;
+}
+
+.panel-edge--inspector::after {
+  left: 0;
+}
+
+.panel-edge:hover::after,
+.panel-edge:active::after,
+.panel-edge:focus-visible::after {
+  background: var(--accent);
+}
+
+.panel-edge:focus-visible {
+  outline: none;
+}
+
+/* Folded panels (wide screens only): a strip with the open button and the panel's name. */
+@media (min-width: 901px) {
+  .palette-folded {
+    --palette-track: calc(40px * var(--ui-scale, 1));
+  }
+
+  .inspector-folded {
+    --inspector-track: calc(40px * var(--ui-scale, 1));
+  }
+
+  .palette-folded .palette > :not(.panel-head),
+  .inspector-folded .inspector > :not(.panel-head) {
+    display: none;
+  }
+
+  .palette-folded .palette .panel-head,
+  .inspector-folded .inspector .panel-head {
+    flex: 1;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    padding: 6px 0;
+    border-bottom: none;
+  }
+
+  .palette-folded .panel-head__title,
+  .inspector-folded .panel-head__title {
+    writing-mode: vertical-rl;
+  }
+}
+
+@media (max-width: 900px) {
+  .panel-head .panel-head__toggle,
+  .panel-edge {
+    display: none;
+  }
+}
+
+/* Section headings that fold their section */
+.fold-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fold-button:hover {
+  color: var(--ink);
+}
+
+.fold-button__chevron {
+  flex: none;
+  transition: transform 0.15s;
+}
+
+.fold-button[aria-expanded='true'] .fold-button__chevron {
+  transform: rotate(90deg);
+}
+
 /* Palette */
 .palette {
   background: var(--panel);
   border-right: 1px solid var(--line);
-  padding: 12px 10px;
-  overflow-y: auto;
+}
+
+.palette__body {
+  padding: 10px 10px 12px;
 }
 
 .palette__hint {
@@ -1528,6 +1713,45 @@ button:focus-visible {
   border-top: 1px solid var(--line);
 }
 
+/* Display menu: theme and text size */
+.display-menu__mark {
+  min-width: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.display-menu__items {
+  min-width: 230px;
+  padding: 8px;
+}
+
+.display-menu__items fieldset {
+  margin: 0;
+  padding: 0 0 6px;
+  border: none;
+}
+
+.display-menu__items fieldset + fieldset {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.display-menu__items legend {
+  padding: 0 6px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+.display-menu__hint {
+  margin: 6px 6px 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+}
+
 .import-dialog {
   width: min(640px, calc(100vw - 32px));
 }
@@ -1692,6 +1916,8 @@ button:focus-visible {
   .workspace {
     grid-template-columns: 1fr;
     position: relative;
+    /* A closed drawer waits just off screen; it must not make the page scroll sideways. */
+    overflow: hidden;
   }
 
   .palette,
@@ -2173,7 +2399,15 @@ button:focus-visible {
 .inspector {
   background: var(--panel);
   border-left: 1px solid var(--line);
-  overflow-y: auto;
+}
+
+/* A section's body box is only there to be hidden; open, its children lay out as the section's own. */
+.panel-section__body:not([hidden]) {
+  display: contents;
+}
+
+.panel-section.is-folded {
+  padding-bottom: 12px;
 }
 
 .panel-section {
@@ -2513,7 +2747,8 @@ textarea {
 
 @media (max-width: 1100px) {
   .workspace {
-    grid-template-columns: 180px 1fr 300px;
+    --palette-w: 180px;
+    --inspector-w: 300px;
   }
   .brand__project,
   .toolbar__label {
@@ -3031,6 +3266,8 @@ textarea {
 
 .sec-badge--high {
   background: var(--crit-high);
+  /* White on the high-severity red passes 4.5:1 in every theme; the dark themes' dark status text does not (3.8:1). */
+  color: #fff;
 }
 
 .sec-badge--medium {
@@ -3055,6 +3292,7 @@ textarea {
 
 .count-badge--high {
   background: var(--crit-high);
+  color: #fff;
 }
 
 /* Security panel */
@@ -3110,6 +3348,7 @@ textarea {
 
 .severity-tag--high {
   background: var(--crit-high);
+  color: #fff;
 }
 
 .severity-tag--medium {
@@ -3287,4 +3526,66 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+/* Touch screens: targets of at least 44 × 44 px (WCAG 2.5.5), larger connection handles and grab
+   areas on the canvas, and no text selection or callout when a finger rests on a device. */
+@media (pointer: coarse) {
+  button,
+  summary,
+  select,
+  input:not([type='checkbox'], [type='radio']),
+  .filter__option,
+  /* A checkbox is tapped through its whole label row, so the row carries the 44 px target. */
+  .toggle {
+    min-height: 44px;
+  }
+
+  .icon-only,
+  .icon-button,
+  .palette__toggle,
+  .panel-head__toggle {
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  .palette__toggle {
+    width: 44px;
+    height: 44px;
+  }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 22px;
+    height: 22px;
+  }
+
+  .panel-edge {
+    width: 14px;
+  }
+
+  .device-node .react-flow__handle {
+    width: 18px;
+    height: 18px;
+  }
+
+  .react-flow__edge-interaction {
+    stroke-width: 28px;
+  }
+
+  .react-flow__controls-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .canvas {
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+
+  /* Bigger targets need more room than one row, as with larger text. */
+  .toolbar,
+  .canvas-bar {
+    flex-wrap: wrap;
+  }
 }

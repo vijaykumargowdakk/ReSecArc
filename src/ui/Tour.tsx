@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { usePrefs } from '../store/prefs';
 
 interface Step {
   /** CSS selector of the element the step points at. */
@@ -64,14 +65,23 @@ export function Tour({ onClose }: { onClose: () => void }) {
   const current = STEPS[step];
   const last = step === STEPS.length - 1;
 
+  // Measured again when a panel opens or closes, since that moves the targets.
+  const panels = usePrefs((s) => s.panels);
   useLayoutEffect(() => {
     const update = () => setRect(document.querySelector(current.target)?.getBoundingClientRect() ?? null);
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
-  }, [current.target]);
+  }, [current.target, panels]);
 
   useEffect(() => primary.current?.focus(), [step]);
+
+  // The tour points at both side panels, so folded ones open for it.
+  useEffect(() => {
+    const { setPanelOpen } = usePrefs.getState();
+    setPanelOpen('palette', true);
+    setPanelOpen('inspector', true);
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

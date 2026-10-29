@@ -6,6 +6,7 @@ import { buildOutline, nextMatch, visibleRows, type OutlineItem, type OutlineKin
 import { getProtocol } from '../model/protocols';
 import type { Device } from '../model/schema';
 import { announce } from '../store/announcer';
+import { usePrefs } from '../store/prefs';
 import { NO_SELECTION, useProject, type ConnectMode, type Selection } from '../store/useProject';
 import { deleteDeviceAfterConfirm } from './actions';
 import { DevicePicker } from './DevicePicker';
@@ -29,9 +30,11 @@ const SELECTION_KEY: Partial<Record<OutlineKind, keyof Selection>> = { device: '
 
 /** Moves focus to the first field of the properties panel once it shows the new selection. */
 function focusProperties(tries = 20): void {
+  usePrefs.getState().setPanelOpen('inspector', true);
   requestAnimationFrame(() => {
-    const panel = document.querySelector<HTMLElement>('.inspector');
-    const field = panel?.querySelector<HTMLElement>('input, select, textarea, button');
+    const panel = document.querySelector<HTMLElement>('.inspector__body');
+    // The first field to edit, not a section's fold button.
+    const field = panel?.querySelector<HTMLElement>('input, select, textarea, button:not(.fold-button)');
     if (field && !panel?.querySelector('.inspector__loading')) field.focus();
     else if (tries > 0) focusProperties(tries - 1);
   });

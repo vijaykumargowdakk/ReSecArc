@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { ListTree, Network, Table2, X } from 'lucide-react';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { decodeShare, isShareFragment } from './model/share';
 import type { Project } from './model/schema';
 import { useAnnouncer } from './store/announcer';
@@ -66,6 +66,7 @@ export function App() {
     setTouring(false);
     usePrefs.getState().setTourSeen();
   }, []);
+  const panels = usePrefs((s) => s.panels);
   useShortcuts({ onSearch: openSearch, onHelp: openHelp, onCommands: openCommands });
   const commandContext = useMemo<CommandContext>(
     () => ({
@@ -192,7 +193,14 @@ export function App() {
               {comparison.changes.length === 1 ? '' : 's'}. Added items have a solid green outline and a “New” tag; changed items a dashed amber
               outline and a “Changed” tag. Removed items are listed in the Changes panel.
             </p>
-            <button type="button" className="button" onClick={() => select(NO_SELECTION)}>
+            <button
+              type="button"
+              className="button"
+              onClick={() => {
+                select(NO_SELECTION);
+                usePrefs.getState().setPanelOpen('inspector', true);
+              }}
+            >
               Show changes
             </button>
             <button type="button" className="button" onClick={() => compareWith(null)}>
@@ -212,7 +220,16 @@ export function App() {
             </button>
           </div>
         )}
-        <main className={`workspace${drawer ? ` drawer-${drawer}` : ''}`}>
+        <main
+          className={`workspace${drawer ? ` drawer-${drawer}` : ''}${panels.palette.open ? '' : ' palette-folded'}${panels.inspector.open ? '' : ' inspector-folded'}`}
+          // Widths the user dragged to; without them the stylesheet's widths for the screen size apply.
+          style={
+            {
+              ...(panels.palette.width !== null && { '--palette-w': `${panels.palette.width}px` }),
+              ...(panels.inspector.width !== null && { '--inspector-w': `${panels.inspector.width}px` }),
+            } as CSSProperties
+          }
+        >
           <Palette />
           <section className="canvas-column" aria-label={VIEW_NAMES[view]}>
             <div className="canvas-bar">

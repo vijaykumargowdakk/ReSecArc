@@ -189,17 +189,17 @@ mindmap
 flowchart TB
     subgraph Screen["ConduitOT window"]
         direction TB
-        T["Toolbar: Find · Undo and Redo · Snap · Connect as link or flow · Protocol · New · Open · Save · Export · Theme · Help · Autosave status"]
+        T["Toolbar: Find · Undo and Redo · Snap · Connect as link or flow · Protocol · New · Open · Save · Export · Display (theme, text size) · Help · Autosave status"]
         N["Notice bar: restore unsaved work · shared link · comparison"]
         subgraph Work["Workspace"]
             direction LR
-            P["Palette<br/>device types and kinds<br/>text note<br/>your blocks"]
+            P["Palette<br/>device types and kinds<br/>text note<br/>your blocks<br/>(folds to a strip)"]
             subgraph Mid["Centre column"]
                 direction TB
-                B["Canvas bar: Diagram, Inventory or Outline · Site tabs · Tidy · Filters"]
+                B["Canvas bar: Diagram, Inventory or Outline · Site tabs · Tidy or Undo tidy · Filters"]
                 C["Canvas, Inventory tables or Outline tree"]
             end
-            I["Properties panel<br/>selected item, or project overview:<br/>zones · networks · conduits · revisions"]
+            I["Properties panel<br/>selected item, or project overview:<br/>zones · networks · conduits · revisions<br/>(folds to a strip)"]
         end
         T --> N --> Work
     end
@@ -207,12 +207,14 @@ flowchart TB
 
 | Area | What it is for |
 |------|----------------|
-| **Toolbar** | File commands, undo and redo, how new connections are drawn, export and share, theme, help |
+| **Toolbar** | File commands, undo and redo, how new connections are drawn, export and share, the Display menu (theme and text size), help |
 | **Palette** (left) | Drag a device type or a specific kind onto a lane, or click to add it. Also holds the text note tool and your saved blocks |
 | **Canvas** (centre) | The diagram for the open site: lanes, areas, devices, links, flows, notes and stubs for devices on other sites |
 | **Inventory** (centre, second view) | Sortable, editable tables of devices, flows, firewall rules and the IP plan |
 | **Outline** (centre, third view) | The whole design as a tree: site, Purdue level, device, then each device's links and flows; also areas, notes and zones. Built for keyboard and screen-reader use |
 | **Properties panel** (right) | Edits whatever is selected. With nothing selected it shows the project: zones, networks, conduits and revisions |
+
+**Side panels, as in a code editor.** The button in each panel's header, or **Ctrl + B** (palette) and **Ctrl + Alt + B** (properties), folds the panel into a thin strip so the canvas gets the room; the strip's button opens it again. Drag a panel's inner edge to make it wider or narrower (or focus the edge and use the arrow keys); double-click the edge, or press Enter on it, for the default width. Every section heading in both panels folds its section too, such as a palette group, Asset details or Security zones. Folded panels and sections and panel widths are remembered in this browser. Opening the Security panel, the change list or a device from the Outline opens a folded properties panel. Below 900 px the panels are slide-over drawers instead, opened from the toolbar.
 
 ![Properties panel for a selected PLC, showing the network its address belongs to](docs/images/device-panel.png)
 
@@ -251,7 +253,7 @@ flowchart TB
 - Copy, paste, duplicate, select all, and box selection with Shift + drag.
 - **Connect from the keyboard:** with a device focused or selected, press L for a link or F for a flow, move the highlight to another device with the arrow keys, and press Enter (Esc cancels). See [section 19](#19-themes-and-accessibility).
 - Bulk editing of zone, criticality and site, plus align and distribute.
-- Snap to grid, a right-click menu on devices, and **Tidy layout** for a whole site.
+- Snap to grid, a right-click (or long-press) menu on devices, and **Tidy layout** for a whole site; a second click on the button, now **Undo tidy**, puts the previous layout back.
 - **Bend points:** double-click a link or flow to bend it, drag the handle to move it, and double-click the handle to remove it; **Straighten** in the properties panel removes them all.
 - **Lock** devices, notes and areas so they cannot be dragged; Tidy, align and distribute leave them in place.
 - **View menu:** show or hide network links, protocol flows, flow labels, port names, notes and area frames. The choice is remembered in the browser.
@@ -500,11 +502,11 @@ flowchart LR
     MODEL --> MD["ipam · revisions · share · checks · policies"]
     MODEL --> ME["csv · csvImport · exportDoc"]
     STORE --> SA["useProject · history"]
-    STORE --> SB["autosave · blocks · theme · compare · security · announcer"]
+    STORE --> SB["autosave · blocks · theme · prefs · compare · security · announcer"]
     UI --> UA["canvas/<br/>Canvas · nodes · edges · view · useKeyboardConnect · Legend · NodeMenu · TidyButton"]
     UI --> UB["inspector/<br/>Inspector · Bulk · Area · Note · FirewallRules · ProjectPanel · Networks · Revisions · Changes"]
     UI --> UC["icons/<br/>control · field · supervisory · network · enterprise"]
-    UI --> UD["Toolbar · Palette · SiteTabs · FilterBar · Inventory · Outline · security/SecurityPanel · dialogs"]
+    UI --> UD["Toolbar · Palette · PanelChrome · DisplayMenu · SiteTabs · FilterBar · Inventory · Outline · security/SecurityPanel · dialogs"]
 ```
 
 | Path | Responsibility |
@@ -544,6 +546,9 @@ flowchart LR
 | `src/ui/security/SecurityPanel.tsx` | The Security panel: findings, attack paths, built-in checks and company policies, loaded on demand |
 | `src/ui/exports.ts`, `ExportMenuItems.tsx` | File exports and the Export menu's items; both load the first time they are needed |
 | `src/ui/MergeDialog.tsx` | The merge dialog, loaded on demand |
+| `src/store/prefs.ts` | Per-browser display preferences: layers, side panels (open, width), folded sections, text size |
+| `src/ui/PanelChrome.tsx`, `PanelEdge.tsx` | The side panels' header and fold button, and their resize edge (loaded just after first paint) |
+| `src/ui/canvas/longPress.ts` | The long-press device menu, loaded only on touch-screen devices |
 | `src/ui/canvas/usePathMarks.ts` | The chosen attack path as canvas marks; loads the path finder once a path is chosen |
 
 ---
@@ -987,6 +992,8 @@ Import rules worth knowing:
 
 **Tidy** (in the canvas bar) arranges the open site in one undoable step. Devices keep their Purdue level, site and area; only their order and spacing within each lane change. Locked devices and areas stay put and the rest are placed around them, and bend points on the site are cleared.
 
+Straight after a tidy the button reads **Undo tidy**, and a second click puts back the positions, area sizes and bend points from before. Once anything else changes the button goes back to **Tidy**, so a late click never throws away later work; Ctrl + Z still undoes the tidy as usual.
+
 ```mermaid
 flowchart TD
     S(["Tidy"]) --> A["Widen each area to fit its longest row"]
@@ -1131,6 +1138,8 @@ stateDiagram-v2
 - **Screen readers:** each device has a descriptive name ("Filtration PLC, Modular PLC, level 1, zone Control, high criticality"). A live region announces adds, deletes, undo, redo and layout changes.
 - **Not by colour alone:** protocols differ by dash pattern and label, criticality is a lettered badge, and comparison tags read "New" or "Changed".
 - **Motion:** animations are switched off when the system asks for reduced motion.
+- **Text size:** the **Aa** (Display) menu in the toolbar sets the interface text to 100, 115, 130 or 150 %. It scales the toolbar, panels, tables and dialogs as a whole, so nothing inside them is cut off, and the panels widen with it; the diagram keeps its own zoom. At larger sizes the toolbar wraps onto a second row. The choice is remembered in this browser.
+- **Touch screens and tablets:** on a touch screen every button, menu item, field and checkbox row is at least 44 × 44 px (WCAG 2.5.5), connection handles and the grab area of links are larger, the toolbar wraps instead of running off the screen, and a device moves only once it is clearly dragged. **Long-press a device** for the menu a right-click opens elsewhere. Tap a palette item to add it, since dragging from the palette needs a mouse.
 - **Small screens:** below 900 px wide the palette and properties panel become slide-over drawers.
 - **Audited:** Lighthouse accessibility score 100.
 
@@ -1142,7 +1151,7 @@ stateDiagram-v2
 flowchart TB
     subgraph Stays["Stays in the browser"]
         D1["The design while you work"]
-        D2["Autosave snapshot · saved blocks · theme choice"]
+        D2["Autosave snapshot · saved blocks · theme and display choices"]
     end
     subgraph User["Leaves only when you choose"]
         F["Project file you save"]
@@ -1159,7 +1168,7 @@ flowchart TB
 | Topic | Behaviour |
 |-------|-----------|
 | Network use | Only the initial download of the app. No fonts, scripts or images are fetched from third parties |
-| Storage | `localStorage` keys `conduitot:autosave`, `conduitot:blocks` and `conduitot:theme`, on your device only |
+| Storage | `localStorage` keys `conduitot:autosave`, `conduitot:blocks`, `conduitot:theme` and `conduitot:prefs` (layers, side panels, folded sections, text size), on your device only |
 | Untrusted input | Files, autosaves and share links all go through the same schema and reference validation before use |
 | Share link size | Decompression is capped at 8 MB |
 | Coordinates | Positions and sizes are limited to ±1,000,000, so layout code always finishes, even on crafted files |
@@ -1285,7 +1294,7 @@ A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and 
 
 ```mermaid
 pie showData
-    title Unit tests by file (227)
+    title Unit tests by file (232)
     "checks" : 24
     "v3" : 15
     "model" : 13
@@ -1306,6 +1315,7 @@ pie showData
     "v5" : 7
     "drawio" : 6
     "csvImport" : 5
+    "prefs" : 5
     "report" : 4
     "history-names" : 4
     "attackFlow" : 4
@@ -1335,6 +1345,7 @@ pie showData
 | `outline.test.ts` | The outline tree, visible rows, type-ahead, the nearest device in a direction |
 | `checks.test.ts` | Every built-in check, the office → RTU example, company policy matching, firewall verdicts |
 | `v5.test.ts` | v4 migration, policies in files and share links, reference checks, the change diff and Markdown record |
+| `store/prefs.test.ts` | Display preferences: defaults, stored panels and sections, widths kept within limits, bad values ignored |
 | `attack/paths.test.ts` | The office → RTU paths with and without the direct link, deny and allow rules, ranking, overrides, flows, firewall passes, a 1,000-device design |
 | `attack/attackFlow.test.ts` | The Attack Flow export against the official Attack Flow and STIX 2.1 schemas, references, ATT&CK labels |
 | `export/siteSvg.test.ts` | Icon serialisation, the static site renderer, escaping, unique ids, stubs, finding marks |
@@ -1353,6 +1364,8 @@ pie showData
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 | `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
+| `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
+| `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, the long-press menu, an axe scan |
 
 ---
 
@@ -1376,7 +1389,7 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **No live collaboration.** Two people editing the same design work on separate copies; revisions and change records help merge by hand.
 - **Share links are snapshots.** Edits after sharing are not synchronised, and very large designs make long links.
 - **Autosave is per browser.** Clearing site data removes it; save the project file to keep work.
-- **Large screens work best.** Below 900 px the side panels become drawers, but drawing is easiest with a mouse or trackpad.
+- **Drawing works best with a mouse or trackpad.** Tablets are supported (larger targets, long-press menus), but devices are added from the palette by tapping rather than dragging; below 900 px the side panels become drawers.
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
 - **Report text is sized by estimate.** The static renderer cannot measure text, so long device names are shortened by an estimate of their width and clipped to the device box.
 - **draw.io draws flows over links.** draw.io routes each connection itself, so a protocol flow without bend points runs on top of its link instead of beside it; turn the *Protocol flows* layer off to see the links.
@@ -1395,6 +1408,8 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 | Ctrl + C / Ctrl + V | Copy and paste selected devices |
 | Ctrl + D | Duplicate selected devices |
 | Ctrl + A | Select every device on the site |
+| Ctrl + B | Fold or open the device palette |
+| Ctrl + Alt + B | Fold or open the properties panel |
 | Delete or Backspace | Delete the selection |
 | Tab | Move focus between devices |
 | Enter or Space | Select the focused device |
@@ -1407,7 +1422,8 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 | Outline: a letter | Jump to the next item starting with it |
 | Shift + drag | Box selection |
 | Ctrl + click | Add to the selection |
-| Right-click a device | Duplicate, delete or connect |
+| Right-click or long-press a device | Duplicate, delete or connect |
+| A panel edge: drag or arrow keys | Resize the panel (double-click or Enter for the default width) |
 | Double-click a note | Edit it in place (Ctrl + Enter to finish, Esc to cancel) |
 | ? | Show all shortcuts |
 | Esc | Close dialogs and menus |

@@ -73,7 +73,7 @@ for (const theme of THEMES) {
     });
 
     test('security panel has no violations', async ({ page }) => {
-      await page.getByRole('button', { name: /^Security/ }).click();
+      await page.getByRole('button', { name: /^Security \d+ finding/ }).click();
       await expect(page.getByRole('tab', { name: /^Findings/ })).toBeVisible();
       await expectNoViolations(page, 'security findings');
       await page.getByRole('tab', { name: 'Rules' }).click();
