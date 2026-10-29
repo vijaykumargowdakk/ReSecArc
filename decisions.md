@@ -428,3 +428,8 @@ Also fixed:
 **Decision:** PR #5 (M26) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/touch-panels` branch stays on GitHub. M28 (level tabs and stacks) is next, then M29 (works offline). With 0.1 kB of the startup budget left, the owner decides before M28 whether all of it loads on demand or the budget is raised.
 **Why:** The owner gave the go-ahead to merge.
 **User input:** "merge it"
+
+## 2026-10-30 — M28 keeps the startup budget; built on its own branch in a new session
+**Decision:** The 575 kB startup budget stays for M28 (0.1 kB is left after M26). All new M28 code loads on demand: a level tab exists only once opened, and stacks are drawn only on levels where stacking is switched on. If a piece truly cannot wait to load, work stops and the owner is asked before the budget changes. M28 is built on `feat/level-tabs-stacks`, started from `main` after the M26 merge, in a new session.
+**Why:** Loading on demand keeps the first load fast, and M28 is a natural fit for it.
+**User input:** The owner followed the recommendation ("ill follow your recomendation") and will continue M28 in another chat.
