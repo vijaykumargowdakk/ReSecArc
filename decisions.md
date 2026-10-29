@@ -441,3 +441,26 @@ Also fixed:
 - **Level tabs** exist only once opened (lane label or command palette), are not saved in the project file, and close when the site changes or a project is loaded. The tab strip shows only while at least one level tab is open.
 **Why:** The plan given before M28 was built; the three points above were the open choices, each with a recommendation.
 **User input:** "do the recomended things for a,b,c"
+
+## 2026-10-30 — Level tabs and stacks (M28)
+**Decision:**
+- **File format 6:** `device.levelPosition` and `site.stackedLevels`, both optional, so the 5 → 6 step only changes the version. The diff lists a level-tab move as a move (hidden with moves) and stacking as a site change. Paste drops the level position, so copies are placed afresh in the level tab; merging sites keeps stacked levels.
+- **Level tabs:**
+  - The tab strip sits above the canvas, below the canvas bar, and shows only while a level tab is open; the canvas bar had no room.
+  - A level tab is the same canvas, built by an on-demand module on top of `buildView`, so filters, layers, findings, comparison marks, attack paths, keyboard connections and touch all work there.
+  - Dragging in a level tab sets only `levelPosition`; it never changes the level, area or overview position. Area frames are drawn around their members and cannot be moved there.
+  - Notes stay in the overview; adding one in a level tab says so.
+  - A device added in a level tab joins that level, at the first free cell of the tab and the first free spot of its lane in the overview.
+  - Clicking a stub for another level opens that level's tab. Search, Outline and Inventory follow one rule: from a level tab the device opens in its own level's tab, from the overview it stays in the overview. Security findings and attack paths, which can span levels, show in the overview.
+- **Stacks:**
+  - Drawn where the leftmost member is. The card shows as selected only when every member is, so selecting one member from search does not highlight the whole stack.
+  - Click selects all members (bulk inspector), Delete removes them all (one undo step), drag moves them all. A stack has no right-click menu and cannot be a connection end, because it would be unclear which member is meant.
+  - Merged links and flows carry a count and cannot be selected. An edge that is re-pointed at a stack but merges with no other keeps its own id and stays selectable.
+  - Criticality shows the highest among the members.
+- **Report and draw.io:** a stack is one card with two cards behind it and ×N, links and flows merge with a count, and the report caption names each stack while its tables still list every device. In draw.io the two back cards are separate cells, not a group, so the stack's cell stays a normal device that edges attach to. **Checked by hand on 2026-10-30:** the 15-sensor export opened in app.diagrams.net (through the URL fragment, which is not sent to a server) with no errors; the stack, its back cards and both ×15 counts showed.
+- **Startup bundle:** 570.4 kB of 575 kB. Loading the revision diff engine on demand brought it from 574.8 kB to 566.5 kB; the M28 startup hooks then cost 3.9 kB, more than the 2–2.5 kB estimated before building, mainly the lane buttons (1.0 kB) and the canvas hooks (1.0 kB). The level view (4.9 kB), stacks (2.7 kB), level layout (2.3 kB) and tab strip (1.3 kB) are separate chunks. The lane buttons reuse icons already in the bundle.
+- **Found and fixed on the way:**
+  - Framing a site now includes the lane labels at the left edge. On a wide site they were at the canvas's edge, under the palette's resize edge, so the new lane buttons could not be clicked (found by the browser test).
+  - In the dark themes, low-severity badges (canvas, toolbar count, Security panel tag) had dark text on grey at 3.8:1; they now use white (4.8:1), as high-severity badges already did. A stack of devices without a zone was the first view to show a low-only badge to axe.
+**Why:** The approved M28 plan, with the three choices from the entry above.
+**User input:** "do the recomended things for a,b,c"

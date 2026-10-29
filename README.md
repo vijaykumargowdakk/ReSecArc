@@ -239,11 +239,17 @@ flowchart TB
 
 - **Sites:** each site has its own tab and its own lanes. A connection to a device on another site is drawn to a small *stub* in a column on the right, and clicking the stub opens that site.
 - **Areas:** dashed frames for cells, production lines or substations. Devices inside an area move with it, and an area can **collapse** into a single node whose connections are merged.
+- **Level tabs:** each lane label has a button that opens that Purdue level in a tab of its own, beside the **Overview** tab (the command palette can do it too). The tab shows only that level, grouped by area, in rows of up to six that wrap, so a level with many devices stays readable. Devices keep a separate position in their level tab: arranging a level never moves anything in the overview. Links to devices on other levels end at stubs, above the level for higher levels and below it for lower ones; clicking a stub opens the other device's level. Tidy in a level tab lays the level out as that grid again. The palette and properties panel work as usual, and a device added in a level tab joins that level. Notes stay in the overview. Level tabs are not saved in the file and close when you switch site.
+- **Stacks:** the second button on a lane label stacks similar devices on that level in the overview: devices of the same type and kind, area and zone, that are not locked, are drawn as one card with more cards behind it and a **×N** badge. Their links and flows merge into one with a count, and their security finding counts add up. Clicking a stack selects all its devices for bulk editing, and double-clicking it opens the level tab, where every device is drawn. Stacking is saved per site and level in the project file, so share links, the report and the draw.io export show the same stacks; Tidy in the overview gives each stack one place.
 - **Search** (Ctrl + K or /): finds devices on every site by name, kind, IP address, vendor, model, notes, tags or custom field values.
 - **Filters:** by zone, device type, level, protocol or tag. Items that do not match are dimmed, not hidden, so the layout stays readable.
 - **Merge sites from another project:** the button beside the site tabs (or the command palette) reads another ConduitOT file and copies the sites you tick into this design, as one undo step. Everything copied gets a new id, so a file can even be merged with a copy of itself. Zones and custom fields are matched by name, and networks that span every site by subnet; anything without a match is added, and a site whose name is taken is added as "Name (2)". Links and flows to sites you did not tick are left out, and so are firewall rules that name a device on those sites, so no rule is ever widened. The dialog says what will be added and left out before you merge. Company policies, switched-off checks and revisions of the other file are not merged.
 
 ![The multi-site pipeline template in the dark theme, with stubs for devices on the control centre site](docs/images/dark-multisite.png)
+
+![Fifteen temperature sensors on L0 drawn as one stack marked ×15, with one link and one Modbus flow marked ×15](docs/images/stacks.png)
+
+![The L0 level tab: the fifteen sensors in wrapped rows, with stubs above for the switch and PLC on L1](docs/images/level-tab.png)
 
 ### 4.3 Editing
 
@@ -253,7 +259,7 @@ flowchart TB
 - Copy, paste, duplicate, select all, and box selection with Shift + drag.
 - **Connect from the keyboard:** with a device focused or selected, press L for a link or F for a flow, move the highlight to another device with the arrow keys, and press Enter (Esc cancels). See [section 19](#19-themes-and-accessibility).
 - Bulk editing of zone, criticality and site, plus align and distribute.
-- Snap to grid, a right-click (or long-press) menu on devices, and **Tidy layout** for a whole site; a second click on the button, now **Undo tidy**, puts the previous layout back.
+- Snap to grid, a right-click (or long-press) menu on devices, and **Tidy layout** for a whole site or, in a level tab, for that level; a second click on the button, now **Undo tidy**, puts the previous layout back.
 - **Bend points:** double-click a link or flow to bend it, drag the handle to move it, and double-click the handle to remove it; **Straighten** in the properties panel removes them all.
 - **Lock** devices, notes and areas so they cannot be dragged; Tidy, align and distribute leave them in place.
 - **View menu:** show or hide network links, protocol flows, flow labels, port names, notes and area frames. The choice is remembered in the browser.
@@ -497,27 +503,29 @@ flowchart LR
     SRC --> UI["ui/"]
     SRC --> EX["examples/templates/<br/>5 fictional projects"]
     MODEL --> MA["schema · io · migrate"]
-    MODEL --> MB["ops · structure · notes · areas · layout"]
+    MODEL --> MB["ops · structure · notes · areas · layout · levelLayout · stacks"]
     MODEL --> MC["catalog · protocols · purdue · conduits · filter · search · outline · direction"]
     MODEL --> MD["ipam · revisions · share · checks · policies"]
     MODEL --> ME["csv · csvImport · exportDoc"]
     STORE --> SA["useProject · history"]
     STORE --> SB["autosave · blocks · theme · prefs · compare · security · announcer"]
-    UI --> UA["canvas/<br/>Canvas · nodes · edges · view · useKeyboardConnect · Legend · NodeMenu · TidyButton"]
+    UI --> UA["canvas/<br/>Canvas · nodes · edges · view · levelView · useKeyboardConnect · Legend · NodeMenu · TidyButton"]
     UI --> UB["inspector/<br/>Inspector · Bulk · Area · Note · FirewallRules · ProjectPanel · Networks · Revisions · Changes"]
     UI --> UC["icons/<br/>control · field · supervisory · network · enterprise"]
-    UI --> UD["Toolbar · Palette · PanelChrome · DisplayMenu · SiteTabs · FilterBar · Inventory · Outline · security/SecurityPanel · dialogs"]
+    UI --> UD["Toolbar · Palette · PanelChrome · DisplayMenu · SiteTabs · LevelTabs · FilterBar · Inventory · Outline · security/SecurityPanel · dialogs"]
 ```
 
 | Path | Responsibility |
 |------|----------------|
 | `src/model/schema.ts` | zod schema for the whole project file; exported TypeScript types |
-| `src/model/migrate.ts` | Upgrades older files step by step (v1 → v2 → v3 → v4 → v5) |
+| `src/model/migrate.ts` | Upgrades older files step by step (v1 → v2 → v3 → v4 → v5 → v6) |
 | `src/model/io.ts` | Parse, migrate, validate and cross-check a file; serialise a project |
 | `src/model/ops.ts` | Device, link, flow, zone and rule operations; copy and paste; align and distribute |
 | `src/model/structure.ts` | Sites and areas |
 | `src/model/notes.ts` | Canvas notes |
 | `src/model/layout.ts` | Tidy layout |
+| `src/model/levelLayout.ts` | Device positions in a level tab: the grid grouped by area, Tidy there, adding a device to a level; loaded on demand |
+| `src/model/stacks.ts` | Which devices form a stack, merging their links and flows, moving a stack, Tidy with stacks; loaded on demand |
 | `src/model/catalog.ts` | Device types, kinds, default levels and palette groups |
 | `src/model/protocols.ts` | Protocol registry: roles, ports, settings, colours, labels |
 | `src/model/ipam.ts` | IPv4 parsing, subnet matching and address warnings |
@@ -541,6 +549,8 @@ flowchart LR
 | `src/store/useProject.ts` | The main store: project, undo history, selection, active site, filter, clipboard |
 | `src/store/history.ts` | Pure undo and redo with edit coalescing |
 | `src/ui/canvas/view.ts` | Pure function that turns the project into React Flow nodes and edges for one site |
+| `src/ui/canvas/levelView.ts` | The canvas for a level tab and for stacks in the overview, built on `view.ts`; loads once either is in use |
+| `src/ui/LevelTabs.tsx` | The Overview and level tabs above the canvas, shown (and loaded) only while a level tab is open |
 | `src/ui/canvas/useKeyboardConnect.ts` | L / F, arrow keys, Enter and Esc for connecting devices on the canvas |
 | `src/ui/Outline.tsx` | The Outline view (WAI-ARIA tree), loaded on demand |
 | `src/ui/security/SecurityPanel.tsx` | The Security panel: findings, attack paths, built-in checks and company policies, loaded on demand |
@@ -555,7 +565,7 @@ flowchart LR
 
 ## 8. Data model and file format
 
-A project is one JSON document, currently `schemaVersion: 5`. The full field reference is in [docs/data-model.md](docs/data-model.md).
+A project is one JSON document, currently `schemaVersion: 6`. The full field reference is in [docs/data-model.md](docs/data-model.md).
 
 ```mermaid
 erDiagram
@@ -585,6 +595,7 @@ erDiagram
     SITE {
         string id
         string name
+        array stackedLevels
     }
     DEVICE {
         string id
@@ -597,6 +608,7 @@ erDiagram
         string areaId
         string criticality
         object position
+        object levelPosition
         object asset
         array tags
         object fields
@@ -680,7 +692,7 @@ A shortened example:
 
 ```jsonc
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "name": "Riverbend Water Treatment (fictional demo)",
   "sites":   [{ "id": "site-main", "name": "Main site" }],
   "devices": [{ "id": "plc-filter", "type": "plc", "variant": "modular", "label": "Filtration PLC",
@@ -796,7 +808,8 @@ flowchart TD
     C1 --> C2["v2 → v3<br/>add notes, networks, revisions"]
     C2 --> C3["v3 → v4<br/>add ports, VLANs, bend points, locks,<br/>tags and custom fields, also in revisions"]
     C3 --> C4["v4 → v5<br/>add company policies and switched-off<br/>checks, also in revisions"]
-    C4 --> D{"Format newer than<br/>this app?"}
+    C4 --> C5["v5 → v6<br/>only the version: level tab positions<br/>and stacked levels are optional"]
+    C5 --> D{"Format newer than<br/>this app?"}
     D -- "yes" --> E2["One clear error:<br/>format not supported"]
     D -- "no" --> F{"Matches the zod schema?"}
     F -- "no" --> E3["Every schema problem listed<br/>with its path"]
@@ -1007,6 +1020,10 @@ flowchart TD
 ```
 
 Connected devices end up above and below each other, so most links run straight down the diagram.
+
+With stacking on for a level, each stack takes one place in its lane, like a single device, and all its devices move to that place. If stacking is switched off again they sit in a pile until the next tidy spreads them out.
+
+In a level tab, Tidy instead lays the level out as a grid: one group per area, in the overview's left-to-right order, then the devices in no area, each group in rows of up to six. Groups share a row while they fit. Locked devices keep their place and the grid flows around them. Only the level tab positions change, never the overview.
 
 ---
 
@@ -1391,6 +1408,8 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **Autosave is per browser.** Clearing site data removes it; save the project file to keep work.
 - **Drawing works best with a mouse or trackpad.** Tablets are supported (larger targets, long-press menus), but devices are added from the palette by tapping rather than dragging; below 900 px the side panels become drawers.
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
+- **Level tabs change positions only.** Dragging a device in a level tab never changes its level or area; change those in the overview or the properties panel. Area frames in a level tab are drawn around their devices and cannot be moved or resized there.
+- **Lane buttons shrink with the canvas.** The open-tab and stack buttons on a lane label are drawn on the canvas, so they get small when the diagram is zoomed far out; the command palette has the same actions.
 - **Report text is sized by estimate.** The static renderer cannot measure text, so long device names are shortened by an estimate of their width and clipped to the device box.
 - **draw.io draws flows over links.** draw.io routes each connection itself, so a protocol flow without bend points runs on top of its link instead of beside it; turn the *Protocol flows* layer off to see the links.
 
