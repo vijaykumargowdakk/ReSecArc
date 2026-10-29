@@ -433,3 +433,11 @@ Also fixed:
 **Decision:** The 575 kB startup budget stays for M28 (0.1 kB is left after M26). All new M28 code loads on demand: a level tab exists only once opened, and stacks are drawn only on levels where stacking is switched on. If a piece truly cannot wait to load, work stops and the owner is asked before the budget changes. M28 is built on `feat/level-tabs-stacks`, started from `main` after the M26 merge, in a new session.
 **Why:** Loading on demand keeps the first load fast, and M28 is a natural fit for it.
 **User input:** The owner followed the recommendation ("ill follow your recomendation") and will continue M28 in another chat.
+
+## 2026-10-30 — M28 plan approved: room in startup, stack-aware Tidy, tabs on demand
+**Decision:**
+- **Startup budget:** a few small hooks cannot load on demand (the v6 schema fields and migration step, the lane label buttons, the canvas, card and edge hooks for level mode and stacks, level-aware palette adding and Tidy; about 2–2.5 kB). To pay for them without raising the 575 kB budget, the revision diff engine (`src/model/revisions.ts`, 8.6 kB) loads on demand: it was in startup only because `store/compare.ts` imported it, and it is needed only while comparing. Everything else new in M28 loads on demand.
+- **Tidy in the Overview with stacks on** treats each stack as one slot and moves all its members to that slot. When stacking is switched off again they sit in a pile until the next Tidy spreads them out.
+- **Level tabs** exist only once opened (lane label or command palette), are not saved in the project file, and close when the site changes or a project is loaded. The tab strip shows only while at least one level tab is open.
+**Why:** The plan given before M28 was built; the three points above were the open choices, each with a recommendation.
+**User input:** "do the recomended things for a,b,c"
