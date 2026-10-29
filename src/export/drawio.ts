@@ -5,6 +5,7 @@ import { kindLabel } from '../model/catalog';
 import { flowLabel, getProtocol } from '../model/protocols';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, levelLabel, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../model/purdue';
 import type { Project } from '../model/schema';
+import { mergeEdges, stacksOf } from '../model/stacks';
 import { iconSvg } from './markup';
 import { DIAGRAM_COLORS as C, noteHeight, siteStubs } from './siteSvg';
 
@@ -51,6 +52,9 @@ export function projectToDrawio(project: Project): string {
     const notes = project.notes.filter((n) => n.siteId === site.id);
     const links = project.links.filter((l) => onSite.has(l.source) || onSite.has(l.target));
     const flows = project.flows.filter((f) => onSite.has(f.source) || onSite.has(f.target));
+    // A stack is one device cell, at its first member; its members' links and flows merge onto it.
+    const { stackOf } = stacksOf(project, site.id);
+    const lead = (deviceId: string) => stackOf.get(deviceId)?.members[0].id ?? deviceId;
     // Project ids are prefixed by kind so none can clash with a layer, a lane or each other.
     const cellOf = (deviceId: string) => (onSite.has(deviceId) ? `x-${deviceId}` : `s-${deviceId}`);
 
@@ -107,14 +111,17 @@ export function projectToDrawio(project: Project): string {
     }
 
     layer('links', 'Network links');
-    for (const l of links) {
+    for (const { edge: l, source, target, count } of mergeEdges(links, lead)) {
       const pattern = l.medium === 'serial' ? '2 4' : l.medium === 'wireless' ? '8 5' : null;
       const dash: Record<string, string | number> = pattern ? { dashed: 1, dashPattern: pattern } : {};
-      const points = l.waypoints.map((p) => `<mxPoint x="${p.x}" y="${p.y}"/>`).join('');
+      // A merged link is drawn straight, with a count instead of port names.
+      const points = count > 1 ? '' : l.waypoints.map((p) => `<mxPoint x="${p.x}" y="${p.y}"/>`).join('');
+      const counted: Record<string, string | number> = count > 1 ? { fontSize: 10, fontStyle: 1, fontColor: C.ink, labelBackgroundColor: '#ffffff', labelBorderColor: C.line } : {};
       cells.push(
-        `<mxCell id="${attr(`x-${l.id}`)}" value="" style="${style({ endArrow: 'none', html: 0, rounded: 0, strokeColor: C.link, strokeWidth: 2, ...dash })}" edge="1" parent="links" ` +
-          `source="${attr(cellOf(l.source))}" target="${attr(cellOf(l.target))}"><mxGeometry relative="1" as="geometry">${points ? `<Array as="points">${points}</Array>` : ''}</mxGeometry></mxCell>`,
+        `<mxCell id="${attr(`x-${l.id}`)}" value="${count > 1 ? `×${count}` : ''}" style="${style({ endArrow: 'none', html: 0, rounded: 0, strokeColor: C.link, strokeWidth: 2, ...dash, ...counted })}" edge="1" parent="links" ` +
+          `source="${attr(cellOf(source))}" target="${attr(cellOf(target))}"><mxGeometry relative="1" as="geometry">${points ? `<Array as="points">${points}</Array>` : ''}</mxGeometry></mxCell>`,
       );
+      if (count > 1) continue;
       // Port names sit near their own end of the link.
       for (const [port, at, suffix] of [
         [l.sourcePort, -0.75, 'src'],
@@ -136,12 +143,12 @@ export function projectToDrawio(project: Project): string {
     }
 
     layer('flows', 'Protocol flows');
-    for (const f of flows) {
+    for (const { edge: f, source, target, count } of mergeEdges(flows, lead)) {
       const def = getProtocol(f.protocol);
       const color = def?.color ?? C.faint;
-      const points = f.waypoints.map((p) => `<mxPoint x="${p.x}" y="${p.y}"/>`).join('');
+      const points = count > 1 ? '' : f.waypoints.map((p) => `<mxPoint x="${p.x}" y="${p.y}"/>`).join('');
       cells.push(
-        `<mxCell id="${attr(`x-${f.id}`)}" value="${attr(flowLabel(f.protocol, f.settings))}" style="${style({
+        `<mxCell id="${attr(`x-${f.id}`)}" value="${attr(`${flowLabel(f.protocol, f.settings)}${count > 1 ? ` ×${count}` : ''}`)}" style="${style({
           endArrow: 'block',
           endFill: 1,
           html: 0,
@@ -155,7 +162,7 @@ export function projectToDrawio(project: Project): string {
           fontColor: C.ink,
           labelBackgroundColor: '#ffffff',
           labelBorderColor: color,
-        })}" edge="1" parent="flows" source="${attr(cellOf(f.source))}" target="${attr(cellOf(f.target))}"><mxGeometry relative="1" as="geometry">${
+        })}" edge="1" parent="flows" source="${attr(cellOf(source))}" target="${attr(cellOf(target))}"><mxGeometry relative="1" as="geometry">${
           points ? `<Array as="points">${points}</Array>` : ''
         }</mxGeometry></mxCell>`,
       );
@@ -163,22 +170,37 @@ export function projectToDrawio(project: Project): string {
 
     layer('devices', 'Devices');
     for (const d of devices) {
+      const stack = stackOf.get(d.id);
+      if (stack && stack.members[0] !== d) continue;
       const z = d.zoneId ? zone.get(d.zoneId) : undefined;
       const kind = kindLabel(d.type, d.variant);
-      const data = {
-        kind,
-        level: levelLabel(d.purdueLevel),
-        zone: z?.name ?? '',
-        criticality: d.criticality,
-        ip: d.asset.ip,
-        vendor: d.asset.vendor,
-        model: d.asset.model,
-        firmware: d.asset.firmware,
-        serial: d.asset.serial,
-        tags: d.tags.join(', '),
-      };
+      // A stack's shape data lists its members; asset details differ per member, so they are left out.
+      const data = stack
+        ? { kind, level: levelLabel(d.purdueLevel), zone: z?.name ?? '', members: stack.members.map((m) => m.label).join(', '), count: stack.members.length }
+        : {
+            kind,
+            level: levelLabel(d.purdueLevel),
+            zone: z?.name ?? '',
+            criticality: d.criticality,
+            ip: d.asset.ip,
+            vendor: d.asset.vendor,
+            model: d.asset.model,
+            firmware: d.asset.firmware,
+            serial: d.asset.serial,
+            tags: d.tags.join(', '),
+          };
+      const label = stack
+        ? `${kind} ×${stack.members.length}\n${stack.members.length} devices · ${levelLabel(d.purdueLevel)}${z ? ` · ${z.name}` : ''}`
+        : `${d.label || kind}\n${kind} · ${levelLabel(d.purdueLevel)}${z ? ` · ${z.name}` : ''}`;
+      // Two cards peek out behind a stack, as on the canvas.
+      for (const offset of stack ? [10, 5] : []) {
+        cells.push(
+          `<mxCell id="${attr(`b-${d.id}-${offset}`)}" value="" style="${style({ rounded: 1, arcSize: 8, absoluteArcSize: 1, html: 0, fillColor: '#ffffff', strokeColor: z?.color ?? C.line, strokeWidth: 1 })}" ` +
+            `vertex="1" connectable="0" parent="devices">${geometry(d.position.x + offset, d.position.y + offset, NODE_WIDTH, NODE_HEIGHT)}</mxCell>`,
+        );
+      }
       cells.push(
-        `<UserObject id="${attr(`x-${d.id}`)}" label="${attr(`${d.label || kind}\n${kind} · ${levelLabel(d.purdueLevel)}${z ? ` · ${z.name}` : ''}`)}"${Object.entries(data)
+        `<UserObject id="${attr(`x-${d.id}`)}" label="${attr(label)}"${Object.entries(data)
           .map(([k, v]) => ` ${k}="${attr(v)}"`)
           .join('')}><mxCell style="${style({
           shape: 'label',

@@ -1,12 +1,14 @@
 // Draws one site as a standalone SVG from the project alone: Purdue lanes, area frames, devices,
 // links, flows, notes and stubs for devices on other sites. Unlike the image export it needs no
-// open canvas, so the report can include every site. Colours are fixed for printing.
+// open canvas, so the report can include every site. Colours are fixed for printing. Levels with
+// stacking on show each stack as one card with a count, as on the canvas.
 import { kindLabel } from '../model/catalog';
 import type { Finding, Severity } from '../model/checks';
 import { flowLabel, getProtocol } from '../model/protocols';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, levelLabel, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../model/purdue';
 import { along, FLOW_OFFSET, midpoint, routeBetween, type Box, type Point } from '../model/routing';
 import type { Device, Note, Project } from '../model/schema';
+import { mergeEdges, stacksOf } from '../model/stacks';
 import { escapeXml as x, iconAttrs, iconBody } from './markup';
 
 export const DIAGRAM_COLORS = {
@@ -135,9 +137,12 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
   const stubs = siteStubs(project, siteId);
   const links = project.links.filter((l) => onSite.has(l.source) || onSite.has(l.target));
   const flows = project.flows.filter((f) => onSite.has(f.source) || onSite.has(f.target));
+  // A stack is drawn where its first member is; its members' links and flows merge onto it.
+  const { stackOf } = stacksOf(project, siteId);
+  const lead = (deviceId: string) => stackOf.get(deviceId)?.members[0].id ?? deviceId;
 
   const rects = new Map<string, { x: number; y: number; width: number; height: number }>();
-  for (const d of devices) rects.set(d.id, { ...d.position, width: NODE_WIDTH, height: NODE_HEIGHT });
+  for (const d of devices) rects.set(d.id, { ...(stackOf.get(d.id)?.members[0] ?? d).position, width: NODE_WIDTH, height: NODE_HEIGHT });
   for (const s of stubs.values()) rects.set(s.device.id, { x: s.x, y: s.y, width: PORTAL.width, height: PORTAL.height });
 
   // Bounds cover the lanes and everything drawn, including bend points.
@@ -205,13 +210,27 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
   };
   const labels: string[] = [];
 
-  for (const l of links) {
-    const e = ends(l.source, l.target);
+  /** A small "×N" label for a link that stands for several. */
+  const countLabel = (at: Point, count: number) => {
+    const text = `×${count}`;
+    const w = textWidth(text, 10, true) + 10;
+    return (
+      `<g><rect x="${r1(at.x - w / 2)}" y="${r1(at.y - 8)}" width="${r1(w)}" height="16" rx="8" fill="${C.background}" stroke="${C.line}"/>` +
+      `<text x="${r1(at.x)}" y="${r1(at.y + 3.5)}" font-size="10" font-weight="700" text-anchor="middle" fill="${C.ink}">${text}</text></g>`
+    );
+  };
+
+  for (const { edge: l, source, target, count } of mergeEdges(links, lead)) {
+    const e = ends(source, target);
     if (!e) continue;
     const points = routeBetween(e[0], e[1], 0, l.waypoints);
     const red = findings.get(l.id)?.some((f) => f.severity === 'high');
     const dash = l.medium === 'serial' ? ' stroke-dasharray="2 4"' : l.medium === 'wireless' ? ' stroke-dasharray="8 5"' : '';
     out.push(`<path d="${pathOf(points)}" fill="none" stroke="${red ? C.danger : C.link}" stroke-width="${red ? 3 : 2}"${dash}/>`);
+    if (count > 1) {
+      labels.push(countLabel(midpoint(points), count));
+      continue;
+    }
     for (const [name, at] of [
       [l.sourcePort, along(points[0], points[1], 30)],
       [l.targetPort, along(points[points.length - 1], points[points.length - 2], 30)],
@@ -225,8 +244,8 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
     }
   }
 
-  for (const f of flows) {
-    const e = ends(f.source, f.target);
+  for (const { edge: f, source, target, count } of mergeEdges(flows, lead)) {
+    const e = ends(source, target);
     if (!e) continue;
     const points = routeBetween(e[0], e[1], FLOW_OFFSET, f.waypoints);
     const def = getProtocol(f.protocol);
@@ -235,7 +254,7 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
     out.push(
       `<path d="${pathOf(points)}" fill="none" stroke="${x(color)}" stroke-width="${red ? 3 : 2}" stroke-dasharray="${x(def?.dash ?? '6 4')}" marker-end="url(#${marker(color)})"/>`,
     );
-    const text = flowLabel(f.protocol, f.settings);
+    const text = `${flowLabel(f.protocol, f.settings)}${count > 1 ? ` ×${count}` : ''}`;
     const mid = midpoint(points);
     const w = textWidth(text, 10.5, true) + 14;
     labels.push(
@@ -248,15 +267,23 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
   out.push(...labels);
 
   devices.forEach((d, i) => {
+    const stack = stackOf.get(d.id);
+    if (stack && stack.members[0] !== d) return;
     const { x: dx, y: dy } = d.position;
     const clip = `${id}-text-${i}`;
     const z = d.zoneId ? zone.get(d.zoneId) : undefined;
     const kind = kindLabel(d.type, d.variant);
-    const meta = `${kind} · ${levelLabel(d.purdueLevel)}${z ? ` · ${z.name}` : ''}`;
-    const list = findings.get(d.id);
-    const crit = d.criticality;
+    const members = stack?.members ?? [d];
+    const meta = `${stack ? `${members.length} devices` : kind} · ${levelLabel(d.purdueLevel)}${z ? ` · ${z.name}` : ''}`;
+    const list = members.flatMap((m) => findings.get(m.id) ?? []);
+    const crit = members.some((m) => m.criticality === 'high') ? 'high' : members.some((m) => m.criticality === 'medium') ? 'medium' : 'low';
+    const name = stack ? kind : d.label || kind;
     out.push(
-      `<g><title>${x(`${d.label || kind}: ${meta}, ${crit} criticality`)}</title>`,
+      `<g><title>${x(stack ? `Stack of ${members.length} ${kind}: ${members.map((m) => m.label).join(', ')}` : `${d.label || kind}: ${meta}, ${crit} criticality`)}</title>`,
+      // Two cards peek out behind a stack, as on the canvas.
+      ...(stack
+        ? [10, 5].map((o) => `<rect x="${dx + o + 0.5}" y="${dy + o + 0.5}" width="${NODE_WIDTH - 1}" height="${NODE_HEIGHT - 1}" rx="8" fill="#ffffff" stroke="${C.line}"/>`)
+        : []),
       // The zone colour shows as a thick left edge, as on the canvas.
       `<rect x="${dx}" y="${dy}" width="${NODE_WIDTH}" height="${NODE_HEIGHT}" rx="8" fill="${z?.color ?? C.line}"/>`,
       `<rect x="${dx + 5}" y="${dy + 1}" width="${NODE_WIDTH - 6}" height="${NODE_HEIGHT - 2}" rx="6" fill="#ffffff"/>`,
@@ -264,12 +291,20 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
       `<svg x="${dx + 13}" y="${dy + 15}" width="34" height="34" viewBox="0 0 32 32" ${iconAttrs(C.icon)}>${iconBody(d.type, d.variant, C.icon)}</svg>`,
       // Names are shortened by an estimate of their width and clipped to the box in case the font is wider.
       `<clipPath id="${clip}"><rect x="${dx + 50}" y="${dy}" width="${NODE_WIDTH - 54}" height="${NODE_HEIGHT}"/></clipPath>`,
-      `<g clip-path="url(#${clip})"><text x="${dx + 54}" y="${dy + 29}" font-size="13" font-weight="600" fill="${C.ink}">${x(fit(d.label || kind, NODE_WIDTH - 74, 13, true))}</text>`,
+      `<g clip-path="url(#${clip})"><text x="${dx + 54}" y="${dy + 29}" font-size="13" font-weight="600" fill="${C.ink}">${x(fit(name, NODE_WIDTH - 74, 13, true))}</text>`,
       `<text x="${dx + 54}" y="${dy + 45}" font-size="11" fill="${C.faint}">${x(fit(meta, NODE_WIDTH - 62, 11))}</text></g>`,
       `<circle cx="${dx + NODE_WIDTH - 11.5}" cy="${dy + 11.5}" r="7.5" fill="${C.severity[crit === 'high' ? 'high' : crit === 'medium' ? 'medium' : 'low']}"/>`,
       `<text x="${dx + NODE_WIDTH - 11.5}" y="${dy + 14.5}" font-size="9" font-weight="700" text-anchor="middle" fill="#ffffff">${crit[0].toUpperCase()}</text>`,
     );
-    if (list?.length) {
+    if (stack) {
+      const label = `×${members.length}`;
+      const w = 12 + label.length * 6;
+      out.push(
+        `<rect x="${dx + 6}" y="${dy + NODE_HEIGHT - 8}" width="${w}" height="16" rx="8" fill="${C.ink}"/>`,
+        `<text x="${dx + 6 + w / 2}" y="${dy + NODE_HEIGHT + 3.5}" font-size="10.5" font-weight="700" text-anchor="middle" fill="#ffffff">${label}</text>`,
+      );
+    }
+    if (list.length) {
       const label = String(list.length);
       out.push(
         `<rect x="${dx + NODE_WIDTH - 46}" y="${dy + 4}" width="${14 + label.length * 6}" height="15" rx="7.5" fill="${C.severity[worst(list)]}"/>`,
