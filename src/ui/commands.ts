@@ -5,14 +5,15 @@ import { addPolicy, newPolicy } from '../model/policies';
 import { PROTOCOLS } from '../model/protocols';
 import { saveRevision } from '../model/revisions';
 import { announce } from '../store/announcer';
-import { LAYER_LABELS, usePrefs, type Layers } from '../store/prefs';
+import { LAYER_LABELS, TEXT_SIZES, usePrefs, type Layers } from '../store/prefs';
 import { useSecurity, type SecurityTab } from '../store/security';
 import { useTheme, type Theme } from '../store/theme';
 import { NO_SELECTION, useProject } from '../store/useProject';
-import { addNoteInView, chooseProjectFile, saveProjectFile, tidyOpenSite } from './actions';
+import { addNoteInView, canRestoreTidy, chooseProjectFile, saveProjectFile, tidyOpenSite, toggleTidy } from './actions';
 import { exportAttackFlow, exportImage, exportText, printReport } from './exports';
 import type { CanvasEdge } from './canvas/edges';
 import { startKeyboardConnect } from './canvas/useKeyboardConnect';
+import { PANEL_SHORTCUTS, PANEL_TITLES } from './PanelChrome';
 import type { CanvasNode } from './canvas/nodes';
 
 export interface Command {
@@ -52,7 +53,8 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   const state = useProject.getState();
   const { project, history, selection } = state;
   const diagram = ctx.view === 'diagram';
-  const layers = usePrefs.getState().layers;
+  const prefs = usePrefs.getState();
+  const layers = prefs.layers;
   const list: Command[] = [];
   const add = (group: string, id: string, label: string, run: () => void, opts: Partial<Pick<Command, 'shortcut' | 'keywords' | 'enabled'>> = {}) =>
     list.push({ group, id, label, run, enabled: opts.enabled ?? true, shortcut: opts.shortcut, keywords: opts.keywords });
@@ -82,6 +84,10 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   add('Edit', 'duplicate', 'Duplicate the selected devices', () => useProject.getState().duplicate(), { shortcut: 'Ctrl+D', enabled: selection.devices.length > 0 });
   add('Edit', 'note', 'Add a text note', () => addNoteInView(rf), { enabled: diagram, keywords: 'annotation comment' });
   add('Edit', 'tidy', 'Tidy the layout of this site', () => tidyOpenSite(rf), { enabled: diagram, keywords: 'arrange auto layout' });
+  add('Edit', 'untidy', 'Undo tidy: put back the layout from before it', () => toggleTidy(rf), {
+    enabled: diagram && canRestoreTidy(project, state.activeSiteId),
+    keywords: 'arrange auto layout restore previous',
+  });
   add('Edit', 'snap', `${state.snapToGrid ? 'Turn off' : 'Turn on'} snap to grid`, () => useProject.getState().toggleSnap());
   add('Edit', 'revision', 'Save a revision of the design', () => {
     useProject.getState().apply((p) => saveRevision(p, ''));
@@ -99,6 +105,23 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   }
   for (const t of THEMES) {
     add('View', `theme-${t.value}`, `Theme: ${t.label}`, () => useTheme.getState().setTheme(t.value), { keywords: 'colour color dark light contrast' });
+  }
+  for (const t of TEXT_SIZES) {
+    add('View', `text-${t.value}`, `Text size: ${t.label} (${Math.round(t.value * 100)}%)`, () => usePrefs.getState().setTextSize(t.value), {
+      enabled: prefs.textSize !== t.value,
+      keywords: 'font bigger smaller zoom scale read',
+    });
+  }
+  for (const panel of ['palette', 'inspector'] as const) {
+    const open = prefs.panels[panel].open;
+    add('View', `panel-${panel}`, `${open ? 'Hide' : 'Show'} the ${PANEL_TITLES[panel].toLowerCase()}${panel === 'inspector' ? ' panel' : ''}`, () => usePrefs.getState().togglePanel(panel), {
+      shortcut: PANEL_SHORTCUTS[panel],
+      keywords: 'sidebar side panel fold collapse',
+    });
+    add('View', `panel-width-${panel}`, `Reset the width of the ${PANEL_TITLES[panel].toLowerCase()}${panel === 'inspector' ? ' panel' : ''}`, () => usePrefs.getState().setPanelWidth(panel, null), {
+      enabled: prefs.panels[panel].width !== null,
+      keywords: 'sidebar resize default',
+    });
   }
 
   const showSecurity = (tab: SecurityTab) => {

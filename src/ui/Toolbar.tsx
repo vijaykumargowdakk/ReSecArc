@@ -3,9 +3,10 @@ import { lazy, Suspense, useRef, useState, type ReactElement } from 'react';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
 import { useFindings } from '../store/derived';
+import { usePrefs } from '../store/prefs';
 import { useSecurity } from '../store/security';
-import { useTheme, type Theme } from '../store/theme';
 import { chooseProjectFile, openProjectFile, PROJECT_FILE_INPUT_ID, saveProjectFile } from './actions';
+import { DisplayMenu } from './DisplayMenu';
 import { HistoryMenu } from './HistoryMenu';
 import { NO_SELECTION, useProject, type ConnectMode } from '../store/useProject';
 
@@ -34,8 +35,6 @@ export function Toolbar({
   drawer: 'palette' | 'inspector' | null;
   onDrawer: (drawer: 'palette' | 'inspector') => void;
 }) {
-  const theme = useTheme((s) => s.theme);
-  const setTheme = useTheme((s) => s.setTheme);
   const exportMenu = useRef<HTMLDetailsElement>(null);
   const project = useProject((s) => s.project);
   const connectMode = useProject((s) => s.connectMode);
@@ -52,7 +51,10 @@ export function Toolbar({
   const findings = useFindings();
   const securityOpen = useSecurity((s) => s.open);
   const select = useProject((s) => s.select);
+  const inspectorOpen = usePrefs((s) => s.panels.inspector.open);
   const showSecurity = () => {
+    // With the properties panel folded, the button shows the open Security panel rather than closing it.
+    if (securityOpen && !inspectorOpen) return usePrefs.getState().setPanelOpen('inspector', true);
     if (securityOpen) return useSecurity.getState().close();
     useSecurity.getState().show('findings');
     select(NO_SELECTION);
@@ -184,12 +186,7 @@ export function Toolbar({
             </Suspense>
           )}
         </details>
-        <select className="toolbar__select" value={theme} onChange={(e) => setTheme(e.target.value as Theme)} aria-label="Colour theme" title="Colour theme">
-          <option value="system">Theme: system</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-          <option value="contrast">High contrast</option>
-        </select>
+        <DisplayMenu />
         <button type="button" className="button icon-only" onClick={onHelp} aria-label="Keyboard shortcuts and help" title="Keyboard shortcuts (?)">
           <CircleHelp size={16} />
         </button>

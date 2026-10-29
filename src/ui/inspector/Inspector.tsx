@@ -1,6 +1,6 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { DEVICE_CATALOG, REMOTE_SERVICE_PORTS } from '../../model/catalog';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useId, useState } from 'react';
 import {
   addFlow,
   addLink,
@@ -27,7 +27,9 @@ import { AddressInfo } from './AddressInfo';
 import { Field, IntInput, Section, Select, TextInput, Toggle, VlanInput } from '../form';
 import { IssueList } from './AddressInfo';
 import { useFindingsByItem, useLinkIssues } from '../../store/derived';
+import { usePrefs } from '../../store/prefs';
 import { useSecurity } from '../../store/security';
+import { PanelEdge, PanelHeader } from '../PanelChrome';
 import { ProjectPanel } from './ProjectPanel';
 
 // Panels for less common selections load on first use, keeping them out of the startup bundle.
@@ -430,6 +432,11 @@ export function Inspector() {
 
   const comparison = useComparison();
   const securityOpen = useSecurity((s) => s.open);
+  const bodyId = useId();
+  // Opening the Security panel is a request to see it, so a folded properties panel opens too.
+  useEffect(() => {
+    if (securityOpen) usePrefs.getState().setPanelOpen('inspector', true);
+  }, [securityOpen]);
   let body = securityOpen ? <SecurityPanel /> : comparison ? <ChangesPanel comparison={comparison} /> : <ProjectPanel />;
   if (selection.devices.length > 1) {
     body = <BulkInspector ids={selection.devices} />;
@@ -468,7 +475,11 @@ export function Inspector() {
 
   return (
     <aside className="inspector" aria-label="Properties">
-      <Suspense fallback={<p className="muted inspector__loading">Loading…</p>}>{body}</Suspense>
+      <PanelHeader panel="inspector" bodyId={bodyId} />
+      <div id={bodyId} className="panel-body inspector__body">
+        <Suspense fallback={<p className="muted inspector__loading">Loading…</p>}>{body}</Suspense>
+      </div>
+      <PanelEdge panel="inspector" />
     </aside>
   );
 }

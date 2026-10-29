@@ -16,7 +16,7 @@ async function linkOfficeToRtu(page: Page): Promise<void> {
   await page.getByRole('tab', { name: 'Diagram' }).click();
 }
 
-const securityButton = (page: Page) => page.getByRole('button', { name: /^Security/ });
+const securityButton = (page: Page) => page.getByRole('button', { name: /^Security \d+ finding/ });
 
 test('flags a direct IT to OT link, marks it on the canvas and leads to the devices', async ({ page }) => {
   await expect(securityButton(page)).toHaveAccessibleName('Security 3 findings');

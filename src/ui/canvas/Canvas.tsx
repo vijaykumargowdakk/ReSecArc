@@ -13,7 +13,7 @@ import {
   type Node,
   type NodeChange,
 } from '@xyflow/react';
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import { variantInfo } from '../../model/catalog';
 import { dimmedIds } from '../../model/filter';
 import { addNote, createNote, moveNote, removeNote } from '../../model/notes';
@@ -31,11 +31,13 @@ import { useRenderAll } from '../exportDiagram';
 import { NO_SELECTION, useProject } from '../../store/useProject';
 import { FlowEdge, LinkEdge, type CanvasEdge } from './edges';
 import { Legend } from './Legend';
-import { NodeMenu } from './NodeMenu';
 import { AreaNode, DeviceNode, LaneNode, NoteNode, PortalNode, type CanvasNode, type LaneFlowNode } from './nodes';
 import { useKeyboardConnect } from './useKeyboardConnect';
 import { usePathMarks } from './usePathMarks';
 import { buildView } from './view';
+
+// The device menu opens only on a right-click or long-press, so its code loads then.
+const NodeMenu = lazy(() => import('./NodeMenu').then((m) => ({ default: m.NodeMenu })));
 
 export const DEVICE_DND_MIME = 'application/x-conduitot-device';
 export const NOTE_DND_MIME = 'application/x-conduitot-note';
@@ -101,6 +103,7 @@ export function Canvas() {
   const theme = useTheme((s) => s.theme);
   const renderAll = useRenderAll((s) => s.all);
   const dragging = useRef(false);
+  const [coarsePointer] = useState(() => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches);
   const container = useRef<HTMLDivElement>(null);
 
   const dimmed = useMemo(() => dimmedIds(project, filter), [project, filter]);
@@ -301,12 +304,33 @@ export function Canvas() {
     [focusDevice],
   );
 
-  const onNodeContextMenu = useCallback((event: MouseEvent, node: CanvasNode) => {
-    if (node.type !== 'device') return;
-    event.preventDefault();
-    const bounds = (event.currentTarget as HTMLElement).closest('.canvas')?.getBoundingClientRect();
-    setMenu({ deviceId: node.id, x: event.clientX - (bounds?.left ?? 0), y: event.clientY - (bounds?.top ?? 0) });
+  const openMenu = useCallback((deviceId: string, clientX: number, clientY: number) => {
+    const bounds = container.current?.getBoundingClientRect();
+    setMenu({ deviceId, x: clientX - (bounds?.left ?? 0), y: clientY - (bounds?.top ?? 0) });
   }, []);
+
+  const onNodeContextMenu = useCallback(
+    (event: MouseEvent, node: CanvasNode) => {
+      if (node.type !== 'device') return;
+      event.preventDefault();
+      openMenu(node.id, event.clientX, event.clientY);
+    },
+    [openMenu],
+  );
+  // Touch screens get a long-press menu; its code loads only on devices that have one.
+  useEffect(() => {
+    const el = container.current;
+    if (!el || !(coarsePointer || matchMedia('(any-pointer: coarse)').matches)) return;
+    let detach: (() => void) | undefined;
+    let live = true;
+    void import('./longPress').then((m) => {
+      if (live) detach = m.attachLongPress(el, openMenu);
+    });
+    return () => {
+      live = false;
+      detach?.();
+    };
+  }, [coarsePointer, openMenu]);
 
   const onConnect = useCallback(
     (c: Connection) => {
@@ -346,7 +370,12 @@ export function Canvas() {
   );
 
   return (
-    <div ref={container} className={`canvas connect-${connectMode}${pendingConnect ? ' is-connecting' : ''}`} onDragOver={onDragOver} onDrop={onDrop}>
+    <div
+      ref={container}
+      className={`canvas connect-${connectMode}${pendingConnect ? ' is-connecting' : ''}`}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
       <ReactFlow<CanvasNode, CanvasEdge>
         nodes={nodes}
         edges={edges}
@@ -366,6 +395,8 @@ export function Canvas() {
         onPaneClick={() => setMenu(null)}
         onMoveStart={() => setMenu(null)}
         onlyRenderVisibleElements={!renderAll && nodes.length > VIRTUALIZE_ABOVE}
+        // A finger wobbles a little, so on touch screens a device moves only once it is clearly dragged.
+        nodeDragThreshold={coarsePointer ? 8 : 1}
         snapToGrid={snapToGrid}
         snapGrid={[25, 25]}
         onSelectionChange={onSelectionChange}
@@ -394,7 +425,11 @@ export function Canvas() {
           nodeStrokeColor={(n) => (n.type === 'lane' ? '#cbd5e1' : 'transparent')}
         />
       </ReactFlow>
-      {menu && <NodeMenu {...menu} onClose={() => setMenu(null)} />}
+      {menu && (
+        <Suspense fallback={null}>
+          <NodeMenu {...menu} onClose={() => setMenu(null)} />
+        </Suspense>
+      )}
       {view.nodes.length === 0 && (
         <div className="canvas-empty" role="note">
           <p>This site is empty.</p>

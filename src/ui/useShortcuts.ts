@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { announce } from '../store/announcer';
+import { usePrefs } from '../store/prefs';
 import { useProject } from '../store/useProject';
 import { saveProjectFile } from './actions';
 
@@ -27,6 +28,16 @@ export function useShortcuts({ onSearch, onHelp, onCommands }: { onSearch: () =>
         e.preventDefault();
         saveProjectFile(useProject.getState().project);
         announce('Project file saved');
+        return;
+      }
+      // Ctrl+B and Ctrl+Alt+B fold the side panels, as in code editors. On a Mac, Option changes e.key, so
+      // the physical key is read there; elsewhere e.key is kept so AltGr characters on B still type.
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (key === 'b' || (e.metaKey && e.code === 'KeyB'))) {
+        e.preventDefault();
+        const panel = e.altKey ? 'inspector' : 'palette';
+        usePrefs.getState().togglePanel(panel);
+        const open = usePrefs.getState().panels[panel].open;
+        announce(`${panel === 'palette' ? 'Device palette' : 'Properties panel'} ${open ? 'shown' : 'hidden'}`);
         return;
       }
       if (isTyping(e.target)) return;
