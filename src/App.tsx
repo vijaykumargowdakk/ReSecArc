@@ -28,6 +28,7 @@ const ShareDialog = lazy(() => import('./ui/ShareDialog').then((m) => ({ default
 const CommandPalette = lazy(() => import('./ui/CommandPalette').then((m) => ({ default: m.CommandPalette })));
 const Tour = lazy(() => import('./ui/Tour').then((m) => ({ default: m.Tour })));
 const TemplateGallery = lazy(() => import('./ui/TemplateGallery').then((m) => ({ default: m.TemplateGallery })));
+const MergeDialog = lazy(() => import('./ui/MergeDialog').then((m) => ({ default: m.MergeDialog })));
 
 const VIEW_NAMES: Record<ViewName, string> = { diagram: 'Diagram', inventory: 'Inventory', outline: 'Outline' };
 
@@ -51,6 +52,7 @@ export function App() {
   const openHelp = useCallback(() => setHelping(true), []);
   const [drawer, setDrawer] = useState<'palette' | 'inspector' | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [merging, setMerging] = useState(false);
   const [shared, setShared] = useState<{ ok: true; project: Project } | { ok: false; errors: string[] } | null>(null);
   const comparison = useComparison();
   const compareWith = useCompare((s) => s.compareWith);
@@ -72,6 +74,7 @@ export function App() {
       openSearch,
       openHelp,
       openShare: () => setSharing(true),
+      openMerge: () => setMerging(true),
       openNew: () => setChoosingTemplate(true),
       openTour: () => setTouring(true),
       onErrors: setErrors,
@@ -224,7 +227,7 @@ export function App() {
                   <ListTree size={15} /> Outline
                 </button>
               </div>
-              {view === 'diagram' && <SiteTabs />}
+              {view === 'diagram' && <SiteTabs onMerge={() => setMerging(true)} />}
               {view === 'diagram' && <TidyButton />}
               {view === 'diagram' && <LayersMenu />}
               {view !== 'inventory' && <FilterBar />}
@@ -271,6 +274,7 @@ export function App() {
           {commanding && <CommandPalette ctx={commandContext} onClose={() => setCommanding(false)} />}
           {touring && !pending && !shared && <Tour onClose={endTour} />}
           {sharing && <ShareDialog onClose={() => setSharing(false)} />}
+          {merging && <MergeDialog onClose={() => setMerging(false)} />}
         </Suspense>
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           <span key={seq}>{announcement}</span>

@@ -88,6 +88,7 @@ export function ImportDialog({ kind, onClose }: { kind: ImportKind; onClose: () 
   const siteId = useProject((s) => s.activeSiteId);
   const apply = useProject((s) => s.apply);
   const dialog = useRef<HTMLDialogElement>(null);
+  const input = useRef<HTMLInputElement>(null);
   const [parsed, setParsed] = useState<Parsed | null>(null);
   const [fileName, setFileName] = useState('');
   const [replaceRules, setReplaceRules] = useState(true);
@@ -111,20 +112,24 @@ export function ImportDialog({ kind, onClose }: { kind: ImportKind; onClose: () 
       </header>
       <div className="import-dialog__body">
         <p className="muted">{text.help}</p>
-        <label className="button file-button">
+        {/* A real button: a label around a hidden input cannot be reached with the keyboard. */}
+        <button type="button" className="button file-button" onClick={() => input.current?.click()}>
           <Upload size={16} />
           {fileName || 'Choose a CSV file…'}
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              setFileName(file.name);
-              setParsed(parse(kind, project, await file.text(), siteId));
-            }}
-          />
-        </label>
+        </button>
+        <input
+          ref={input}
+          type="file"
+          accept=".csv,text/csv"
+          hidden
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (!file) return;
+            setFileName(file.name);
+            setParsed(parse(kind, project, await file.text(), siteId));
+          }}
+        />
         {kind === 'rules' && (
           <label className="toggle">
             <input type="checkbox" checked={replaceRules} onChange={(e) => setReplaceRules(e.target.checked)} />

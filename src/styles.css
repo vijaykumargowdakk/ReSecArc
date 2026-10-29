@@ -545,7 +545,7 @@ button:focus-visible {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   padding: 6px 10px 0;
   background: var(--panel-alt);
   border-bottom: 1px solid var(--line);
@@ -556,9 +556,20 @@ button:focus-visible {
   align-items: flex-end;
   gap: 2px;
   min-width: 0;
+}
+
+.site-tabs__list {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
+}
+
+.site-tabs > button {
+  flex: none;
 }
 
 .site-tab {
@@ -624,6 +635,10 @@ button:focus-visible {
 
 .site-tabs__add {
   margin: 0 0 5px 4px;
+}
+
+.site-tabs__add + .site-tabs__add {
+  margin-left: 0;
 }
 
 .site-tab__close:hover,
@@ -1536,10 +1551,6 @@ button:focus-visible {
   background: var(--panel-alt);
 }
 
-.file-button input {
-  display: none;
-}
-
 .import-errors {
   max-height: 200px;
   overflow-y: auto;
@@ -1553,6 +1564,37 @@ button:focus-visible {
 
 .text-danger {
   color: var(--danger);
+}
+
+.merge-sites {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.merge-sites legend {
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.merge-summary {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--panel-alt);
+  font-size: 13px;
+}
+
+.merge-summary p {
+  margin: 0 0 6px;
+}
+
+.merge-summary ul {
+  margin: 0;
+  padding-left: 20px;
 }
 
 .import-dialog__footer {
