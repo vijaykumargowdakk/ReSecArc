@@ -1,5 +1,5 @@
 import { Handle, NodeResizer, Position, type Node, type NodeProps } from '@xyflow/react';
-import { ChevronsDownUp, ChevronsUpDown, ExternalLink, Lock, ShieldAlert } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown, ExternalLink, Layers, Lock, ShieldAlert } from 'lucide-react';
 import { useState, type CSSProperties } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../../model/catalog';
 import { levelLabel, type PurdueLane } from '../../model/purdue';
@@ -13,7 +13,8 @@ export type DeviceFlowNode = Node<DeviceNodeData, 'device'>;
 export type AreaFlowNode = Node<AreaNodeData, 'area'>;
 export type PortalFlowNode = Node<PortalNodeData, 'portal'>;
 export type NoteFlowNode = Node<NoteNodeData, 'note'>;
-export type LaneNodeData = { lane: PurdueLane };
+/** `tab` marks the band behind a level tab, which has no lane buttons. */
+export type LaneNodeData = { lane: PurdueLane; tab?: boolean };
 export type LaneFlowNode = Node<LaneNodeData, 'lane'>;
 
 export type CanvasNode = DeviceFlowNode | AreaFlowNode | PortalFlowNode | NoteFlowNode | LaneFlowNode;
@@ -26,7 +27,7 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
   const style = { '--zone-color': zone?.color ?? 'var(--line-strong)' } as CSSProperties;
   return (
     <div
-      className={`device-node${selected ? ' is-selected' : ''}`}
+      className={`device-node${selected ? ' is-selected' : ''}${data.stack ? ' device-node--stack' : ''}`}
       style={style}
       title={DEVICE_CATALOG[device.type].description}
       aria-label={`${kind}, ${device.label}, level ${levelLabel(device.purdueLevel).slice(1)}${zone ? `, zone ${zone.name}` : ''}, ${device.criticality} criticality`}
@@ -60,6 +61,11 @@ export function DeviceNode({ data, selected }: NodeProps<DeviceFlowNode>) {
       {data.pathStep !== undefined && (
         <span className="path-step-badge" title={`Step ${data.pathStep} of the selected attack path`} aria-hidden="true">
           {data.pathStep}
+        </span>
+      )}
+      {data.stack && (
+        <span className="stack-badge" title={`${data.stack.length} similar devices; double-click to see them all`} aria-hidden="true">
+          ×{data.stack.length}
         </span>
       )}
       {device.locked && (
@@ -140,7 +146,7 @@ export function AreaNode({ id, data, selected }: NodeProps<AreaFlowNode>) {
 
 export function PortalNode({ data }: NodeProps<PortalFlowNode>) {
   return (
-    <div className="portal" title={`On site “${data.siteName}”. Click to go there.`}>
+    <div className="portal" title={`On ${data.where ?? `site “${data.siteName}”`}. Click to go there.`}>
       <Handle type="target" position={Position.Left} isConnectable={false} />
       <DeviceIcon type={data.device.type} variant={data.device.variant} size={22} />
       <span className="portal__text">
@@ -202,10 +208,28 @@ export function NoteNode({ id, data, selected }: NodeProps<NoteFlowNode>) {
 }
 
 export function LaneNode({ data }: NodeProps<LaneFlowNode>) {
+  const { level } = data.lane;
+  const label = levelLabel(level);
+  const stacked = useProject((s) => s.project.sites.find((x) => x.id === s.activeSiteId)?.stackedLevels?.includes(level) === true);
+  // Stacking is switched by a module that loads on the first use.
+  const toggleStack = () => {
+    const { apply, activeSiteId } = useProject.getState();
+    void import('../../model/stacks').then((m) => apply((p) => m.setLevelStacked(p, activeSiteId, level, !stacked)));
+  };
   return (
-    <div className={`lane lane--${String(data.lane.level).replace('.', '-')}`}>
-      <span className="lane__level">{levelLabel(data.lane.level)}</span>
+    <div className={`lane lane--${String(level).replace('.', '-')}`}>
+      <span className="lane__level">{label}</span>
       <span className="lane__name">{data.lane.name}</span>
+      {!data.tab && (
+        <span className="lane__actions nodrag nopan">
+          <button type="button" className="lane__button" onClick={() => useProject.getState().openLevel(level)} aria-label={`Open ${label} in its own tab`} title="Open this level in its own tab">
+            <ExternalLink size={13} aria-hidden="true" />
+          </button>
+          <button type="button" className="lane__button" onClick={toggleStack} aria-pressed={stacked} aria-label={`Stack similar devices on ${label}`} title="Draw devices of the same kind, area and zone as one stack">
+            <Layers size={13} aria-hidden="true" />
+          </button>
+        </span>
+      )}
     </div>
   );
 }

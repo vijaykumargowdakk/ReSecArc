@@ -13,6 +13,7 @@ export function TidyButton() {
   const rf = useReactFlow<CanvasNode, CanvasEdge>();
   const project = useProject((s) => s.project);
   const siteId = useProject((s) => s.activeSiteId);
+  useProject((s) => s.activeLevel);
   useLastTidy((s) => s.result);
   const restore = canRestoreTidy(project, siteId);
   return (

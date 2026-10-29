@@ -20,14 +20,20 @@ export type DiffMark = 'added' | 'changed';
 export type SecurityMark = { count: number; severity: Severity };
 /** A device's step number on the highlighted attack path, or `via` for anything the path crosses. */
 export type PathMark = number | 'via';
-export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean; diff?: DiffMark; security?: SecurityMark; pathStep?: number };
+/** `stack` lists the member ids when the card stands for a stack of similar devices. */
+export type DeviceNodeData = { device: Device; zone: Zone | null; dimmed: boolean; diff?: DiffMark; security?: SecurityMark; pathStep?: number; stack?: string[] };
 export type AreaNodeData = { area: Area; members: Device[] };
-export type PortalNodeData = { device: Device; siteName: string };
+/** `where` replaces “site …” in the tooltip, for stubs that stand for another level. */
+export type PortalNodeData = { device: Device; siteName: string; where?: string };
 export type NoteNodeData = { note: Note };
-export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showPorts: boolean; violation: boolean; onPath: boolean };
-export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showLabel: boolean; violation: boolean; onPath: boolean };
+/** `count` is how many links or flows a merged edge stands for. */
+export type LinkEdgeData = { link: Link; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showPorts: boolean; violation: boolean; onPath: boolean; count?: number };
+export type FlowEdgeData = { flow: Flow; dimmed: boolean; aggregated: boolean; diff?: DiffMark; showLabel: boolean; violation: boolean; onPath: boolean; count?: number };
 
 export const portalId = (deviceId: string) => `portal:${deviceId}`;
+
+/** What the canvas draws; `drawn` lists the devices shown, at their drawn positions, when that is not every device on the site. */
+export type CanvasView = { nodes: CanvasNode[]; edges: CanvasEdge[]; drawn?: Device[] };
 
 export function buildView(
   project: Project,
@@ -44,7 +50,7 @@ export function buildView(
   findings: ReadonlyMap<string, Finding[]> = new Map(),
   /** The attack path chosen in the Security panel. */
   path: ReadonlyMap<string, PathMark> = new Map(),
-): { nodes: CanvasNode[]; edges: CanvasEdge[] } {
+): CanvasView {
   const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined;
   const diffClass = (id: string) => (marks.has(id) ? `diff-${marks.get(id)}` : undefined);
   const securityOf = (id: string): SecurityMark | undefined => {

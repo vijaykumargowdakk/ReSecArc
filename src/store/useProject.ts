@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { loadDemo } from '../examples/templates/demo';
 import { NO_FILTER, type Filter } from '../model/filter';
 import { extractFragment, pasteFragment, type Fragment } from '../model/ops';
-import type { Project } from '../model/schema';
+import type { Project, PurdueLevel } from '../model/schema';
 import { commit, initHistory, jump, redo, undo, type History } from './history';
 
 export interface Selection {
@@ -34,6 +34,10 @@ interface ProjectState {
   clipboard: Fragment | null;
   /** The site shown on the canvas. */
   activeSiteId: string;
+  /** The level tab shown, or null for the site's overview. */
+  activeLevel: PurdueLevel | null;
+  /** Level tabs open beside the overview, top level first; they close when the site changes. */
+  levelTabs: PurdueLevel[];
   filter: Filter;
   /** Increases each time a project is loaded, so the canvas can frame the new design. */
   loadCount: number;
@@ -56,6 +60,8 @@ interface ProjectState {
   /** Inserts a saved block onto the active site. */
   insertFragment: (fragment: Fragment) => void;
   setActiveSite: (siteId: string) => void;
+  /** Shows a level of the open site in its own tab, opening the tab if needed; null shows the overview. */
+  openLevel: (level: PurdueLevel | null) => void;
   /** Switches to the device's site, selects it and centres the canvas on it. */
   focusDevice: (deviceId: string) => void;
   /** Selects items and frames the given devices, on the first device's site. */
@@ -130,6 +136,8 @@ export const useProject = create<ProjectState>((set, get) => {
     snapToGrid: false,
     clipboard: null,
     activeSiteId: initial.sites[0].id,
+    activeLevel: null,
+    levelTabs: [],
     filter: NO_FILTER,
     loadCount: 0,
     focus: null,
@@ -148,6 +156,8 @@ export const useProject = create<ProjectState>((set, get) => {
         history: initHistory(project),
         selection: NO_SELECTION,
         activeSiteId: project.sites[0].id,
+        activeLevel: null,
+        levelTabs: [],
         filter: NO_FILTER,
         loadCount: s.loadCount + 1,
         pendingConnect: null,
@@ -158,11 +168,19 @@ export const useProject = create<ProjectState>((set, get) => {
     selectAll: () =>
       set((s) => ({ selection: { ...NO_SELECTION, devices: s.project.devices.filter((d) => d.siteId === s.activeSiteId).map((d) => d.id) } })),
     setActiveSite: (siteId) => {
-      if (siteId !== get().activeSiteId) set({ activeSiteId: validSite(get().project, siteId), selection: NO_SELECTION, pendingConnect: null });
+      if (siteId !== get().activeSiteId) set({ activeSiteId: validSite(get().project, siteId), activeLevel: null, levelTabs: [], selection: NO_SELECTION, pendingConnect: null });
+    },
+    openLevel: (level) => {
+      const tabs = get().levelTabs;
+      set({ activeLevel: level, levelTabs: level === null || tabs.includes(level) ? tabs : [...tabs, level].sort((a, b) => b - a), pendingConnect: null });
     },
     focusDevice: (deviceId) => {
       const device = get().project.devices.find((d) => d.id === deviceId);
       if (!device) return;
+      // From a level tab the device is shown in its own level's tab; from the overview, in the overview.
+      const { activeLevel, activeSiteId } = get();
+      if (device.siteId !== activeSiteId) set({ activeLevel: null, levelTabs: [] });
+      else if (activeLevel !== null) get().openLevel(device.purdueLevel);
       set({ activeSiteId: device.siteId, selection: { ...NO_SELECTION, devices: [deviceId] }, focus: { deviceIds: [deviceId], nonce: Date.now() } });
     },
     focusItems: (selection, deviceIds) => {
@@ -170,7 +188,8 @@ export const useProject = create<ProjectState>((set, get) => {
       const first = devices.find((d) => d.id === deviceIds[0]);
       if (!first) return;
       const onSite = deviceIds.filter((id) => devices.find((d) => d.id === id)?.siteId === first.siteId);
-      set({ activeSiteId: first.siteId, selection: { ...NO_SELECTION, ...selection }, focus: { deviceIds: onSite, nonce: Date.now() }, pendingConnect: null });
+      // Findings and attack paths can span levels, so they are shown in the overview.
+      set({ activeLevel: null, ...(first.siteId !== get().activeSiteId && { levelTabs: [] }), activeSiteId: first.siteId, selection: { ...NO_SELECTION, ...selection }, focus: { deviceIds: onSite, nonce: Date.now() }, pendingConnect: null });
     },
     clearFocus: () => set({ focus: null }),
     setFilter: (filter) => set({ filter }),

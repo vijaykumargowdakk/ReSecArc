@@ -99,6 +99,13 @@ export function LinkEdge({ id, source, target, data, selected }: EdgeProps<LinkF
           )}
         </EdgeLabelRenderer>
       )}
+      {data.count && (
+        <EdgeLabelRenderer>
+          <div className={`edge-count${state}`} style={at(midpoint(points))}>
+            ×{data.count}
+          </div>
+        </EdgeLabelRenderer>
+      )}
       {selected && !data.aggregated && link.waypoints.length > 0 && (
         <WaypointHandles waypoints={link.waypoints} onChange={(next) => apply((p) => updateLink(p, link.id, { waypoints: next }))} />
       )}
@@ -130,6 +137,7 @@ export function FlowEdge({ id, source, target, data, selected, markerEnd }: Edge
         <EdgeLabelRenderer>
           <div className={`flow-label${state}`} style={{ '--protocol-color': color, ...at(midpoint(points)) } as CSSProperties}>
             {flowLabel(flow.protocol, flow.settings)}
+            {data.count && ` ×${data.count}`}
           </div>
         </EdgeLabelRenderer>
       )}

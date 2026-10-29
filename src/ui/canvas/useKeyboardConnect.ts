@@ -14,8 +14,15 @@ const DIRECTION_WORDS: Record<Direction, string> = { up: 'above', down: 'below',
 
 const centre = (d: Device) => ({ x: d.position.x + NODE_WIDTH / 2, y: d.position.y + NODE_HEIGHT / 2 });
 
+let drawnNow: Device[] | undefined;
+/** The canvas sets this when it draws other devices or positions than the site's own (a level tab, stacks). */
+export const setDrawnDevices = (devices: Device[] | undefined) => {
+  drawnNow = devices;
+};
+
 /** Devices drawn on the open site: those inside a collapsed area are not on the canvas. */
 function drawnDevices(): Device[] {
+  if (drawnNow) return drawnNow;
   const { project, activeSiteId } = useProject.getState();
   const collapsed = new Set(project.areas.filter((a) => a.collapsed).map((a) => a.id));
   return project.devices.filter((d) => d.siteId === activeSiteId && !(d.areaId && collapsed.has(d.areaId)));

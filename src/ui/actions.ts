@@ -6,7 +6,7 @@ import { parseProject, serializeProject } from '../model/io';
 import { tidyLayout } from '../model/layout';
 import { addNote, createNote } from '../model/notes';
 import { countRuleReferences, removeDevice } from '../model/ops';
-import type { Project } from '../model/schema';
+import type { Project, PurdueLevel } from '../model/schema';
 import { announce } from '../store/announcer';
 import { hasEdits, NO_SELECTION, useProject } from '../store/useProject';
 import type { CanvasEdge } from './canvas/edges';
@@ -40,7 +40,8 @@ export function saveProjectFile(project: Project): void {
 
 /** Adds a note in the middle of the visible canvas and selects it. */
 export function addNoteInView(rf: Flow): void {
-  const { activeSiteId, apply, select } = useProject.getState();
+  const { activeSiteId, activeLevel, apply, select } = useProject.getState();
+  if (activeLevel !== null) return announce('Notes are added in the overview.');
   const box = document.querySelector('.canvas')?.getBoundingClientRect();
   const at = box ? rf.screenToFlowPosition({ x: box.left + box.width / 2, y: box.top + box.height / 2 }) : { x: 240, y: 40 };
   const note = createNote(activeSiteId, { x: Math.round(at.x - 130), y: Math.round(at.y - 20) });
@@ -63,28 +64,39 @@ export function deleteDeviceAfterConfirm(deviceId: string): boolean {
 }
 
 /**
- * The project as the last tidy left it, and the site it tidied. While the design is still exactly
- * that, a second Tidy puts the earlier layout back; any edit in between ends the offer.
+ * The project as the last tidy left it, and the site and tab (level, or null for the overview) it
+ * tidied. While the design is still exactly that, a second Tidy puts the earlier layout back; any
+ * edit in between ends the offer.
  */
-export const useLastTidy = create<{ siteId: string; result: Project } | { siteId: null; result: null }>(() => ({ siteId: null, result: null }));
+export const useLastTidy = create<{ siteId: string; level: PurdueLevel | null; result: Project } | { siteId: null; level: null; result: null }>(() => ({
+  siteId: null,
+  level: null,
+  result: null,
+}));
 
 /** True when the Tidy button would put back the layout from before the last tidy. */
 export function canRestoreTidy(project: Project, siteId: string): boolean {
   const last = useLastTidy.getState();
-  return last.result === project && last.siteId === siteId && useProject.getState().history.past.length > 0;
+  const state = useProject.getState();
+  return last.result === project && last.siteId === siteId && last.level === state.activeLevel && state.history.past.length > 0;
 }
 
-/** Lays out the open site in one undoable step and frames the result. */
-export function tidyOpenSite(rf: Flow): void {
-  const { apply, activeSiteId } = useProject.getState();
+/**
+ * Lays out the open site in one undoable step and frames the result. A level tab gets a grid grouped
+ * by area, and an overview with stacks gives each stack one slot; both load their code on demand.
+ */
+export async function tidyOpenSite(rf: Flow): Promise<void> {
+  const { activeSiteId, activeLevel, project } = useProject.getState();
+  const special = activeLevel !== null || !!project.sites.find((s) => s.id === activeSiteId)?.stackedLevels?.length;
+  const tidy = special ? (await import('./canvas/levelView')).tidy : (p: Project, site: string) => tidyLayout(p, site);
   const before = useProject.getState().project;
-  apply((p) => tidyLayout(p, activeSiteId));
+  useProject.getState().apply((p) => tidy(p, activeSiteId, activeLevel));
   const after = useProject.getState().project;
   if (after === before) {
-    announce('Nothing to tidy on this site.');
+    announce(`Nothing to tidy on this ${activeLevel === null ? 'site' : 'level'}.`);
     return;
   }
-  useLastTidy.setState({ siteId: activeSiteId, result: after });
+  useLastTidy.setState({ siteId: activeSiteId, level: activeLevel, result: after });
   announce('Layout tidied. Tidy again, or Undo, to put the previous layout back.');
   requestAnimationFrame(() => rf.fitView({ padding: 0.1, duration: 250 }));
 }
@@ -92,9 +104,9 @@ export function tidyOpenSite(rf: Flow): void {
 /** The Tidy button: tidies, or, straight after a tidy with nothing changed since, undoes it. */
 export function toggleTidy(rf: Flow): void {
   const { project, activeSiteId, undo } = useProject.getState();
-  if (!canRestoreTidy(project, activeSiteId)) return tidyOpenSite(rf);
+  if (!canRestoreTidy(project, activeSiteId)) return void tidyOpenSite(rf);
   undo();
-  useLastTidy.setState({ siteId: null, result: null });
+  useLastTidy.setState({ siteId: null, level: null, result: null });
   announce('Previous layout put back.');
   requestAnimationFrame(() => rf.fitView({ padding: 0.1, duration: 250 }));
 }
