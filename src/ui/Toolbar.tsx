@@ -1,16 +1,15 @@
 import { Cable, CircleHelp, Command, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, ShieldAlert, Undo2, Workflow } from 'lucide-react';
-import { useRef, type ReactElement } from 'react';
-import { useReactFlow } from '@xyflow/react';
+import { lazy, Suspense, useRef, useState, type ReactElement } from 'react';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
 import { useFindings } from '../store/derived';
 import { useSecurity } from '../store/security';
 import { useTheme, type Theme } from '../store/theme';
-import type { CanvasEdge } from './canvas/edges';
-import type { CanvasNode } from './canvas/nodes';
-import { chooseProjectFile, exportImage, exportText, openProjectFile, PROJECT_FILE_INPUT_ID, saveProjectFile, type TextExport } from './actions';
+import { chooseProjectFile, openProjectFile, PROJECT_FILE_INPUT_ID, saveProjectFile } from './actions';
 import { HistoryMenu } from './HistoryMenu';
 import { NO_SELECTION, useProject, type ConnectMode } from '../store/useProject';
+
+const ExportMenuItems = lazy(() => import('./ExportMenuItems').then((m) => ({ default: m.ExportMenuItems })));
 
 const clock = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
 
@@ -37,7 +36,6 @@ export function Toolbar({
 }) {
   const theme = useTheme((s) => s.theme);
   const setTheme = useTheme((s) => s.setTheme);
-  const reactFlow = useReactFlow<CanvasNode, CanvasEdge>();
   const exportMenu = useRef<HTMLDetailsElement>(null);
   const project = useProject((s) => s.project);
   const connectMode = useProject((s) => s.connectMode);
@@ -62,14 +60,8 @@ export function Toolbar({
   };
 
   const closeMenu = () => exportMenu.current?.removeAttribute('open');
-  const exportAs = (format: 'svg' | 'png') => {
-    closeMenu();
-    void exportImage(reactFlow, project, format, onErrors);
-  };
-  const exportFile = (kind: TextExport) => {
-    closeMenu();
-    void exportText(project, kind);
-  };
+  // The menu's items, and the export code behind them, load the first time it opens.
+  const [exportLoaded, setExportLoaded] = useState(false);
 
   const modes: { value: ConnectMode; label: string; icon: ReactElement }[] = [
     { value: 'link', label: 'Network link', icon: <Cable size={16} /> },
@@ -181,57 +173,16 @@ export function Toolbar({
           <Download size={16} />
           Save
         </button>
-        <details className="menu export-menu" ref={exportMenu}>
+        <details className="menu export-menu" ref={exportMenu} onToggle={(e) => e.currentTarget.open && setExportLoaded(true)}>
           <summary className="button">
             <FileOutput size={16} />
             Export
           </summary>
-          <div className="menu__items" role="menu">
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                closeMenu();
-                onShare();
-              }}
-            >
-              Share as a link…
-            </button>
-            <hr />
-            <button type="button" role="menuitem" disabled={!diagramVisible} onClick={() => exportAs('svg')} title={diagramVisible ? undefined : 'Switch to the diagram view first'}>
-              Diagram as SVG
-            </button>
-            <button type="button" role="menuitem" disabled={!diagramVisible} onClick={() => exportAs('png')} title={diagramVisible ? undefined : 'Switch to the diagram view first'}>
-              Diagram as PNG
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              disabled={!diagramVisible}
-              onClick={() => {
-                closeMenu();
-                window.print();
-              }}
-            >
-              Print / save as PDF…
-            </button>
-            <hr />
-            <button type="button" role="menuitem" onClick={() => exportFile('md')}>
-              Architecture document (Markdown)
-            </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('devices')}>
-              Devices (CSV)
-            </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('links')}>
-              Network links (CSV)
-            </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('flows')}>
-              Protocol flows (CSV)
-            </button>
-            <button type="button" role="menuitem" onClick={() => exportFile('rules')}>
-              Firewall rules (CSV)
-            </button>
-          </div>
+          {exportLoaded && (
+            <Suspense fallback={null}>
+              <ExportMenuItems diagramVisible={diagramVisible} onShare={onShare} onErrors={onErrors} closeMenu={closeMenu} />
+            </Suspense>
+          )}
         </details>
         <select className="toolbar__select" value={theme} onChange={(e) => setTheme(e.target.value as Theme)} aria-label="Colour theme" title="Colour theme">
           <option value="system">Theme: system</option>

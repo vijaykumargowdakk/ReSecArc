@@ -11,7 +11,7 @@ import type { Device, DeviceType, PolicyRule, PolicySelector, Project } from '..
 import { useFindings } from '../../store/derived';
 import { useSecurity, type SecurityTab } from '../../store/security';
 import { useProject } from '../../store/useProject';
-import { exportAttackFlow } from '../actions';
+import { exportAttackFlow } from '../exports';
 import { Field, Section, Select, TextInput, Toggle } from '../form';
 
 const SEVERITIES: { value: Severity; label: string }[] = [

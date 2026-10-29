@@ -5,14 +5,12 @@ import { parseProject, serializeProject } from '../model/io';
 import { tidyLayout } from '../model/layout';
 import { addNote, createNote } from '../model/notes';
 import { countRuleReferences, removeDevice } from '../model/ops';
-import type { PathOverrides } from '../model/attack/paths';
 import type { Project } from '../model/schema';
 import { announce } from '../store/announcer';
 import { hasEdits, NO_SELECTION, useProject } from '../store/useProject';
 import type { CanvasEdge } from './canvas/edges';
 import type { CanvasNode } from './canvas/nodes';
-import { downloadText, downloadUrl, slug } from './download';
-import { exportDiagram } from './exportDiagram';
+import { downloadText, slug } from './download';
 
 type Flow = ReactFlowInstance<CanvasNode, CanvasEdge>;
 
@@ -37,46 +35,6 @@ export async function openProjectFile(file: File, onErrors: (errors: string[]) =
 
 export function saveProjectFile(project: Project): void {
   downloadText(`${slug(project.name)}.conduitot.json`, serializeProject(project), 'application/json');
-}
-
-export type TextExport = 'md' | 'devices' | 'links' | 'flows' | 'rules';
-
-/** Text exports; the CSV and Markdown writers (and the CSV library) load on first use. */
-export async function exportText(project: Project, kind: TextExport): Promise<void> {
-  const m = await import('../model/exportFiles');
-  const files: Record<TextExport, [string, string, () => string]> = {
-    md: ['.md', 'text/markdown', () => m.projectToMarkdown(project)],
-    devices: ['-devices.csv', 'text/csv', () => m.devicesToCsv(project)],
-    links: ['-links.csv', 'text/csv', () => m.linksToCsv(project)],
-    flows: ['-flows.csv', 'text/csv', () => m.flowsToCsv(project)],
-    rules: ['-firewall-rules.csv', 'text/csv', () => m.rulesToCsv(project)],
-  };
-  const [suffix, mime, write] = files[kind];
-  downloadText(`${slug(project.name)}${suffix}`, write(), mime);
-}
-
-/**
- * Downloads attack paths as a MITRE Attack Flow file (STIX 2.1): the one given, or every path
- * shown. The path finder and the exporter load on first use.
- */
-export async function exportAttackFlow(project: Project, overrides: PathOverrides, pathId: string | null = null): Promise<void> {
-  const [paths, flow] = await Promise.all([import('../model/attack/paths'), import('../model/attack/attackFlow')]);
-  const all = paths.attackPathsOf(project, overrides).paths;
-  const chosen = pathId ? all.filter((p) => p.id === pathId) : all;
-  if (chosen.length === 0) {
-    announce('No attack paths to export');
-    return;
-  }
-  downloadText(`${slug(project.name)}-attack-flow.json`, JSON.stringify(flow.toAttackFlow(project, chosen), null, 2), 'application/json');
-  announce(`Exported ${chosen.length} attack path${chosen.length === 1 ? '' : 's'} as a MITRE Attack Flow file`);
-}
-
-export async function exportImage(rf: Flow, project: Project, format: 'svg' | 'png', onErrors: (errors: string[]) => void): Promise<void> {
-  try {
-    downloadUrl(`${slug(project.name)}.${format}`, await exportDiagram(rf, format));
-  } catch (err) {
-    onErrors([`Could not export the diagram: ${(err as Error).message}`]);
-  }
 }
 
 /** Adds a note in the middle of the visible canvas and selects it. */

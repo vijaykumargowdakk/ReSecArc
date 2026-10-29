@@ -9,7 +9,8 @@ import { LAYER_LABELS, usePrefs, type Layers } from '../store/prefs';
 import { useSecurity, type SecurityTab } from '../store/security';
 import { useTheme, type Theme } from '../store/theme';
 import { NO_SELECTION, useProject } from '../store/useProject';
-import { addNoteInView, chooseProjectFile, exportAttackFlow, exportImage, exportText, saveProjectFile, tidyOpenSite } from './actions';
+import { addNoteInView, chooseProjectFile, saveProjectFile, tidyOpenSite } from './actions';
+import { exportAttackFlow, exportImage, exportText, printReport } from './exports';
 import type { CanvasEdge } from './canvas/edges';
 import { startKeyboardConnect } from './canvas/useKeyboardConnect';
 import type { CanvasNode } from './canvas/nodes';
@@ -34,6 +35,7 @@ export interface CommandContext {
   openSearch: () => void;
   openHelp: () => void;
   openShare: () => void;
+  openMerge: () => void;
   openNew: () => void;
   openTour: () => void;
   onErrors: (errors: string[]) => void;
@@ -59,10 +61,14 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   add('File', 'open', 'Open a project file…', chooseProjectFile, { keywords: 'load json' });
   add('File', 'save', 'Save the project file', () => saveProjectFile(useProject.getState().project), { shortcut: 'Ctrl+S', keywords: 'download json' });
   add('File', 'share', 'Share the design as a link…', ctx.openShare, { keywords: 'url copy send' });
+  add('File', 'merge', 'Merge sites from another project…', ctx.openMerge, { keywords: 'import combine join file' });
 
   add('Export', 'svg', 'Export the diagram as SVG', () => void exportImage(rf, project, 'svg', ctx.onErrors), { enabled: diagram, keywords: 'image picture' });
   add('Export', 'png', 'Export the diagram as PNG', () => void exportImage(rf, project, 'png', ctx.onErrors), { enabled: diagram, keywords: 'image picture' });
   add('Export', 'print', 'Print the diagram or save it as PDF…', () => window.print(), { enabled: diagram });
+  add('Export', 'report', 'Export the full report (HTML)', () => void exportText(project, 'report'), { keywords: 'document every site findings attack paths' });
+  add('Export', 'print-report', 'Print the full report or save it as PDF…', () => void printReport(project), { keywords: 'document pdf' });
+  add('Export', 'drawio', 'Export all sites for draw.io', () => void exportText(project, 'drawio'), { keywords: 'diagrams.net visio diagram' });
   add('Export', 'md', 'Export the architecture record (Markdown)', () => void exportText(project, 'md'), { keywords: 'document report' });
   add('Export', 'devices-csv', 'Export devices (CSV)', () => void exportText(project, 'devices'), { keywords: 'spreadsheet inventory' });
   add('Export', 'links-csv', 'Export network links (CSV)', () => void exportText(project, 'links'), { keywords: 'spreadsheet ports' });

@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import pipeline from '../src/examples/templates/pipeline.json' with { type: 'json' };
 import { clearSelection, deviceNode, openApp, type Theme } from './helpers';
 
 /** Fails with a readable list of WCAG 2.1 A/AA violations on the current page. */
@@ -45,6 +46,12 @@ for (const theme of THEMES) {
       await page.getByRole('menuitem', { name: 'Share as a link…' }).click();
       await expect(page.getByLabel('Share link')).toHaveValue(/share=/);
       await expectNoViolations(page, 'share dialog');
+      await page.keyboard.press('Escape');
+      await page.getByRole('button', { name: 'Merge sites from another project' }).click();
+      const merge = page.getByRole('dialog', { name: 'Merge sites from another project' });
+      await merge.locator('input[type=file]').setInputFiles({ name: 'pipeline.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(pipeline)) });
+      await expect(merge.getByRole('status')).toContainText('Adds 3 sites');
+      await expectNoViolations(page, 'merge dialog');
     });
 
     test('outline and keyboard connections have no violations', async ({ page }) => {

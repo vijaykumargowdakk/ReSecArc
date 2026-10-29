@@ -9,8 +9,8 @@ export function LayersMenu() {
   const hidden = (Object.keys(layers) as (keyof Layers)[]).filter((k) => !layers[k]).length;
   return (
     <details className={`filter layers-menu${hidden ? ' is-active' : ''}`}>
-      <summary>
-        <LayersIcon size={14} aria-hidden="true" /> View
+      <summary title="Show or hide kinds of item on the canvas">
+        <LayersIcon size={14} aria-hidden="true" /> <span className="toolbar-text">View</span>
         {hidden > 0 && <span className="filter__count" aria-label={`${hidden} hidden`}>{hidden}</span>}
       </summary>
       <div className="filter__menu" role="group" aria-label="Show on the canvas">

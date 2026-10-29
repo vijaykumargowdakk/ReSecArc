@@ -15,7 +15,7 @@ export function TidyButton() {
       title="Line devices up in their lanes and areas, keeping connected devices close. Undo restores the previous positions."
       onClick={() => tidyOpenSite(rf)}
     >
-      <LayoutGrid size={14} aria-hidden="true" /> Tidy
+      <LayoutGrid size={14} aria-hidden="true" /> <span className="toolbar-text">Tidy</span>
     </button>
   );
 }
