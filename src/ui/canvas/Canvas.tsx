@@ -166,7 +166,8 @@ export function Canvas() {
         fitView({ padding: 0.1, duration: reducedMotion() ? 0 : 250 });
         return;
       }
-      const xs = nodes.flatMap((n) => [n.position.x, n.position.x + (n.width ?? NODE_WIDTH)]);
+      // The lane labels at the left edge stay in view, with their buttons.
+      const xs = [0, ...nodes.flatMap((n) => [n.position.x, n.position.x + (n.width ?? NODE_WIDTH)])];
       const ys = nodes.flatMap((n) => [n.position.y, n.position.y + (n.height ?? NODE_HEIGHT)]);
       const x = Math.min(...xs);
       const y = Math.min(...ys);

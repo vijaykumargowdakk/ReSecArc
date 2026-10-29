@@ -3450,6 +3450,8 @@ textarea {
 
 .sec-badge--low {
   background: var(--crit-low);
+  /* White on the low-severity grey passes 4.5:1 in every theme; the dark themes' dark status text does not (3.8:1). */
+  color: #fff;
 }
 
 .count-badge {
@@ -3457,7 +3459,7 @@ textarea {
   padding: 0 5px;
   border-radius: 9px;
   background: var(--crit-low);
-  color: var(--on-status);
+  color: #fff;
   font-size: 11px;
   font-weight: 700;
   line-height: 18px;
@@ -3527,6 +3529,10 @@ textarea {
 
 .severity-tag--medium {
   background: var(--crit-medium);
+}
+
+.severity-tag--low {
+  color: #fff;
 }
 
 .check-list .muted {
