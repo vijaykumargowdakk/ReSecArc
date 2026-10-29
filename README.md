@@ -239,6 +239,7 @@ flowchart TB
 - **Areas:** dashed frames for cells, production lines or substations. Devices inside an area move with it, and an area can **collapse** into a single node whose connections are merged.
 - **Search** (Ctrl + K or /): finds devices on every site by name, kind, IP address, vendor, model, notes, tags or custom field values.
 - **Filters:** by zone, device type, level, protocol or tag. Items that do not match are dimmed, not hidden, so the layout stays readable.
+- **Merge sites from another project:** the button beside the site tabs (or the command palette) reads another ConduitOT file and copies the sites you tick into this design, as one undo step. Everything copied gets a new id, so a file can even be merged with a copy of itself. Zones and custom fields are matched by name, and networks that span every site by subnet; anything without a match is added, and a site whose name is taken is added as "Name (2)". Links and flows to sites you did not tick are left out, and so are firewall rules that name a device on those sites, so no rule is ever widened. The dialog says what will be added and left out before you merge. Company policies, switched-off checks and revisions of the other file are not merged.
 
 ![The multi-site pipeline template in the dark theme, with stubs for devices on the control centre site](docs/images/dark-multisite.png)
 
@@ -351,6 +352,8 @@ Choosing a path numbers its steps on the canvas and draws its links, flows and c
 | Project file | `.conduitot.json` | The complete design, including revisions |
 | Diagram | SVG, PNG | The open site, as drawn |
 | Printable diagram | PDF via the browser's print dialog | Uses a print stylesheet |
+| Full report | HTML, or PDF via **Print full report / save as PDF…** | `<project>-report.html`: every site's diagram, devices, links, flows, firewall rules and notes; zones and conduits; networks and address warnings; security findings and policies; attack paths with ATT&CK links; revisions. See below |
+| All sites for draw.io | `.drawio` | One page per site, editable in draw.io (diagrams.net). See below |
 | Architecture record | Markdown | Zones, networks, conduits, security findings, attack paths, and per site: devices, flows, firewall rules and notes |
 | Attack paths | MITRE Attack Flow (STIX 2.1 JSON) | `<project>-attack-flow.json`; see [section 4.10](#410-attack-paths-mitre-attck-for-ics) |
 | Change record | Markdown | Changes since a chosen revision |
@@ -362,6 +365,11 @@ Choosing a path numbers its steps on the canvas and draws its links, flows and c
 | Project file | `.json` from any ConduitOT version |
 | Devices, links, flows, firewall rules | CSV in the same columns as the exports |
 | Shared design | A share link opened in the browser |
+| Sites from another project | `.json` project file, through **Merge sites from another project** ([section 4.2](#42-large-estates)) |
+
+**The full report** is one self-contained HTML file: it opens offline and prints to PDF from any browser. Its diagrams are drawn from the project itself by a static SVG renderer (`src/export/siteSvg.ts`), not captured from the screen, so every site is included whichever one is open. They look like the canvas, with zone colours, criticality, icons, port names and flow labels; links and flows in a high-severity finding are red, and devices show how many findings they have. Areas are always drawn open, so no device is hidden. When printed, each diagram gets a landscape page of its own. The attack paths use the default entry points and targets, because choices made in the Security panel are not saved in the project. **Print full report / save as PDF…** loads the report into a hidden frame and opens the browser's print dialog for it, without leaving the app.
+
+**The draw.io file** has a page per site, named after it. Each page has layers: *Purdue levels* (locked, so the lanes are not moved by accident), *Areas*, *Network links*, *Protocol flows*, *Devices* and *Notes*. Devices keep their icon and zone colour, and carry their kind, level, zone, criticality, IP address, vendor, model, firmware, serial and tags as shape data (**Edit Data** in draw.io). Bend points, port names and flow labels are kept. A device on another site appears as a stub that links to that site's page.
 
 ---
 
@@ -520,6 +528,12 @@ flowchart LR
 | `src/model/share.ts` | Encoding and decoding share links |
 | `src/model/csv.ts`, `csvImport.ts` | CSV export of every table; CSV import of devices, flows and rules |
 | `src/model/exportDoc.ts` | The Markdown architecture record |
+| `src/model/merge.ts` | Merging chosen sites from another project, with zones, networks and custom fields matched by name |
+| `src/export/siteSvg.ts` | Static SVG renderer: draws any site from the project alone, for the report |
+| `src/export/markup.ts` | Turns the device icons into SVG text without react-dom |
+| `src/export/report.ts` | The full HTML report; loaded on demand |
+| `src/export/drawio.ts` | The draw.io export; loaded on demand |
+| `src/export/print.ts` | Prints a document from a hidden, script-free frame |
 | `src/model/outline.ts` | The design as a tree for the Outline view; visible rows and type-ahead matching |
 | `src/model/direction.ts` | The nearest device in an arrow-key direction, for keyboard connections |
 | `src/store/useProject.ts` | The main store: project, undo history, selection, active site, filter, clipboard |
@@ -528,6 +542,8 @@ flowchart LR
 | `src/ui/canvas/useKeyboardConnect.ts` | L / F, arrow keys, Enter and Esc for connecting devices on the canvas |
 | `src/ui/Outline.tsx` | The Outline view (WAI-ARIA tree), loaded on demand |
 | `src/ui/security/SecurityPanel.tsx` | The Security panel: findings, attack paths, built-in checks and company policies, loaded on demand |
+| `src/ui/exports.ts`, `ExportMenuItems.tsx` | File exports and the Export menu's items; both load the first time they are needed |
+| `src/ui/MergeDialog.tsx` | The merge dialog, loaded on demand |
 | `src/ui/canvas/usePathMarks.ts` | The chosen attack path as canvas marks; loads the path finder once a path is chosen |
 
 ---
@@ -1149,6 +1165,7 @@ flowchart TB
 | Coordinates | Positions and sizes are limited to ±1,000,000, so layout code always finishes, even on crafted files |
 | Spreadsheets | CSV exports escape cells that would run as formulas |
 | Rendering | All text is rendered by React, which escapes it; no raw HTML is injected |
+| Report and draw.io files | Built as text with every name escaped. The report carries a content security policy that allows no scripts, and it is printed from a sandboxed frame that may not run scripts |
 
 Treat project files, exports and share links as sensitive: they can contain addresses, firewall rules and asset details.
 
@@ -1261,32 +1278,38 @@ gitGraph
 Testing has three layers:
 
 - **Unit tests** (Vitest) cover the model layer, which is pure TypeScript, so its rules are tested directly without a browser.
-- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline, keyboard-only connections, security findings and attack paths.
+- **Browser tests** (Playwright) drive the production build through the main flows: editing, files, autosave, share links, IP warnings, revisions, CSV import, the outline, keyboard-only connections, security findings, attack paths, the full report, the draw.io export and merging sites.
 - **Accessibility scans** (axe) check every main view and dialog against WCAG 2.1 A and AA in all three themes. Any violation fails CI.
 
 A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and checks that opening it, switching sites and editing each stay within time budgets. It also checks that a diagram export of a 200-device site contains every device.
 
 ```mermaid
 pie showData
-    title Unit tests by file (182)
-    "checks" : 22
+    title Unit tests by file (227)
+    "checks" : 24
     "v3" : 15
-    "schema-v2" : 13
     "model" : 13
+    "schema-v2" : 13
     "ipam" : 12
-    "templates" : 12
-    "scale" : 12
     "ports" : 12
+    "scale" : 12
+    "templates" : 12
+    "attack paths" : 12
     "revisions" : 10
     "editing" : 9
-    "outline" : 8
+    "siteSvg" : 8
     "fields" : 8
+    "merge" : 8
+    "outline" : 8
+    "export" : 7
     "v4" : 7
     "v5" : 7
-    "export" : 6
+    "drawio" : 6
     "csvImport" : 5
-    "icons" : 4
+    "report" : 4
     "history-names" : 4
+    "attackFlow" : 4
+    "icons" : 4
     "share" : 3
 ```
 
@@ -1298,6 +1321,7 @@ pie showData
 | `editing.test.ts` | Undo history, copy and paste, align and distribute |
 | `scale.test.ts` | Sites, areas, search, filters, the canvas view and stubs |
 | `export.test.ts` | CSV and Markdown exports, formula escaping |
+| `merge.test.ts` | Merging sites: fresh ids, left-out connections and rules, zone, network and custom field matching, every template into every other |
 | `csvImport.test.ts` | Flow and firewall rule import |
 | `ipam.test.ts` | Address parsing, network matching, warnings, IP plan export |
 | `revisions.test.ts` | Saving, restoring and comparing revisions |
@@ -1313,6 +1337,9 @@ pie showData
 | `v5.test.ts` | v4 migration, policies in files and share links, reference checks, the change diff and Markdown record |
 | `attack/paths.test.ts` | The office → RTU paths with and without the direct link, deny and allow rules, ranking, overrides, flows, firewall passes, a 1,000-device design |
 | `attack/attackFlow.test.ts` | The Attack Flow export against the official Attack Flow and STIX 2.1 schemas, references, ATT&CK labels |
+| `export/siteSvg.test.ts` | Icon serialisation, the static site renderer, escaping, unique ids, stubs, finding marks |
+| `export/drawio.test.ts` | Pages per site, edges ending on shapes, stub page links, the locked lanes layer, icon data, escaping |
+| `export/report.test.ts` | Every site in the report, the office → RTU finding and path, escaping and the content security policy |
 
 | Browser test file | Covers |
 |-------------------|--------|
@@ -1325,6 +1352,7 @@ pie showData
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
+| `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
 
 ---
 
@@ -1350,6 +1378,8 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **Autosave is per browser.** Clearing site data removes it; save the project file to keep work.
 - **Large screens work best.** Below 900 px the side panels become drawers, but drawing is easiest with a mouse or trackpad.
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
+- **Report text is sized by estimate.** The static renderer cannot measure text, so long device names are shortened by an estimate of their width and clipped to the device box.
+- **draw.io draws flows over links.** draw.io routes each connection itself, so a protocol flow without bend points runs on top of its link instead of beside it; turn the *Protocol flows* layer off to see the links.
 
 ---
 
