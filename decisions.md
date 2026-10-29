@@ -387,3 +387,8 @@ Also fixed:
 - **Also fixed:** the CSV import dialog's file chooser was a label around a hidden input, which the keyboard could not reach; it is now a button.
 **Why:** The approved v0.4 plan for M27, including the security sections the report gained when M24–M25 were added.
 **User input:** The owner asked to start M27 and not to merge until they say so.
+
+## 2026-10-30 — M27 merged; M26 next
+**Decision:** PR #4 (M27) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/report-drawio-merge` branch stays on GitHub. M26 (touch and text size) is the next milestone, then M28 (works offline).
+**Why:** The owner gave the go-ahead to merge, as the hold from 2026-10-28 required.
+**User input:** "ok merge it and tell me what is the next milestone in plan"
