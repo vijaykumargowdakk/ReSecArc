@@ -483,3 +483,8 @@ Also fixed:
 - **Vercel:** no settings changed. Browsers fetch a service worker script past the HTTP cache by default, so Vercel's caching does not delay updates.
 **Why:** M29 as planned (installable app, offline precache, update prompt), within the startup budget the owner set, without adding a dependency.
 **User input:** "please start with teh next milestone...."
+
+## 2026-10-30 — M29 merged; v0.4 plan complete
+**Decision:** PR #7 (M29) is merged into `main` with a merge commit after CI, e2e and the Vercel preview build passed. The `feat/works-offline` branch stays on GitHub. M29 was the last milestone of the v0.4 plan (M18–M29); the next milestone is for the owner to choose. Not yet done: checking offline use once on the deployed site (the preview is behind Vercel's login, so it could not be checked from here), and deciding whether to raise `package.json` to 0.4.0.
+**Why:** The owner gave the go-ahead to merge.
+**User input:** "merge it"
