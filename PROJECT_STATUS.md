@@ -22,7 +22,7 @@ M27 added a full HTML report with every site's diagram drawn by a static SVG ren
 
 M24 added design checks that cite IEC 62443, plus company policy rules (schema v5), a Security panel and canvas marks. M25 added possible attack paths labelled with MITRE ATT&CK for ICS (generated from ATT&CK v20.0), a numbered path highlight on the canvas, and an export in MITRE's Attack Flow format that passes the official schema and opens in the Attack Flow Builder. The full plan, with file names, rules, ATT&CK mapping, tests and verification, is in [`docs/roadmap/security-analysis.md`](docs/roadmap/security-analysis.md).
 
-Work is committed on feature branches, **pushed to `origin`** (github.com/vijaykumargowdakk/conduitot) and merged into `main` **through a pull request** with a merge commit once CI passes. Never merge locally and push `main`, and never delete a branch before its PR is merged. Up to M23 every branch was merged locally and only `main` was pushed, so no branches or PRs exist on GitHub for M0–M23 (decisions.md, 2026-10-28). Before each push, sweep history for retired names and confirm no AI attribution lines.
+Work is committed on feature branches, **pushed to `origin`** (github.com/vijaykumargowdakk/ReSecArc) and merged into `main` **through a pull request** with a merge commit once CI passes. Never merge locally and push `main`, and never delete a branch before its PR is merged. Up to M23 every branch was merged locally and only `main` was pushed, so no branches or PRs exist on GitHub for M0–M23 (decisions.md, 2026-10-28). Before each push, sweep history for retired names and confirm no AI attribution lines.
 
 ## Dev loop
 - Install: `npm ci` (browser tests also need `npx playwright install chromium` once)

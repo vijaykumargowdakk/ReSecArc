@@ -499,7 +499,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    R["conduitot/"] --> SRC["src/"]
+    R["ReSecArc/"] --> SRC["src/"]
     R --> DOCS["docs/<br/>data model · third-party · images"]
     R --> PUB["public/<br/>favicon · robots.txt"]
     R --> GH[".github/workflows/<br/>CI"]
