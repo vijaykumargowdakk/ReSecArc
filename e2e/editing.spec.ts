@@ -4,7 +4,7 @@ import { clearSelection, deviceCount, deviceNode, loadTemplate, openApp } from '
 test.beforeEach(async ({ page }) => openApp(page));
 
 test('loads the demo plant with its sites, devices and legend', async ({ page }) => {
-  await expect(page).toHaveTitle('ConduitOT');
+  await expect(page).toHaveTitle('ReSecArc');
   expect(await deviceCount(page)).toBe(19);
   await expect(page.locator('.site-tab', { hasText: 'Main site' })).toBeVisible();
   await expect(page.locator('.legend')).toContainText('Modbus');

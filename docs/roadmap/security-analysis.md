@@ -6,12 +6,12 @@ This is the agreed plan. A future session can build these milestones from it. Re
 `PROJECT_STATUS.md` and `decisions.md` first, as usual.
 
 ## Why
-A collaborator reviewing ConduitOT asked for OT architecture security checks with IEC 62443 and
+A collaborator reviewing ReSecArc asked for OT architecture security checks with IEC 62443 and
 MITRE ATT&CK for ICS built in.
 
 Their example used the water-treatment demo. Someone drew a direct link from **Office
 workstation (L4)** to **Pump station RTU (L1)**. The link skips the IT/OT firewall and the L3.5
-DMZ, yet ConduitOT shows no warning. The template has no such link; `office-ws` only links to
+DMZ, yet ReSecArc shows no warning. The template has no such link; `office-ws` only links to
 the corporate router.
 
 What they want:

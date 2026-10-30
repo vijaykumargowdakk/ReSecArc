@@ -62,7 +62,7 @@ export function isShareFragment(hash: string): boolean {
 /** Reads a shared project from a URL fragment and validates it like an opened file. */
 export async function decodeShare(hash: string): Promise<ParseResult> {
   const body = hash.replace(/^#/, '');
-  if (!body.startsWith(PREFIX)) return { ok: false, errors: ['This is not a ConduitOT share link.'] };
+  if (!body.startsWith(PREFIX)) return { ok: false, errors: ['This is not a ReSecArc share link.'] };
   try {
     const bytes = await readAll(pipe(fromBase64Url(body.slice(PREFIX.length)), new DecompressionStream('deflate-raw')), MAX_SHARED_BYTES);
     return parseProject(new TextDecoder().decode(bytes));

@@ -74,7 +74,7 @@ export function Toolbar({
     <header className="toolbar">
       <div className="brand">
         <img src="./favicon.svg" alt="" width={26} height={26} />
-        <span className="brand__name">ConduitOT</span>
+        <span className="brand__name">ReSecArc</span>
         <span className="brand__project" title={project.name}>
           {project.name}
         </span>

@@ -133,7 +133,7 @@ export function parseProject(text: string): ParseResult {
   if (typeof version === 'number' && version !== SCHEMA_VERSION) {
     return {
       ok: false,
-      errors: [`schemaVersion: file format ${version} is not supported; this version of ConduitOT reads formats 1 to ${SCHEMA_VERSION}`],
+      errors: [`schemaVersion: file format ${version} is not supported; this version of ReSecArc reads formats 1 to ${SCHEMA_VERSION}`],
     };
   }
   const parsed = projectSchema.safeParse(migrated);

@@ -27,6 +27,6 @@ describe('share links', () => {
     expect(damaged.ok).toBe(false);
     if (!damaged.ok) expect(damaged.errors[0]).toMatch(/damaged or incomplete/);
     const foreign = await decodeShare('#section-2');
-    expect(foreign).toEqual({ ok: false, errors: ['This is not a ConduitOT share link.'] });
+    expect(foreign).toEqual({ ok: false, errors: ['This is not a ReSecArc share link.'] });
   });
 });

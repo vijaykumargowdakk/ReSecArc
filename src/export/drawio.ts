@@ -267,5 +267,5 @@ export function projectToDrawio(project: Project): string {
       `<root>${cells.join('')}</root></mxGraphModel></diagram>`
     );
   });
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<mxfile host="ConduitOT">${pages.join('')}</mxfile>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<mxfile host="ReSecArc">${pages.join('')}</mxfile>\n`;
 }

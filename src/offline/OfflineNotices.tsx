@@ -1,4 +1,4 @@
-// Keeps ConduitOT working without a network: registers the service worker (src/offline/sw.js) and
+// Keeps ReSecArc working without a network: registers the service worker (src/offline/sw.js) and
 // tells the user when the app is ready offline, when the network is gone, and when a new version is
 // ready to start. Loaded on demand from App, in production builds only.
 import { X } from 'lucide-react';
@@ -9,10 +9,10 @@ import { saveForReload, useAutosaveStatus } from '../store/autosave';
 type Notice = 'ready' | 'offline' | 'update' | 'updated-elsewhere';
 
 const TEXT: Record<Notice, string> = {
-  ready: 'ConduitOT now works offline: after this, it opens and runs in this browser without a network connection.',
-  offline: 'You are offline. ConduitOT keeps working without a network connection.',
-  update: 'A new version of ConduitOT is ready. Reload to start it.',
-  'updated-elsewhere': 'ConduitOT was updated in another tab. Reload this tab to use the new version.',
+  ready: 'ReSecArc now works offline: after this, it opens and runs in this browser without a network connection.',
+  offline: 'You are offline. ReSecArc keeps working without a network connection.',
+  update: 'A new version of ReSecArc is ready. Reload to start it.',
+  'updated-elsewhere': 'ReSecArc was updated in another tab. Reload this tab to use the new version.',
 };
 
 /** How often an open app looks for a new version, besides each time it is opened. */
@@ -84,7 +84,7 @@ export function OfflineNotices() {
           reg.addEventListener('updatefound', () => reg.installing && track(reg.installing, !reg.active));
           timer = setInterval(check, CHECK_EVERY_MS);
         })
-        .catch((error: unknown) => console.warn('ConduitOT could not set up offline use:', error));
+        .catch((error: unknown) => console.warn('ReSecArc could not set up offline use:', error));
     };
 
     sw.addEventListener('controllerchange', onControllerChange);

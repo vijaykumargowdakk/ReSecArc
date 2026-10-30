@@ -53,8 +53,8 @@ function useModes(on: boolean): Modes | null {
 /** The devices a node stands for: a stack's members, or the device itself. */
 const deviceIdsOf = (n: CanvasNode) => (n.type === 'device' && n.data.stack) || [n.id];
 
-export const DEVICE_DND_MIME = 'application/x-conduitot-device';
-export const NOTE_DND_MIME = 'application/x-conduitot-note';
+export const DEVICE_DND_MIME = 'application/x-resecarc-device';
+export const NOTE_DND_MIME = 'application/x-resecarc-note';
 
 /** Drag payload `type` or `type:variant`, validated against the catalog. */
 export function parseDeviceKind(payload: string): { type: DeviceType; variant: string } | null {

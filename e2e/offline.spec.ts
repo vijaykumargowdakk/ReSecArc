@@ -16,7 +16,7 @@ const toast = (page: Page, text: string | RegExp) => page.locator('.toast', { ha
 /** Opens the app and waits until its service worker has stored every file and controls the page. */
 async function openStored(page: Page): Promise<void> {
   await openApp(page);
-  await expect(toast(page, 'ConduitOT now works offline')).toBeVisible();
+  await expect(toast(page, 'ReSecArc now works offline')).toBeVisible();
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
 }
 
@@ -89,17 +89,17 @@ test('offers a new version and reopens the work after reloading', async ({ page 
 
 async function checkUpdate(page: Page, other: Page): Promise<void> {
   await page.evaluate(() => navigator.serviceWorker.getRegistration().then((r) => r?.update()));
-  const update = toast(page, 'A new version of ConduitOT is ready');
+  const update = toast(page, 'A new version of ReSecArc is ready');
   await expect(update).toBeVisible();
   await expect(update).toContainText('Your work is kept.');
   const { violations } = await new AxeBuilder({ page }).include('.toasts').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)).toEqual([]);
-  await expect(toast(other, 'A new version of ConduitOT is ready')).toBeVisible();
+  await expect(toast(other, 'A new version of ReSecArc is ready')).toBeVisible();
 
   await Promise.all([page.waitForEvent('load'), update.getByRole('button', { name: 'Reload' }).click()]);
   // The other tab still runs the old code, so it offers the reload as well.
-  await expect(toast(other, 'ConduitOT was updated in another tab')).toBeVisible();
-  await expect(toast(other, 'A new version of ConduitOT is ready')).toHaveCount(0);
+  await expect(toast(other, 'ReSecArc was updated in another tab')).toBeVisible();
+  await expect(toast(other, 'A new version of ReSecArc is ready')).toHaveCount(0);
   await expect(page.locator('.react-flow__node-device').first()).toBeVisible();
   // The work opens again without the restore question, under the new version.
   await expect(page.getByRole('button', { name: 'Restore' })).toHaveCount(0);

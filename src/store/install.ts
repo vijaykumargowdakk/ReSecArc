@@ -1,4 +1,4 @@
-// The browser's offer to install ConduitOT as an app, kept so the command palette can accept it.
+// The browser's offer to install ReSecArc as an app, kept so the command palette can accept it.
 // Chromium-based browsers send it once the app qualifies; the others install from their own menus.
 // main.tsx imports this module so the offer is caught even if it comes before anything else loads.
 import { create } from 'zustand';

@@ -1,20 +1,20 @@
-# ConduitOT
+# ReSecArc
 
 **Design, document and share operational technology (OT) network architectures in the browser.**
 
-ConduitOT is a visual editor for industrial network architectures. You place controllers, field devices, servers and network gear on the levels of the Purdue reference model, then group them into IEC 62443 security zones. You draw the network links and industrial protocol flows between them and write the firewall rules that govern them. The result is one validated JSON file that you can save, version, compare, share as a link and export as diagrams, spreadsheets or a written architecture record.
+ReSecArc is a visual editor for industrial network architectures. You place controllers, field devices, servers and network gear on the levels of the Purdue reference model, then group them into IEC 62443 security zones. You draw the network links and industrial protocol flows between them and write the firewall rules that govern them. The result is one validated JSON file that you can save, version, compare, share as a link and export as diagrams, spreadsheets or a written architecture record.
 
 Everything runs in your browser. There is no server, no account, no tracking, and the app makes no network requests after it has loaded.
 
 **Live app:** [conduitot.vijaykumarkk.in](https://conduitot.vijaykumarkk.in/)
 
-![The ConduitOT editor showing the fictional Riverbend water treatment plant on Purdue levels](docs/images/diagram.png)
+![The ReSecArc editor showing the fictional Riverbend water treatment plant on Purdue levels](docs/images/diagram.png)
 
 ---
 
 ## Contents
 
-1. [Why ConduitOT exists](#1-why-conduitot-exists)
+1. [Why ReSecArc exists](#1-why-resecarc-exists)
 2. [Core ideas in five minutes](#2-core-ideas-in-five-minutes)
 3. [A tour of the screen](#3-a-tour-of-the-screen)
 4. [Feature guide](#4-feature-guide)
@@ -44,7 +44,7 @@ Everything runs in your browser. There is no server, no account, no tracking, an
 
 ---
 
-## 1. Why ConduitOT exists
+## 1. Why ReSecArc exists
 
 Industrial plants, utilities, pipelines and buildings run on control systems: PLCs, RTUs, HMIs, SCADA servers, historians, safety controllers. The networks that connect them are often described in general-purpose drawing files and separate spreadsheets. Over time those drift apart:
 
@@ -53,7 +53,7 @@ Industrial plants, utilities, pipelines and buildings run on control systems: PL
 - firewall rules live in yet another document;
 - a change made last month is not visible anywhere.
 
-ConduitOT keeps **one structured model** of the architecture and generates every view from it, so the diagram, the inventory, the IP plan and the written record always agree.
+ReSecArc keeps **one structured model** of the architecture and generates every view from it, so the diagram, the inventory, the IP plan and the written record always agree.
 
 ```mermaid
 flowchart TB
@@ -62,7 +62,7 @@ flowchart TB
     D3["IP address list"]
     D4["Firewall rule export"]
     D5["Change notes in email"]
-    M[("ConduitOT project file<br/>one validated model")]
+    M[("ReSecArc project file<br/>one validated model")]
     D1 & D2 & D3 & D4 & D5 -- "consolidated into" --> M
     M --> V1["Diagram per site"]
     M --> V2["Inventory tables"]
@@ -91,7 +91,7 @@ flowchart TB
 
 ### What it is not
 
-ConduitOT is a design and documentation tool. It does not connect to, scan or configure real devices. Its security checks read the design only: they are hints based on IEC 62443 zone and conduit principles, not an audit or a compliance assessment.
+ReSecArc is a design and documentation tool. It does not connect to, scan or configure real devices. Its security checks read the design only: they are hints based on IEC 62443 zone and conduit principles, not an audit or a compliance assessment.
 
 ---
 
@@ -122,7 +122,7 @@ flowchart TB
 
 ### 2.2 Zones and conduits (IEC 62443)
 
-A **zone** is a group of devices with shared security requirements. It has a colour, a *trusted* flag and a target security level (SL 1 to 4). A **conduit** is any pair of zones joined directly by a network link or protocol flow. Conduits are never typed in by hand: ConduitOT derives them from the connections you draw.
+A **zone** is a group of devices with shared security requirements. It has a colour, a *trusted* flag and a target security level (SL 1 to 4). A **conduit** is any pair of zones joined directly by a network link or protocol flow. Conduits are never typed in by hand: ReSecArc derives them from the connections you draw.
 
 ```mermaid
 flowchart LR
@@ -148,7 +148,7 @@ flowchart LR
 
 From that drawing the app lists three conduits: Enterprise ↔ DMZ, DMZ ↔ Operations and Operations ↔ Control.
 
-**Zones are not Purdue levels.** Levels come from the Purdue model and say what a device does; zones and conduits come from IEC 62443 and group devices by their security requirements. One level can hold several zones, and one zone can span several levels: in the water treatment demo, the Control zone holds the HMI (L2), the PLCs and RTU (L1) and the field devices (L0). ConduitOT keeps the two separate. A device's level and zone are set independently, and each security finding names whichever one its check looks at: levels for the IT/OT and remote access checks, zones for the zone boundary, protocol and safety separation checks. Company policy findings name whatever their rule selects on. The IT/OT check reads levels on purpose: the level tells a business system (L4–L5) from a control system (L0–L3), and IEC 62443-3-2 ZCR 3.2 asks for those two kinds of asset to be kept in separate zones.
+**Zones are not Purdue levels.** Levels come from the Purdue model and say what a device does; zones and conduits come from IEC 62443 and group devices by their security requirements. One level can hold several zones, and one zone can span several levels: in the water treatment demo, the Control zone holds the HMI (L2), the PLCs and RTU (L1) and the field devices (L0). ReSecArc keeps the two separate. A device's level and zone are set independently, and each security finding names whichever one its check looks at: levels for the IT/OT and remote access checks, zones for the zone boundary, protocol and safety separation checks. Company policy findings name whatever their rule selects on. The IT/OT check reads levels on purpose: the level tells a business system (L4–L5) from a control system (L0–L3), and IEC 62443-3-2 ZCR 3.2 asks for those two kinds of asset to be kept in separate zones.
 
 ### 2.3 The building blocks of a design
 
@@ -187,7 +187,7 @@ mindmap
 
 ```mermaid
 flowchart TB
-    subgraph Screen["ConduitOT window"]
+    subgraph Screen["ReSecArc window"]
         direction TB
         T["Toolbar: Find · Undo and Redo · Snap · Connect as link or flow · Protocol · New · Open · Save · Export · Display (theme, text size) · Help · Autosave status"]
         N["Notice bar: restore unsaved work · shared link · comparison"]
@@ -243,7 +243,7 @@ flowchart TB
 - **Stacks:** the second button on a lane label stacks similar devices on that level in the overview: devices of the same type and kind, area and zone, that are not locked, are drawn as one card with more cards behind it and a **×N** badge. Their links and flows merge into one with a count, and their security finding counts add up. Clicking a stack selects all its devices for bulk editing, and double-clicking it opens the level tab, where every device is drawn. Stacking is saved per site and level in the project file, so share links, the report and the draw.io export show the same stacks; Tidy in the overview gives each stack one place.
 - **Search** (Ctrl + K or /): finds devices on every site by name, kind, IP address, vendor, model, notes, tags or custom field values.
 - **Filters:** by zone, device type, level, protocol or tag. Items that do not match are dimmed, not hidden, so the layout stays readable.
-- **Merge sites from another project:** the button beside the site tabs (or the command palette) reads another ConduitOT file and copies the sites you tick into this design, as one undo step. Everything copied gets a new id, so a file can even be merged with a copy of itself. Zones and custom fields are matched by name, and networks that span every site by subnet; anything without a match is added, and a site whose name is taken is added as "Name (2)". Links and flows to sites you did not tick are left out, and so are firewall rules that name a device on those sites, so no rule is ever widened. The dialog says what will be added and left out before you merge. Company policies, switched-off checks and revisions of the other file are not merged.
+- **Merge sites from another project:** the button beside the site tabs (or the command palette) reads another ReSecArc file and copies the sites you tick into this design, as one undo step. Everything copied gets a new id, so a file can even be merged with a copy of itself. Zones and custom fields are matched by name, and networks that span every site by subnet; anything without a match is added, and a site whose name is taken is added as "Name (2)". Links and flows to sites you did not tick are left out, and so are firewall rules that name a device on those sites, so no rule is ever widened. The dialog says what will be added and left out before you merge. Company policies, switched-off checks and revisions of the other file are not merged.
 
 ![The multi-site pipeline template in the dark theme, with stubs for devices on the control centre site](docs/images/dark-multisite.png)
 
@@ -357,7 +357,7 @@ Choosing a path numbers its steps on the canvas and draws its links, flows and c
 
 | Output | Format | Notes |
 |--------|--------|-------|
-| Project file | `.conduitot.json` | The complete design, including revisions |
+| Project file | `.resecarc.json` (files saved before the rename end in `.conduitot.json`; both open) | The complete design, including revisions |
 | Diagram | SVG, PNG | The open site, as drawn |
 | Printable diagram | PDF via the browser's print dialog | Uses a print stylesheet |
 | Full report | HTML, or PDF via **Print full report / save as PDF…** | `<project>-report.html`: every site's diagram, devices, links, flows, firewall rules and notes; zones and conduits; networks and address warnings; security findings and policies; attack paths with ATT&CK links; revisions. See below |
@@ -370,7 +370,7 @@ Choosing a path numbers its steps on the canvas and draws its links, flows and c
 
 | Input | Format |
 |-------|--------|
-| Project file | `.json` from any ConduitOT version |
+| Project file | `.json` from any ReSecArc version |
 | Devices, links, flows, firewall rules | CSV in the same columns as the exports |
 | Shared design | A share link opened in the browser |
 | Sites from another project | `.json` project file, through **Merge sites from another project** ([section 4.2](#42-large-estates)) |
@@ -381,8 +381,8 @@ Choosing a path numbers its steps on the canvas and draws its links, flows and c
 
 ### 4.11 Offline use and installing as an app
 
-- **Works offline.** The first time ConduitOT opens in a browser, it stores itself there; a notice says when that is done. After that it opens and runs with no network connection: every view, dialog, template, export and the report work as usual, and autosave keeps the work in the browser. A notice says when the network is gone.
-- **Installs as an app.** Chrome and Edge offer to install it (from the address bar, or **Install ConduitOT as an app** in the command palette when the browser allows it). Safari on iPhone and iPad adds it with **Share → Add to Home Screen**. It then opens in a window of its own and works offline in the same way.
+- **Works offline.** The first time ReSecArc opens in a browser, it stores itself there; a notice says when that is done. After that it opens and runs with no network connection: every view, dialog, template, export and the report work as usual, and autosave keeps the work in the browser. A notice says when the network is gone.
+- **Installs as an app.** Chrome and Edge offer to install it (from the address bar, or **Install ReSecArc as an app** in the command palette when the browser allows it). Safari on iPhone and iPad adds it with **Share → Add to Home Screen**. It then opens in a window of its own and works offline in the same way.
 - **Updates when you choose.** The app looks for a new version each time it opens and every hour while it is open. When one is ready, a notice offers **Reload** or **Later**; nothing changes until you reload. Reloading saves the work first and opens it again straight away, without the restore question. If another tab starts the new version first, this tab offers the reload too.
 
 ---
@@ -413,7 +413,7 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     actor Eng as Engineer
-    participant App as ConduitOT
+    participant App as ReSecArc
     actor Rev as Reviewer
     Eng->>App: Open the project file
     Eng->>App: Save revision "Before change"
@@ -431,7 +431,7 @@ sequenceDiagram
 
 ## 6. How the app is built
 
-ConduitOT is a single-page application. Its static files can be served from any web host; the live app is served by Vercel. Once the page has loaded, all work happens in the browser.
+ReSecArc is a single-page application. Its static files can be served from any web host; the live app is served by Vercel. Once the page has loaded, all work happens in the browser.
 
 ### 6.1 Runtime picture
 
@@ -1405,7 +1405,7 @@ pie showData
 
 ```mermaid
 timeline
-    title ConduitOT releases
+    title ReSecArc releases
     v0.1 Foundation : Purdue canvas with devices and links : Modbus and DNP3 flows : Firewall rule editor : Zones and derived conduits : Validated save and open
     v0.2 Breadth : 85 device kinds with icons : Undo, copy, paste, autosave : 12 protocols from a registry : Sites, areas, search, filters : Templates, inventory, exports : Themes and keyboard access
     v0.3 Lifecycle : Notes and tidy layout : IP and VLAN planning : Revisions and change records : Share links and CSV import
@@ -1421,7 +1421,7 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **No live collaboration.** Two people editing the same design work on separate copies; revisions and change records help merge by hand.
 - **Share links are snapshots.** Edits after sharing are not synchronised, and very large designs make long links.
 - **Autosave is per browser.** Clearing site data removes it; save the project file to keep work.
-- **Offline needs one visit online.** A browser can only work offline after it has opened ConduitOT once with a connection. Clearing site data removes the stored app along with the autosave.
+- **Offline needs one visit online.** A browser can only work offline after it has opened ReSecArc once with a connection. Clearing site data removes the stored app along with the autosave.
 - **Drawing works best with a mouse or trackpad.** Tablets are supported (larger targets, long-press menus), but devices are added from the palette by tapping rather than dragging; below 900 px the side panels become drawers.
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
 - **Level tabs change positions only.** Dragging a device in a level tab never changes its level or area; change those in the overview or the properties panel. Area frames in a level tab are drawn around their devices and cannot be moved or resized there.
