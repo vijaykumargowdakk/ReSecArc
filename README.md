@@ -6,7 +6,7 @@ ReSecArc is a visual editor for industrial network architectures. You place cont
 
 Everything runs in your browser. There is no server, no account, no tracking, and the app makes no network requests after it has loaded.
 
-**Live app:** [conduitot.vijaykumarkk.in](https://conduitot.vijaykumarkk.in/)
+**Live app:** [resecarc.vijaykumarkk.in](https://resecarc.vijaykumarkk.in/)
 
 ![The ReSecArc editor showing the fictional Riverbend water treatment plant on Purdue levels](docs/images/diagram.png)
 
@@ -971,7 +971,7 @@ sequenceDiagram
 
 | Property | Value |
 |----------|-------|
-| Link format | `https://conduitot.vijaykumarkk.in/#share=v1.<compressed design>` |
+| Link format | `https://resecarc.vijaykumarkk.in/#share=v1.<compressed design>` |
 | Typical length | 2,500 to 3,000 characters for a template |
 | Revisions | Left out unless the sender includes them |
 | Long links | Links over 8,000 characters get a warning, because some chat and mail tools shorten them |
