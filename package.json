@@ -1,5 +1,5 @@
 {
-  "name": "conduitot",
+  "name": "resecarc",
   "version": "0.3.0",
   "description": "Browser-based designer for OT network architectures: Purdue levels, IEC 62443 zones, industrial protocol flows, firewall rules, IP plans and revisions.",
   "private": true,

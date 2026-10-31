@@ -20,7 +20,7 @@ export function offline(): Plugin {
   let root = '';
   let outDir = '';
   return {
-    name: 'conduitot-offline',
+    name: 'resecarc-offline',
     apply: 'build',
     configResolved(config) {
       root = config.root;

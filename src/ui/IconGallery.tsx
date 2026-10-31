@@ -6,7 +6,7 @@ import { DeviceIcon, iconKey } from './icons';
 export function IconGallery() {
   return (
     <main className="gallery">
-      <h1>ConduitOT device icons</h1>
+      <h1>ReSecArc device icons</h1>
       {(Object.keys(DEVICE_CATALOG) as DeviceType[]).map((type) => (
         <section key={type}>
           <h2>{DEVICE_CATALOG[type].label}</h2>

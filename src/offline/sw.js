@@ -1,8 +1,9 @@
-// The service worker that lets ConduitOT open and run without a network. The build writes it to
+// The service worker that lets ReSecArc open and run without a network. The build writes it to
 // dist/sw.js with VERSION and FILES (every built file) defined above this code; see
 // scripts/offline-plugin.ts. Plain JavaScript because it runs in the service worker scope.
 /* global VERSION, FILES */
 
+// Cache names keep the prefix from before the product was renamed, so old caches are still cleaned up.
 const PREFIX = 'conduitot-';
 const CACHE = PREFIX + VERSION;
 // Servers may answer with `Vary: Origin`, and module scripts are requested with an Origin header the

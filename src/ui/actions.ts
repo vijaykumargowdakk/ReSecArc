@@ -35,7 +35,7 @@ export async function openProjectFile(file: File, onErrors: (errors: string[]) =
 }
 
 export function saveProjectFile(project: Project): void {
-  downloadText(`${slug(project.name)}.conduitot.json`, serializeProject(project), 'application/json');
+  downloadText(`${slug(project.name)}.resecarc.json`, serializeProject(project), 'application/json');
 }
 
 /** Adds a note in the middle of the visible canvas and selects it. */

@@ -1,4 +1,4 @@
-# ConduitOT — Project Notes
+# ReSecArc — Project Notes
 
 For session continuity (including other Claude Code sessions/agents working on this repo).
 

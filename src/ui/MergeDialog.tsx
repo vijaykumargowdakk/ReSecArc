@@ -114,7 +114,7 @@ export function MergeDialog({ onClose }: { onClose: () => void }) {
       </header>
       <div className="import-dialog__body">
         <p className="muted">
-          Choose a ConduitOT project file, then the sites to copy into this design. Zones and custom fields are matched by name, and networks that
+          Choose a ReSecArc project file, then the sites to copy into this design. Zones and custom fields are matched by name, and networks that
           span every site by subnet; anything without a match is added. Company policies, switched-off checks and revisions of the other project
           are not merged.
         </p>

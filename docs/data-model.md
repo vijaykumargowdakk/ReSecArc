@@ -1,6 +1,6 @@
 # Data model and file format
 
-A ConduitOT project is one JSON document. The zod schema in [`src/model/schema.ts`](../src/model/schema.ts) is the source of truth. This page summarises it.
+A ReSecArc project is one JSON document. The zod schema in [`src/model/schema.ts`](../src/model/schema.ts) is the source of truth. This page summarises it.
 
 ```jsonc
 {

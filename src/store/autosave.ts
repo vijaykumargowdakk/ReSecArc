@@ -5,6 +5,7 @@ import { parseProject, serializeProject } from '../model/io';
 import type { Project } from '../model/schema';
 import { useProject } from './useProject';
 
+// Storage keys keep the prefix from before the product was renamed, so saved work and settings survive it.
 const KEY = 'conduitot:autosave';
 const DEBOUNCE_MS = 1000;
 

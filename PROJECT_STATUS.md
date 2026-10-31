@@ -1,6 +1,6 @@
-# ConduitOT — Project Status
+# ReSecArc — Project Status
 
-*Last updated 2026-10-30.*
+*Last updated 2026-10-31.*
 
 ## Read first
 - This file for status
@@ -8,7 +8,9 @@
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
 ## Start here (next session)
-ConduitOT is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is in progress: M18–M27 are merged (M24 through PR #1, M25 through PR #2, M27 through PR #4, M26 through PR #5; M27 was built before M26). M28 (level tabs and stacks) is merged through PR #6. M29 (works offline) is merged through PR #7, which completes the v0.4 plan (M18–M29). **No milestone is planned next; ask the owner what comes after v0.4** (and whether to raise `package.json` to 0.4.0). Start each milestone on a new branch from `main`; push and open a PR, but merge only when the owner says so.
+ReSecArc is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is in progress: M18–M27 are merged (M24 through PR #1, M25 through PR #2, M27 through PR #4, M26 through PR #5; M27 was built before M26). M28 (level tabs and stacks) is merged through PR #6. M29 (works offline) is merged through PR #7, which completes the v0.4 plan (M18–M29). **No milestone is planned next; ask the owner what comes after v0.4** (and whether to raise `package.json` to 0.4.0). Start each milestone on a new branch from `main`; push and open a PR, but merge only when the owner says so.
+
+**The product was renamed from ConduitOT to ReSecArc on 2026-10-30** (branch `feat/rename-resecarc`). Storage keys and the cache prefix keep the old `conduitot` prefix on purpose. The owner renamed the repository to `vijaykumargowdakk/ReSecArc` and moved the live app to https://resecarc.vijaykumarkk.in/ (2026-10-31); the GitHub website and description were updated to match. The rename is merged through PR #8 (2026-10-31) and Vercel deploys it from `main`. See decisions.md, 2026-10-30 ("Product renamed to ReSecArc") and 2026-10-31 ("Rename merged").
 
 M29 made the app work offline and installable: a service worker stores every built file per version, a notice says when the app is ready offline and when the network is gone, a new version waits until the user chooses Reload (the work reopens straight away), and the browser's install offer is in the command palette. See decisions.md, 2026-10-30 ("Works offline (M29)").
 
@@ -20,7 +22,7 @@ M27 added a full HTML report with every site's diagram drawn by a static SVG ren
 
 M24 added design checks that cite IEC 62443, plus company policy rules (schema v5), a Security panel and canvas marks. M25 added possible attack paths labelled with MITRE ATT&CK for ICS (generated from ATT&CK v20.0), a numbered path highlight on the canvas, and an export in MITRE's Attack Flow format that passes the official schema and opens in the Attack Flow Builder. The full plan, with file names, rules, ATT&CK mapping, tests and verification, is in [`docs/roadmap/security-analysis.md`](docs/roadmap/security-analysis.md).
 
-Work is committed on feature branches, **pushed to `origin`** (github.com/vijaykumargowdakk/conduitot) and merged into `main` **through a pull request** with a merge commit once CI passes. Never merge locally and push `main`, and never delete a branch before its PR is merged. Up to M23 every branch was merged locally and only `main` was pushed, so no branches or PRs exist on GitHub for M0–M23 (decisions.md, 2026-10-28). Before each push, sweep history for retired names and confirm no AI attribution lines.
+Work is committed on feature branches, **pushed to `origin`** (github.com/vijaykumargowdakk/ReSecArc) and merged into `main` **through a pull request** with a merge commit once CI passes. Never merge locally and push `main`, and never delete a branch before its PR is merged. Up to M23 every branch was merged locally and only `main` was pushed, so no branches or PRs exist on GitHub for M0–M23 (decisions.md, 2026-10-28). Before each push, sweep history for retired names and confirm no AI attribution lines.
 
 ## Dev loop
 - Install: `npm ci` (browser tests also need `npx playwright install chromium` once)
@@ -92,6 +94,7 @@ Work is committed on feature branches, **pushed to `origin`** (github.com/vijayk
 ## Known issues
 - The toolbar is over-full at 1440 px and below. Since M24 the brand name is cut with an ellipsis instead of being drawn over the Find button, and below 1600 px the words "Find" and "Security" are hidden visually (kept for screen readers). At 1280 px only the logo is left. A toolbar rework (for example, moving the connect-as controls to the canvas bar) would fix it properly. The canvas bar is tight too: below 1600 px the words "Tidy" and "View" are hidden visually, and with several sites the tabs scroll while the add and merge buttons stay visible.
 - Below 900px the palette and properties panel become slide-over drawers. On tablets devices are added by tapping the palette; dragging from the palette needs a mouse (HTML5 drag and drop).
+- Screenshots in `docs/images/` still show the old product name in the toolbar; retake them after the rename.
 - Most screenshots in `docs/images/` show the interface from before M23; only `diagram.png` and `device-panel.png` were retaken in M26, and `stacks.png` and `level-tab.png` are new in M28.
 - The lane label buttons (open a level tab, stack) are drawn on the canvas, so they shrink when the diagram is zoomed far out; the command palette has the same actions. On a tablet the canvas controls can cover the lowest lane's buttons until the canvas is panned.
 - `NODE_HEIGHT` in `src/model/purdue.ts` must match the `.device-node` height in `src/styles.css` (64px). If they drift apart, lane detection shifts slightly.

@@ -488,3 +488,15 @@ Also fixed:
 **Decision:** PR #7 (M29) is merged into `main` with a merge commit after CI, e2e and the Vercel preview build passed. The `feat/works-offline` branch stays on GitHub. M29 was the last milestone of the v0.4 plan (M18–M29); the next milestone is for the owner to choose. Not yet done: checking offline use once on the deployed site (the preview is behind Vercel's login, so it could not be checked from here), and deciding whether to raise `package.json` to 0.4.0.
 **Why:** The owner gave the go-ahead to merge.
 **User input:** "merge it"
+
+## 2026-10-30 — Product renamed to ReSecArc
+**Decision:** The product is now **ReSecArc**. Everything a user sees says ReSecArc: toolbar, page title, install name (manifest), offline notices, reports, the Markdown record, the draw.io host, the Attack Flow author identity, error messages, the command palette, and the saved file name (`*.resecarc.json`). The README, docs, CLAUDE.md, PROJECT_STATUS.md, LICENSE and tests say ReSecArc too; `package.json` is `resecarc`, and the drag-and-drop MIME types are `application/x-resecarc-*`. Earlier entries in this log keep the old name as history.
+**Kept on purpose:** the `localStorage` keys (`conduitot:autosave`, `:resume`, `:blocks`, `:theme`, `:prefs`) and the service worker's cache prefix (`conduitot-`). Renaming the keys would silently drop everyone's autosaved design and settings. Renaming the cache prefix would leave old caches behind, because the cleanup only removes names with the current prefix. Both carry a comment saying why. Files saved before the rename (`.conduitot.json`) still open, since the open dialogs accept any `.json`; share links (`#share=v1.`) never contained the name.
+**Repository:** the owner renamed it to `vijaykumargowdakk/ReSecArc` (GitHub redirects the old URL); the `origin` remote and the links now use the new name. **Domain:** the owner moved the live app to `https://resecarc.vijaykumarkk.in/`; the README links there, and the GitHub repo website and description were updated to match (2026-10-31). Note that a share link made on the old domain opens the app there, not here, because browser storage and the link are per site. Screenshots in `docs/images/` still show the old name in the toolbar.
+**Why:** The owner is renaming the tool for the submission, and the launch video records the app, so the UI has to carry the new name.
+**User input:** "I am renaming the tool as ReSecArc so do the needful changes … in the script also I want to refer to this as ReSecArc in the demo."
+
+## 2026-10-31 — Rename merged
+**Decision:** PR #8 (rename to ReSecArc) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/rename-resecarc` branch stays on GitHub. Vercel deploys `main` on its own; no deploy settings were changed. Still open: retaking the screenshots in `docs/images/`, which show the old name.
+**Why:** The owner gave the go-ahead to merge and deploy, ahead of filling in the submission form.
+**User input:** "merge and deploy it and upadte the memory"

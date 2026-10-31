@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "ConduitOT",
-  "short_name": "ConduitOT",
+  "name": "ReSecArc",
+  "short_name": "ReSecArc",
   "description": "Design and document OT network architectures with Purdue levels, IEC 62443 zones, industrial protocol flows, firewall rules and IP plans.",
   "start_url": "./",
   "scope": "./",

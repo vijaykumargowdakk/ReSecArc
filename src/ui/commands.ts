@@ -67,7 +67,7 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
   add('File', 'save', 'Save the project file', () => saveProjectFile(useProject.getState().project), { shortcut: 'Ctrl+S', keywords: 'download json' });
   add('File', 'share', 'Share the design as a link…', ctx.openShare, { keywords: 'url copy send' });
   add('File', 'merge', 'Merge sites from another project…', ctx.openMerge, { keywords: 'import combine join file' });
-  if (useInstall.getState().offer) add('File', 'install', 'Install ConduitOT as an app…', installApp, { keywords: 'offline desktop pwa' });
+  if (useInstall.getState().offer) add('File', 'install', 'Install ReSecArc as an app…', installApp, { keywords: 'offline desktop pwa' });
 
   add('Export', 'svg', 'Export the diagram as SVG', () => void exportImage(rf, project, 'svg', ctx.onErrors), { enabled: diagram, keywords: 'image picture' });
   add('Export', 'png', 'Export the diagram as PNG', () => void exportImage(rf, project, 'png', ctx.onErrors), { enabled: diagram, keywords: 'image picture' });
