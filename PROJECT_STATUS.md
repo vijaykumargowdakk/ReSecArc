@@ -93,6 +93,7 @@ Work is committed on feature branches, **pushed to `origin`** (github.com/vijayk
 - The Outline (`src/ui/Outline.tsx`) uses the treeitem-owns-group structure (`aria-owns`) so each item's accessible name is only its own row; nesting the group inside the treeitem fails axe's label-content-name-mismatch.
 
 ## Known issues
+- On the owner's PC, `e2e/perf.spec.ts` (1,000 devices, 30 s limit) and sometimes the light-theme a11y scan can time out when all browser tests run in parallel; they pass on their own (`npx playwright test e2e/perf.spec.ts --workers=1`) and in GitHub CI. If `npm ci` fails with EPERM on `esbuild.exe`, an old `vite preview` on port 4173 is still running; close it first.
 - The toolbar is over-full at 1440 px and below. Since M24 the brand name is cut with an ellipsis instead of being drawn over the Find button, and below 1600 px the words "Find" and "Security" are hidden visually (kept for screen readers). At 1280 px only the logo is left. A toolbar rework (for example, moving the connect-as controls to the canvas bar) would fix it properly. The canvas bar is tight too: below 1600 px the words "Tidy" and "View" are hidden visually, and with several sites the tabs scroll while the add and merge buttons stay visible.
 - Below 900px the palette and properties panel become slide-over drawers. On tablets devices are added by tapping the palette; dragging from the palette needs a mouse (HTML5 drag and drop).
 - Screenshots in `docs/images/` still show the old product name in the toolbar; retake them after the rename.

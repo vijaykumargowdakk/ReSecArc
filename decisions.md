@@ -507,3 +507,8 @@ Also fixed:
 **Not done:** independent expert review, witness and video. The form says so instead of claiming them.
 **Why:** The dossier forbids stating that a test passed until a supporting record exists. A recorded run turns "PASS — to confirm" into checkable evidence.
 **User input:** "i hav eupdted and synced the new main" (after approving the plan for a recorded evidence run).
+
+## 2026-10-31 — Evidence run merged; local install repaired
+**Decision:** PR #9 (`testresults/`) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed, so the dossier can link to `tree/main/testresults`. The local `node_modules`, half-removed by the earlier `npm ci` that failed against a locked `esbuild.exe`, was reinstalled once the old preview server on port 4173 was gone. Locally `npm run ci` passes (252/252) and `npm run e2e` passes 83/84; the 1,000-device perf test times out only in the full parallel run on this PC and passes on its own (open 582 ms) and in GitHub CI.
+**Why:** The owner asked for everything needed to be done and the ready version delivered.
+**User input:** "do all the necessary thingd to fix it and give me the ready version..."
