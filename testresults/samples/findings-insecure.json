@@ -1,0 +1,30 @@
+[
+  {
+    "key": "it-ot-direct:link-bad",
+    "severity": "high",
+    "headline": "IEC 62443 communication violation",
+    "reference": "IEC 62443-3-2 ZCR 3.2; IEC 62443-3-3 SR 5.1, SR 5.2",
+    "message": "Office workstation (L4) connects directly to Pump station RTU (L1)"
+  },
+  {
+    "key": "zone-boundary-unprotected:link-ops-switch-ctrl-switch",
+    "severity": "high",
+    "headline": "IEC 62443 communication violation",
+    "reference": "IEC 62443-3-3 SR 5.2",
+    "message": "Operations switch (zone Operations) and Control switch (zone Control) are linked with no boundary device between the zones"
+  },
+  {
+    "key": "sis-not-separated:link-plc-dosing-sis",
+    "severity": "high",
+    "headline": "IEC 62443 configuration issue",
+    "reference": "IEC 62443-3-2 ZCR 3.3",
+    "message": "Dosing safety controller (zone Safety) is linked to Chemical dosing PLC (zone Control) without a boundary device"
+  },
+  {
+    "key": "insecure-protocol-cross-zone:flow-scada-filter",
+    "severity": "medium",
+    "headline": "IEC 62443 communication violation",
+    "reference": "IEC 62443-3-3 SR 3.1, SR 4.1",
+    "message": "Modbus from SCADA server (zone Operations) to Filtration PLC (zone Control) crosses zones without authentication or encryption"
+  }
+]

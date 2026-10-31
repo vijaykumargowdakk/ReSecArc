@@ -1,0 +1,236 @@
+{
+  "ra01": {
+    "design": {
+      "levels": [
+        5,
+        4,
+        3.5,
+        3,
+        2,
+        1,
+        0
+      ],
+      "zones": [
+        "External",
+        "Enterprise",
+        "Industrial DMZ",
+        "Operations",
+        "Control",
+        "Safety"
+      ],
+      "devices": 19,
+      "links": 18,
+      "flows": 4,
+      "flowProtocols": [
+        "dnp3",
+        "modbus"
+      ],
+      "firewalls": 1,
+      "firewallRules": 3
+    },
+    "saveAndReopenUnchanged": {
+      "baseline": true,
+      "insecure": true,
+      "secure": true,
+      "firewall-deny": true
+    }
+  },
+  "baseline": {
+    "findings": 3,
+    "attackPaths": 12,
+    "expectations": [
+      {
+        "id": "B1",
+        "expected": "Unprotected zone boundary: Operations switch to Control switch",
+        "observed": "as expected"
+      },
+      {
+        "id": "B2",
+        "expected": "Safety controller linked to the dosing PLC without a boundary device",
+        "observed": "as expected"
+      },
+      {
+        "id": "B3",
+        "expected": "Plain Modbus from SCADA to the filtration PLC across zones",
+        "observed": "as expected"
+      },
+      {
+        "id": "B4",
+        "expected": "Not flagged: DNP3 with Secure Authentication from SCADA to the RTU",
+        "observed": "as expected"
+      },
+      {
+        "id": "B5",
+        "expected": "No direct IT to OT finding",
+        "observed": "as expected"
+      },
+      {
+        "id": "B6",
+        "expected": "Attack path office workstation > jump host > SCADA > pump RTU, labelled T0865, T0886, T0886, T1692.001",
+        "observed": "as expected"
+      }
+    ]
+  },
+  "insecure": {
+    "findings": 4,
+    "attackPaths": 12,
+    "expectations": [
+      {
+        "id": "I1",
+        "expected": "IEC 62443 communication violation (it-ot-direct, high) on the seeded link",
+        "observed": "as expected"
+      },
+      {
+        "id": "I2",
+        "expected": "The seeded link raises exactly one finding",
+        "observed": "as expected"
+      },
+      {
+        "id": "I3",
+        "expected": "Attack path goes straight from the office workstation to the RTU (T0865 > T0866)",
+        "observed": "as expected"
+      }
+    ]
+  },
+  "secure": {
+    "findings": 3,
+    "attackPaths": 12,
+    "expectations": [
+      {
+        "id": "S1",
+        "expected": "No direct IT to OT finding",
+        "observed": "as expected"
+      },
+      {
+        "id": "S2",
+        "expected": "No finding on either link through the firewall",
+        "observed": "as expected"
+      }
+    ]
+  },
+  "firewall-deny": {
+    "findings": 3,
+    "attackPaths": 0,
+    "expectations": [
+      {
+        "id": "D1",
+        "expected": "The deny rule removes the office workstation to RTU path",
+        "observed": "as expected"
+      },
+      {
+        "id": "D2",
+        "expected": "No attack path remains",
+        "observed": "as expected"
+      }
+    ]
+  },
+  "attackFlow": {
+    "objects": 53,
+    "schema": "Attack Flow 2.0.0 (attack-flow v4.1.0)",
+    "errors": []
+  },
+  "templates": {
+    "water-treatment": {
+      "it-ot-direct": 0,
+      "zone-boundary-unprotected": 1,
+      "firewall-default-allow": 0,
+      "firewall-any-any": 0,
+      "insecure-protocol-cross-zone": 1,
+      "remote-access-control": 0,
+      "sis-not-separated": 1,
+      "device-without-zone": 0
+    },
+    "substation": {
+      "it-ot-direct": 1,
+      "zone-boundary-unprotected": 0,
+      "firewall-default-allow": 0,
+      "firewall-any-any": 0,
+      "insecure-protocol-cross-zone": 7,
+      "remote-access-control": 0,
+      "sis-not-separated": 0,
+      "device-without-zone": 0
+    },
+    "manufacturing": {
+      "it-ot-direct": 0,
+      "zone-boundary-unprotected": 0,
+      "firewall-default-allow": 0,
+      "firewall-any-any": 0,
+      "insecure-protocol-cross-zone": 0,
+      "remote-access-control": 0,
+      "sis-not-separated": 0,
+      "device-without-zone": 0
+    },
+    "building": {
+      "it-ot-direct": 1,
+      "zone-boundary-unprotected": 0,
+      "firewall-default-allow": 0,
+      "firewall-any-any": 0,
+      "insecure-protocol-cross-zone": 4,
+      "remote-access-control": 0,
+      "sis-not-separated": 0,
+      "device-without-zone": 0
+    },
+    "pipeline": {
+      "it-ot-direct": 0,
+      "zone-boundary-unprotected": 0,
+      "firewall-default-allow": 0,
+      "firewall-any-any": 0,
+      "insecure-protocol-cross-zone": 0,
+      "remote-access-control": 0,
+      "sis-not-separated": 1,
+      "device-without-zone": 0
+    }
+  },
+  "rules": [
+    {
+      "id": "it-ot-direct",
+      "title": "Direct connection between IT and OT",
+      "severity": "high",
+      "reference": "IEC 62443-3-2 ZCR 3.2; IEC 62443-3-3 SR 5.1, SR 5.2"
+    },
+    {
+      "id": "zone-boundary-unprotected",
+      "title": "Zone boundary without a boundary device",
+      "severity": "high",
+      "reference": "IEC 62443-3-3 SR 5.2"
+    },
+    {
+      "id": "firewall-default-allow",
+      "title": "Firewall allows by default",
+      "severity": "high",
+      "reference": "IEC 62443-3-3 SR 5.2"
+    },
+    {
+      "id": "firewall-any-any",
+      "title": "Firewall rule allows anything",
+      "severity": "high",
+      "reference": "IEC 62443-3-3 SR 5.2"
+    },
+    {
+      "id": "insecure-protocol-cross-zone",
+      "title": "Unsecured protocol between zones",
+      "severity": "medium",
+      "reference": "IEC 62443-3-3 SR 3.1, SR 4.1"
+    },
+    {
+      "id": "remote-access-control",
+      "title": "Remote access at the control levels",
+      "severity": "medium",
+      "reference": "IEC 62443-3-3 SR 1.13, SR 2.6"
+    },
+    {
+      "id": "sis-not-separated",
+      "title": "Safety system not separated",
+      "severity": "high",
+      "reference": "IEC 62443-3-2 ZCR 3.3"
+    },
+    {
+      "id": "device-without-zone",
+      "title": "OT device without a zone",
+      "severity": "low",
+      "reference": "IEC 62443-3-2 ZCR 3.1"
+    }
+  ],
+  "failed": 0
+}
+

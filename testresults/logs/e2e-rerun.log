@@ -1,0 +1,38 @@
+[WebServer] (node:29896) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[WebServer] (node:28476) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:31332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 19 tests using 1 worker
+
+(node:25892) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [chromium] › e2e\a11y.spec.ts:22:5 › light theme › diagram, properties and inventory have no violations (12.1s)
+  ok  2 [chromium] › e2e\a11y.spec.ts:39:5 › light theme › dialogs have no violations (3.8s)
+  ok  3 [chromium] › e2e\a11y.spec.ts:58:5 › light theme › outline and keyboard connections have no violations (6.5s)
+  ok  4 [chromium] › e2e\a11y.spec.ts:76:5 › light theme › security panel has no violations (5.6s)
+  ok  5 [chromium] › e2e\a11y.spec.ts:90:5 › light theme › level tabs and stacks have no violations (3.8s)
+  ok  6 [chromium] › e2e\a11y.spec.ts:100:5 › light theme › comparison view has no violations (2.5s)
+  ok  7 [chromium] › e2e\a11y.spec.ts:22:5 › dark theme › diagram, properties and inventory have no violations (12.1s)
+  ok  8 [chromium] › e2e\a11y.spec.ts:39:5 › dark theme › dialogs have no violations (3.9s)
+  ok  9 [chromium] › e2e\a11y.spec.ts:58:5 › dark theme › outline and keyboard connections have no violations (6.5s)
+  ok 10 [chromium] › e2e\a11y.spec.ts:76:5 › dark theme › security panel has no violations (5.8s)
+  ok 11 [chromium] › e2e\a11y.spec.ts:90:5 › dark theme › level tabs and stacks have no violations (3.8s)
+  ok 12 [chromium] › e2e\a11y.spec.ts:100:5 › dark theme › comparison view has no violations (2.4s)
+  ok 13 [chromium] › e2e\a11y.spec.ts:22:5 › contrast theme › diagram, properties and inventory have no violations (12.6s)
+  ok 14 [chromium] › e2e\a11y.spec.ts:39:5 › contrast theme › dialogs have no violations (4.1s)
+  ok 15 [chromium] › e2e\a11y.spec.ts:58:5 › contrast theme › outline and keyboard connections have no violations (6.4s)
+  ok 16 [chromium] › e2e\a11y.spec.ts:76:5 › contrast theme › security panel has no violations (5.9s)
+  ok 17 [chromium] › e2e\a11y.spec.ts:90:5 › contrast theme › level tabs and stacks have no violations (3.7s)
+  ok 18 [chromium] › e2e\a11y.spec.ts:100:5 › contrast theme › comparison view has no violations (2.5s)
+perf timings (ms) { open: 484, switchSite: 419, edit: 408 }
+  ok 19 [chromium] › e2e\perf.spec.ts:11:1 › stays responsive with 1,000 devices on 5 sites (18.0s)
+
+  19 passed (2.3m)

@@ -1,0 +1,101 @@
+{
+  "total": 12,
+  "paths": [
+    {
+      "id": "vendor>sis",
+      "chain": "vendor:T0883 > sis:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0880"
+      }
+    },
+    {
+      "id": "office-ws>sis",
+      "chain": "office-ws:T0865 > sis:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0880"
+      }
+    },
+    {
+      "id": "jump>sis",
+      "chain": "jump:T0822 > ews:T0886 > sis:T0843",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0880"
+      }
+    },
+    {
+      "id": "vendor>plc-filter",
+      "chain": "vendor:T0883 > plc-filter:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "office-ws>plc-filter",
+      "chain": "office-ws:T0865 > plc-filter:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "vendor>plc-dosing",
+      "chain": "vendor:T0883 > plc-dosing:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "office-ws>plc-dosing",
+      "chain": "office-ws:T0865 > plc-dosing:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "vendor>rtu-pump",
+      "chain": "vendor:T0883 > rtu-pump:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "office-ws>rtu-pump",
+      "chain": "office-ws:T0865 > rtu-pump:T0866",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "jump>plc-filter",
+      "chain": "jump:T0822 > scada:T0886 > plc-filter:T1692.001",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "jump>plc-dosing",
+      "chain": "jump:T0822 > ews:T0886 > plc-dosing:T0843",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    },
+    {
+      "id": "jump>rtu-pump",
+      "chain": "jump:T0822 > scada:T0886 > rtu-pump:T1692.001",
+      "impact": {
+        "tactic": "impact",
+        "technique": "T0831"
+      }
+    }
+  ]
+}

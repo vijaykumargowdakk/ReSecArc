@@ -500,3 +500,15 @@ Also fixed:
 **Decision:** PR #8 (rename to ReSecArc) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/rename-resecarc` branch stays on GitHub. Vercel deploys `main` on its own; no deploy settings were changed. Still open: retaking the screenshots in `docs/images/`, which show the old name.
 **Why:** The owner gave the go-ahead to merge and deploy, ahead of filling in the submission form.
 **User input:** "merge and deploy it and upadte the memory"
+
+## 2026-10-31 — TRL 6 evidence run recorded (testresults/)
+**Decision:** A dated, hashed test run for the submission's ReSecArc entry (RA-01 to RA-03) is kept in `testresults/`. It was run against `main` at `ce97656` in a fresh clone. CI passed (252/252 unit tests). Browser tests: 82/84 passed on the first parallel run, and the two timed-out files (a11y scan, 1,000-device perf) passed 19/19 when run one at a time; both logs are kept. `testresults/generate-evidence.ts` builds four variants of the water-treatment template (baseline, seeded IT→OT link, the same link through the firewall, a firewall deny rule) and checks 13 expectations taken from the existing unit tests; all 13 were met. The Attack Flow export passed the official schema with 0 errors. The same sample files were opened on the live site for screenshots, and the counts matched. Everything is listed in `testresults/SHA256SUMS`.
+**Deviations, recorded in the folder:** port 4173 was held by an older `vite preview` that could not be stopped from here, so the browser tests used `testresults/playwright.evidence.config.ts` (port 4174, fresh server). `testresults/.gitignore` un-ignores `*.log` so the logs can be committed.
+**Not done:** independent expert review, witness and video. The form says so instead of claiming them.
+**Why:** The dossier forbids stating that a test passed until a supporting record exists. A recorded run turns "PASS — to confirm" into checkable evidence.
+**User input:** "i hav eupdted and synced the new main" (after approving the plan for a recorded evidence run).
+
+## 2026-10-31 — Evidence run merged; local install repaired
+**Decision:** PR #9 (`testresults/`) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed, so the dossier can link to `tree/main/testresults`. The local `node_modules`, half-removed by the earlier `npm ci` that failed against a locked `esbuild.exe`, was reinstalled once the old preview server on port 4173 was gone. Locally `npm run ci` passes (252/252) and `npm run e2e` passes 83/84; the 1,000-device perf test times out only in the full parallel run on this PC and passes on its own (open 582 ms) and in GitHub CI.
+**Why:** The owner asked for everything needed to be done and the ready version delivered.
+**User input:** "do all the necessary thingd to fix it and give me the ready version..."

@@ -1,0 +1,84 @@
+
+ RUN  v2.1.9 C:/Users/VIJAY KUMAR GOWDA K/AppData/Local/Temp/claude/d--temp-otcad/0b50f129-ddf1-4960-9b14-e276c0623824/scratchpad/resecarc
+
+ ✓ src/model/model.test.ts > purdue lanes > maps a node placed in each lane to that lane level
+ ✓ src/model/model.test.ts > purdue lanes > clamps positions above and below the lanes
+ ✓ src/model/model.test.ts > project operations > derives a new device level from its position
+ ✓ src/model/model.test.ts > project operations > gives firewalls a default-deny rule set
+ ✓ src/model/model.test.ts > project operations > rejects self, duplicate and reversed duplicate links
+ ✓ src/model/model.test.ts > project operations > removes a device together with its links, flows and rule references
+ ✓ src/model/model.test.ts > project operations > unassigns devices and drops rules when a zone is removed
+ ✓ src/model/model.test.ts > project operations > reorders rules and ignores moves past either end
+ ✓ src/model/model.test.ts > project files > loads the demo project without errors
+ ✓ src/model/model.test.ts > project files > round-trips through save and load
+ ✓ src/model/model.test.ts > project files > reports invalid JSON and schema errors
+ ✓ src/model/model.test.ts > project files > reports dangling references and duplicate ids
+ ✓ src/model/model.test.ts > conduits > lists each connected zone pair once
+ ✓ src/examples/templates/templates.test.ts > templates > water-treatment loads, validates and round-trips
+ ✓ src/examples/templates/templates.test.ts > templates > substation loads, validates and round-trips
+ ✓ src/examples/templates/templates.test.ts > templates > manufacturing loads, validates and round-trips
+ ✓ src/examples/templates/templates.test.ts > templates > building loads, validates and round-trips
+ ✓ src/examples/templates/templates.test.ts > templates > pipeline loads, validates and round-trips
+ ✓ src/examples/templates/templates.test.ts > templates > includes a multi-site template and one with areas
+ ✓ src/examples/templates/templates.test.ts > templates > uses every protocol at least once across the templates
+ ✓ src/examples/templates/templates.test.ts > templates > water-treatment has a consistent IP plan
+ ✓ src/examples/templates/templates.test.ts > templates > substation has a consistent IP plan
+ ✓ src/examples/templates/templates.test.ts > templates > manufacturing has a consistent IP plan
+ ✓ src/examples/templates/templates.test.ts > templates > building has a consistent IP plan
+ ✓ src/examples/templates/templates.test.ts > templates > pipeline has a consistent IP plan
+ ✓ src/model/checks.test.ts > water-treatment template > flags the office workstation linked straight to the pump station RTU
+ ✓ src/model/checks.test.ts > water-treatment template > names zones, not Purdue levels, in zone-based findings
+ ✓ src/model/checks.test.ts > water-treatment template > raises nothing for the same connection made through the firewall
+ ✓ src/model/checks.test.ts > water-treatment template > reports the template’s own gaps: ops↔control switch, SIS link and plain Modbus across zones
+ ✓ src/model/checks.test.ts > built-in checks > it-ot-direct: flows too, but not through a boundary device or between OT levels
+ ✓ src/model/checks.test.ts > built-in checks > zone-boundary-unprotected: end devices or networks in different zones, not a device on a neighbouring switch
+ ✓ src/model/checks.test.ts > built-in checks > firewall-default-allow and firewall-any-any
+ ✓ src/model/checks.test.ts > built-in checks > insecure-protocol-cross-zone: only unsecured flows between two zones
+ ✓ src/model/checks.test.ts > built-in checks > remote-access-control: remote services at L0–L2 only
+ ✓ src/model/checks.test.ts > built-in checks > sis-not-separated: shared zone, or a link to a non-safety device without a boundary device
+ ✓ src/model/checks.test.ts > built-in checks > device-without-zone: OT devices only, low severity
+ ✓ src/model/checks.test.ts > built-in checks > skips checks switched off for the project
+ ✓ src/model/checks.test.ts > built-in checks > sorts by severity and gives stable ids
+ ✓ src/model/checks.test.ts > built-in checks > indexes findings by device, link and flow
+ ✓ src/model/checks.test.ts > company policies > the example rule flags links either way round and flows both ways
+ ✓ src/model/checks.test.ts > company policies > respects direction for flows unless bothWays is set
+ ✓ src/model/checks.test.ts > company policies > matches every selector kind
+ ✓ src/model/checks.test.ts > company policies > limits to protocols, and a protocol filter never matches links
+ ✓ src/model/checks.test.ts > company policies > ignores disabled rules
+ ✓ src/model/checks.test.ts > company policies > names devices by what the rule looks at: levels, zones or neither
+ ✓ src/model/checks.test.ts > company policies > is reported alongside the IEC 62443 finding
+ ✓ src/model/checks.test.ts > firewallVerdict > applies the first matching rule, then the default action
+ ✓ src/model/checks.test.ts > firewallVerdict > rule order decides between overlapping rules
+ ✓ src/model/checks.test.ts > firewallVerdict > an any-protocol query matches protocol-specific rules
+ ✓ src/model/attack/paths.test.ts > water-treatment template > finds the office workstation to pump station RTU path through the jump host
+ ✓ src/model/attack/paths.test.ts > water-treatment template > with the direct link, goes straight from the office workstation to the RTU
+ ✓ src/model/attack/paths.test.ts > water-treatment template > a deny rule on the firewall removes the paths through it, and an allow rule above it restores them
+ ✓ src/model/attack/paths.test.ts > water-treatment template > ranks safety system targets first and labels their impact as loss of safety
+ ✓ src/model/attack/paths.test.ts > water-treatment template > honours entry and target overrides
+ ✓ src/model/attack/paths.test.ts > water-treatment template > marks step devices with their number and everything crossed as via
+ ✓ src/model/attack/paths.test.ts > every template > labels each step with a technique under its tactic
+ ✓ src/model/attack/paths.test.ts > firewallPasses > uses the default action when no rule matches
+ ✓ src/model/attack/paths.test.ts > firewallPasses > lets other protocols through after a narrower deny
+ ✓ src/model/attack/paths.test.ts > firewallPasses > stops at a deny of everything
+ ✓ src/model/attack/paths.test.ts > flows > reach a device without links, unless a firewall on the route denies them
+ ✓ src/model/attack/paths.test.ts > scale > finds paths in a 1,000-device design quickly
+ ✓ src/model/attack/attackFlow.test.ts > Attack Flow export > copies the published extension definition exactly
+ ✓ src/model/attack/attackFlow.test.ts > Attack Flow export > passes the official Attack Flow and STIX 2.1 schemas
+ ✓ src/model/attack/attackFlow.test.ts > Attack Flow export > has one attack-flow whose start_refs begin each path, and every reference resolves
+ ✓ src/model/attack/attackFlow.test.ts > Attack Flow export > turns the office → RTU path into actions labelled with ATT&CK for ICS
+ ✓ src/export/drawio.test.ts > projectToDrawio > writes one page per site, every edge ending on a shape of that page
+ ✓ src/export/drawio.test.ts > projectToDrawio > puts every device, link and flow on the page of its site
+ ✓ src/export/drawio.test.ts > projectToDrawio > links stubs to the page of the site they stand for
+ ✓ src/export/drawio.test.ts > projectToDrawio > locks the Purdue lanes layer and carries asset details as shape data
+ ✓ src/export/drawio.test.ts > projectToDrawio > embeds each icon as a base64 SVG in the form draw.io reads
+ ✓ src/export/drawio.test.ts > projectToDrawio > escapes names, keeps line breaks in notes and keeps style separators out of styles
+ ✓ src/export/report.test.ts > projectToHtmlReport > includes every site with its diagram, for every template
+ ✓ src/export/report.test.ts > projectToHtmlReport > lists security findings and the attack path from the office to the RTU
+ ✓ src/export/report.test.ts > projectToHtmlReport > cannot be made to run a script by a crafted project
+ ✓ src/export/report.test.ts > projectToHtmlReport > dates the report and lists revisions when there are any
+
+ Test Files  7 passed (7)
+      Tests  75 passed (75)
+   Start at  16:26:13
+   Duration  2.25s (transform 1.75s, setup 0ms, collect 4.94s, tests 989ms, environment 2ms, prepare 2.70s)
+
