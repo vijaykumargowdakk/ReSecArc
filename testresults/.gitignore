@@ -1,0 +1,2 @@
+# *.log is ignored at the repository root; the evidence logs are kept.
+!*.log

@@ -1,0 +1,112 @@
+
+> resecarc@0.3.0 ci
+> npm run typecheck && npm run lint && npm test && npm run build && node scripts/check-bundle.mjs
+
+
+> resecarc@0.3.0 typecheck
+> tsc
+
+
+> resecarc@0.3.0 lint
+> eslint .
+
+
+> resecarc@0.3.0 test
+> vitest run
+
+
+ RUN  v2.1.9 C:/Users/VIJAY KUMAR GOWDA K/AppData/Local/Temp/claude/d--temp-otcad/0b50f129-ddf1-4960-9b14-e276c0623824/scratchpad/resecarc
+
+ ✓ src/model/editing.test.ts (9 tests) 79ms
+ ✓ src/model/schema-v2.test.ts (13 tests) 42ms
+ ✓ src/model/model.test.ts (13 tests) 71ms
+ ✓ src/model/v4.test.ts (7 tests) 64ms
+ ✓ src/model/merge.test.ts (8 tests) 196ms
+ ✓ src/model/revisions.test.ts (10 tests) 132ms
+ ✓ src/model/checks.test.ts (24 tests) 111ms
+ ✓ src/model/ipam.test.ts (12 tests) 55ms
+ ✓ src/model/outline.test.ts (8 tests) 19ms
+ ✓ src/model/attack/paths.test.ts (12 tests) 292ms
+ ✓ src/model/v5.test.ts (7 tests) 179ms
+ ✓ src/model/attack/attackFlow.test.ts (4 tests) 549ms
+   ✓ Attack Flow export > passes the official Attack Flow and STIX 2.1 schemas 504ms
+ ✓ src/model/export.test.ts (7 tests) 104ms
+ ✓ src/model/ports.test.ts (12 tests) 108ms
+ ✓ src/model/fields.test.ts (8 tests) 136ms
+ ✓ src/store/prefs.test.ts (5 tests) 14ms
+ ✓ src/model/csvImport.test.ts (5 tests) 75ms
+ ✓ src/export/drawio.test.ts (6 tests) 192ms
+ ✓ src/examples/templates/templates.test.ts (12 tests) 153ms
+ ✓ src/export/siteSvg.test.ts (8 tests) 162ms
+ ✓ src/model/share.test.ts (3 tests) 129ms
+ ✓ src/export/report.test.ts (4 tests) 264ms
+ ✓ src/ui/icons/icons.test.ts (4 tests) 9ms
+ ✓ src/model/scale.test.ts (12 tests) 67ms
+ ✓ src/model/v3.test.ts (15 tests) 160ms
+ ✓ src/model/levels.test.ts (20 tests) 83ms
+ ✓ src/model/history-names.test.ts (4 tests) 14ms
+
+ Test Files  27 passed (27)
+      Tests  252 passed (252)
+   Start at  16:25:32
+   Duration  9.10s (transform 8.68s, setup 0ms, collect 36.83s, tests 3.46s, environment 13ms, prepare 11.88s)
+
+
+> resecarc@0.3.0 build
+> tsc && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 2264 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                0.84 kB │ gzip:   0.46 kB
+dist/assets/index-B2R3Ei73.css                66.34 kB │ gzip:  12.54 kB
+dist/assets/format-DBYAvuO2.js                 0.10 kB │ gzip:   0.11 kB
+dist/assets/copy-DB5GcsuU.js                   0.44 kB │ gzip:   0.33 kB
+dist/assets/print-D5qRZthT.js                  0.49 kB │ gzip:   0.34 kB
+dist/assets/longPress-BTG95JZW.js              1.00 kB │ gzip:   0.49 kB
+dist/assets/DisplayMenuItems-B60UaWdL.js       1.08 kB │ gzip:   0.51 kB
+dist/assets/HistoryMenuItems-BbrSInqR.js       1.10 kB │ gzip:   0.60 kB
+dist/assets/LevelTabs-CHdayB3q.js              1.26 kB │ gzip:   0.60 kB
+dist/assets/NoteInspector-BAgVTDTX.js          1.50 kB │ gzip:   0.77 kB
+dist/assets/FilterOptions-gF6PzqcA.js          1.52 kB │ gzip:   0.67 kB
+dist/assets/AreaInspector-B-BrcRcl.js          1.63 kB │ gzip:   0.80 kB
+dist/assets/CustomFieldsSection-CBPwiuw6.js    1.68 kB │ gzip:   0.83 kB
+dist/assets/PanelEdge-4CBtD184.js              1.71 kB │ gzip:   0.97 kB
+dist/assets/exports-CMVyhX9j.js                1.85 kB │ gzip:   0.86 kB
+dist/assets/ExportMenuItems-CSJIzYPw.js        1.91 kB │ gzip:   0.67 kB
+dist/assets/NodeMenu-Aouh_ezU.js               2.15 kB │ gzip:   1.08 kB
+dist/assets/levelLayout-DS8gBx8Y.js            2.25 kB │ gzip:   1.07 kB
+dist/assets/SearchDialog-C4rbyjTN.js           2.38 kB │ gzip:   1.22 kB
+dist/assets/icsTechniques-RrbCdDCL.js          2.52 kB │ gzip:   0.68 kB
+dist/assets/OfflineNotices-DYDf5nNO.js         2.61 kB │ gzip:   1.21 kB
+dist/assets/stacks-SoGbnx1R.js                 2.70 kB │ gzip:   1.21 kB
+dist/assets/ChangesPanel-BnLjzGFT.js           2.74 kB │ gzip:   1.27 kB
+dist/assets/ShareDialog-CrXfABZa.js            2.85 kB │ gzip:   1.46 kB
+dist/assets/HelpDialog-BBytUxOg.js             2.88 kB │ gzip:   1.30 kB
+dist/assets/RevisionsSection-CyvOC3rJ.js       3.25 kB │ gzip:   1.42 kB
+dist/assets/Tour--d_3MHar.js                   3.29 kB │ gzip:   1.56 kB
+dist/assets/attackFlow-DARVwgFL.js             3.45 kB │ gzip:   1.74 kB
+dist/assets/FirewallRules-voxd8mqt.js          3.67 kB │ gzip:   1.41 kB
+dist/assets/levelView-DcmjclWr.js              4.93 kB │ gzip:   2.38 kB
+dist/assets/paths-DLKCjirF.js                  7.50 kB │ gzip:   3.14 kB
+dist/assets/MergeDialog-B9XZSSak.js            8.75 kB │ gzip:   3.43 kB
+dist/assets/revisions-BXtD8N_t.js              9.17 kB │ gzip:   3.45 kB
+dist/assets/BulkInspector-Cf_IybL5.js         10.14 kB │ gzip:   2.98 kB
+dist/assets/CommandPalette-r_WXzjOS.js        10.68 kB │ gzip:   4.17 kB
+dist/assets/Outline-AqjR8dcH.js               11.49 kB │ gzip:   4.47 kB
+dist/assets/index-ByQmvAOv.js                 12.27 kB │ gzip:   4.92 kB
+dist/assets/SecurityPanel-C7371Z9Q.js         12.61 kB │ gzip:   4.72 kB
+dist/assets/Inventory-CSSGBUSv.js             24.16 kB │ gzip:   7.66 kB
+dist/assets/csv-CsDJytjg.js                   24.23 kB │ gzip:   9.22 kB
+dist/assets/exportFiles-BJ0u76wp.js           35.73 kB │ gzip:  12.64 kB
+dist/assets/TemplateGallery-Cuxz_H7p.js       41.18 kB │ gzip:   7.04 kB
+dist/assets/index-CFnF8phC.js                584.89 kB │ gzip: 178.87 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.07s
+check-bundle: index-CFnF8phC.js is 571.3 kB (budget 575 kB)
