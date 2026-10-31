@@ -495,3 +495,8 @@ Also fixed:
 **Repository:** the owner renamed it to `vijaykumargowdakk/ReSecArc` (GitHub redirects the old URL); the `origin` remote and the links now use the new name. **Domain:** the owner moved the live app to `https://resecarc.vijaykumarkk.in/`; the README links there, and the GitHub repo website and description were updated to match (2026-10-31). Note that a share link made on the old domain opens the app there, not here, because browser storage and the link are per site. Screenshots in `docs/images/` still show the old name in the toolbar.
 **Why:** The owner is renaming the tool for the submission, and the launch video records the app, so the UI has to carry the new name.
 **User input:** "I am renaming the tool as ReSecArc so do the needful changes … in the script also I want to refer to this as ReSecArc in the demo."
+
+## 2026-10-31 — Rename merged
+**Decision:** PR #8 (rename to ReSecArc) is merged into `main` with a merge commit after CI, e2e and the Vercel preview passed. The `feat/rename-resecarc` branch stays on GitHub. Vercel deploys `main` on its own; no deploy settings were changed. Still open: retaking the screenshots in `docs/images/`, which show the old name.
+**Why:** The owner gave the go-ahead to merge and deploy, ahead of filling in the submission form.
+**User input:** "merge and deploy it and upadte the memory"
