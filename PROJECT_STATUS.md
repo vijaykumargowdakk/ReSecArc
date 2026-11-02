@@ -1,6 +1,6 @@
 # ReSecArc — Project Status
 
-*Last updated 2026-10-31.*
+*Last updated 2026-11-02.*
 
 ## Read first
 - This file for status
@@ -97,7 +97,7 @@ Work is committed on feature branches, **pushed to `origin`** (github.com/vijayk
 - The toolbar is over-full at 1440 px and below. Since M24 the brand name is cut with an ellipsis instead of being drawn over the Find button, and below 1600 px the words "Find" and "Security" are hidden visually (kept for screen readers). At 1280 px only the logo is left. A toolbar rework (for example, moving the connect-as controls to the canvas bar) would fix it properly. The canvas bar is tight too: below 1600 px the words "Tidy" and "View" are hidden visually, and with several sites the tabs scroll while the add and merge buttons stay visible.
 - Below 900px the palette and properties panel become slide-over drawers. On tablets devices are added by tapping the palette; dragging from the palette needs a mouse (HTML5 drag and drop).
 - Screenshots in `docs/images/` still show the old product name in the toolbar; retake them after the rename.
-- Most screenshots in `docs/images/` show the interface from before M23; only `diagram.png` and `device-panel.png` were retaken in M26, and `stacks.png` and `level-tab.png` are new in M28.
+- The screenshots in `docs/images/` are retaken from the current build with `npm run readme:images` (2026-11-02); run it again after visible interface changes.
 - The lane label buttons (open a level tab, stack) are drawn on the canvas, so they shrink when the diagram is zoomed far out; the command palette has the same actions. On a tablet the canvas controls can cover the lowest lane's buttons until the canvas is panned.
 - `NODE_HEIGHT` in `src/model/purdue.ts` must match the `.device-node` height in `src/styles.css` (64px). If they drift apart, lane detection shifts slightly.
 - Chromium's synthetic drag in Playwright can't drive the palette's HTML5 drag-and-drop. In automated checks, dispatch `DragEvent`s on the canvas pane instead.
