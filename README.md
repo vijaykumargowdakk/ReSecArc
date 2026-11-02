@@ -305,6 +305,32 @@ The change list can be downloaded as a Markdown change record. See [section 13](
 
 ![Comparing with a saved revision: one device changed, one added, one removed](docs/images/compare.png)
 
+### 4.8 Import, export and sharing
+
+| Output | Format | Notes |
+|--------|--------|-------|
+| Project file | `.resecarc.json` (files saved before the rename end in `.conduitot.json`; both open) | The complete design, including revisions |
+| Diagram | SVG, PNG | The open site, as drawn |
+| Printable diagram | PDF via the browser's print dialog | Uses a print stylesheet |
+| Full report | HTML, or PDF via **Print full report / save as PDF…** | `<project>-report.html`: every site's diagram, devices, links, flows, firewall rules and notes; zones and conduits; networks and address warnings; security findings and policies; attack paths with ATT&CK links; revisions. See below |
+| All sites for draw.io | `.drawio` | One page per site, editable in draw.io (diagrams.net). See below |
+| Architecture record | Markdown | Zones, networks, conduits, security findings, attack paths, and per site: devices, flows, firewall rules and notes |
+| Attack paths | MITRE Attack Flow (STIX 2.1 JSON) | `<project>-attack-flow.json`; see [section 4.10](#410-attack-paths-mitre-attck-for-ics) |
+| Change record | Markdown | Changes since a chosen revision |
+| Tables | CSV | Devices, links, flows, firewall rules, IP plan |
+| Share link | URL | The whole design inside the link; see [section 15](#15-share-links) |
+
+| Input | Format |
+|-------|--------|
+| Project file | `.json` from any ReSecArc version |
+| Devices, links, flows, firewall rules | CSV in the same columns as the exports |
+| Shared design | A share link opened in the browser |
+| Sites from another project | `.json` project file, through **Merge sites from another project** ([section 4.2](#42-large-estates)) |
+
+**The full report** is one self-contained HTML file: it opens offline and prints to PDF from any browser. Its diagrams are drawn from the project itself by a static SVG renderer (`src/export/siteSvg.ts`), not captured from the screen, so every site is included whichever one is open. They look like the canvas, with zone colours, criticality, icons, port names and flow labels; links and flows in a high-severity finding are red, and devices show how many findings they have. Areas are always drawn open, so no device is hidden. When printed, each diagram gets a landscape page of its own. The attack paths use the default entry points and targets, because choices made in the Security panel are not saved in the project. **Print full report / save as PDF…** loads the report into a hidden frame and opens the browser's print dialog for it, without leaving the app.
+
+**The draw.io file** has a page per site, named after it. Each page has layers: *Purdue levels* (locked, so the lanes are not moved by accident), *Areas*, *Network links*, *Protocol flows*, *Devices* and *Notes*. Devices keep their icon and zone colour, and carry their kind, level, zone, criticality, IP address, vendor, model, firmware, serial and tags as shape data (**Edit Data** in draw.io). Bend points, port names and flow labels are kept. A device on another site appears as a stub that links to that site's page.
+
 ### 4.9 Security checks and company policies
 
 The **Security** button in the toolbar shows how many findings the design has and opens the Security panel. Checks run on every edit, never block saving, and can be switched off one by one for a project.
@@ -352,32 +378,6 @@ Each step is a chip with an ATT&CK for ICS tactic and technique. The IDs, names 
 Choosing a path numbers its steps on the canvas and draws its links, flows and crossed devices in violet; choosing it again clears the highlight. Each path lists the findings it relies on, such as the `it-ot-direct` link. **Export** saves the paths shown, and **Export this path** the chosen one, as a MITRE **Attack Flow** file: a STIX 2.1 bundle with one `attack-flow` (scope "attack-tree"), an `attack-action` per step and an `attack-asset` per device. The file passes the official Attack Flow 2.0.0 schema and opens in MITRE's Attack Flow Builder through **Import STIX**. The Markdown architecture record has an "Attack paths (MITRE ATT&CK for ICS)" section.
 
 ![Attack paths tab: the office workstation reaches the pump station RTU through the jump host and SCADA, highlighted on the canvas with numbered steps](docs/images/attack-paths.png)
-
-### 4.8 Import, export and sharing
-
-| Output | Format | Notes |
-|--------|--------|-------|
-| Project file | `.resecarc.json` (files saved before the rename end in `.conduitot.json`; both open) | The complete design, including revisions |
-| Diagram | SVG, PNG | The open site, as drawn |
-| Printable diagram | PDF via the browser's print dialog | Uses a print stylesheet |
-| Full report | HTML, or PDF via **Print full report / save as PDF…** | `<project>-report.html`: every site's diagram, devices, links, flows, firewall rules and notes; zones and conduits; networks and address warnings; security findings and policies; attack paths with ATT&CK links; revisions. See below |
-| All sites for draw.io | `.drawio` | One page per site, editable in draw.io (diagrams.net). See below |
-| Architecture record | Markdown | Zones, networks, conduits, security findings, attack paths, and per site: devices, flows, firewall rules and notes |
-| Attack paths | MITRE Attack Flow (STIX 2.1 JSON) | `<project>-attack-flow.json`; see [section 4.10](#410-attack-paths-mitre-attck-for-ics) |
-| Change record | Markdown | Changes since a chosen revision |
-| Tables | CSV | Devices, links, flows, firewall rules, IP plan |
-| Share link | URL | The whole design inside the link; see [section 15](#15-share-links) |
-
-| Input | Format |
-|-------|--------|
-| Project file | `.json` from any ReSecArc version |
-| Devices, links, flows, firewall rules | CSV in the same columns as the exports |
-| Shared design | A share link opened in the browser |
-| Sites from another project | `.json` project file, through **Merge sites from another project** ([section 4.2](#42-large-estates)) |
-
-**The full report** is one self-contained HTML file: it opens offline and prints to PDF from any browser. Its diagrams are drawn from the project itself by a static SVG renderer (`src/export/siteSvg.ts`), not captured from the screen, so every site is included whichever one is open. They look like the canvas, with zone colours, criticality, icons, port names and flow labels; links and flows in a high-severity finding are red, and devices show how many findings they have. Areas are always drawn open, so no device is hidden. When printed, each diagram gets a landscape page of its own. The attack paths use the default entry points and targets, because choices made in the Security panel are not saved in the project. **Print full report / save as PDF…** loads the report into a hidden frame and opens the browser's print dialog for it, without leaving the app.
-
-**The draw.io file** has a page per site, named after it. Each page has layers: *Purdue levels* (locked, so the lanes are not moved by accident), *Areas*, *Network links*, *Protocol flows*, *Devices* and *Notes*. Devices keep their icon and zone colour, and carry their kind, level, zone, criticality, IP address, vendor, model, firmware, serial and tags as shape data (**Edit Data** in draw.io). Bend points, port names and flow labels are kept. A device on another site appears as a stub that links to that site's page.
 
 ### 4.11 Offline use and installing as an app
 
@@ -501,20 +501,26 @@ flowchart TB
 flowchart LR
     R["ReSecArc/"] --> SRC["src/"]
     R --> DOCS["docs/<br/>data model · third-party · images"]
-    R --> PUB["public/<br/>favicon · robots.txt"]
+    R --> PUB["public/<br/>favicon · app icons · manifest · robots.txt"]
+    R --> E2E["e2e/<br/>browser tests · README images"]
+    R --> SCR["scripts/<br/>bundle budget · ATT&CK data · app icons · offline plugin"]
+    R --> TR["testresults/<br/>recorded evidence run"]
     R --> GH[".github/workflows/<br/>CI"]
     SRC --> APP["App.tsx · main.tsx · styles.css"]
     SRC --> MODEL["model/"]
     SRC --> STORE["store/"]
     SRC --> UI["ui/"]
+    SRC --> EXP["export/<br/>siteSvg · report · drawio · markup · print"]
+    SRC --> OFF["offline/<br/>sw.js · OfflineNotices"]
     SRC --> EX["examples/templates/<br/>5 fictional projects"]
     MODEL --> MA["schema · io · migrate"]
     MODEL --> MB["ops · structure · notes · areas · layout · levelLayout · stacks"]
     MODEL --> MC["catalog · protocols · purdue · conduits · filter · search · outline · direction"]
     MODEL --> MD["ipam · revisions · share · checks · policies"]
-    MODEL --> ME["csv · csvImport · exportDoc"]
+    MODEL --> ME["csv · csvImport · exportDoc · merge"]
+    MODEL --> MF["attack/<br/>paths · attackFlow · icsTechniques"]
     STORE --> SA["useProject · history"]
-    STORE --> SB["autosave · blocks · theme · prefs · compare · security · announcer"]
+    STORE --> SB["autosave · blocks · theme · prefs · compare · security · derived · install · announcer"]
     UI --> UA["canvas/<br/>Canvas · nodes · edges · view · levelView · useKeyboardConnect · Legend · NodeMenu · TidyButton"]
     UI --> UB["inspector/<br/>Inspector · Bulk · Area · Note · FirewallRules · ProjectPanel · Networks · Revisions · Changes"]
     UI --> UC["icons/<br/>control · field · supervisory · network · enterprise"]
@@ -1253,6 +1259,7 @@ Open the printed local URL. The fictional Riverbend water treatment plant loads 
 | `npm run preview` | Serve the production build locally |
 | `npm run ci` | Type check, lint, unit tests, build and bundle-size check, as run in CI |
 | `npm run e2e` | Browser tests with accessibility checks (Playwright; run `npx playwright install chromium` once) |
+| `npm run readme:images` | Retakes the screenshots in `docs/images/` from a fresh production build (`e2e/readme-images.ts`) |
 
 The build uses relative asset paths, so `dist/` can be served from any static host or sub-path.
 
@@ -1267,11 +1274,11 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["114 unit tests"]
+    A1 --> A2["252 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["Browser tests in Chromium"]
+    B1 --> B2["84 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1326,8 +1333,9 @@ A benchmark opens a generated, fictional estate of 1,000 devices on 5 sites and 
 
 ```mermaid
 pie showData
-    title Unit tests by file (232)
+    title Unit tests by file (252)
     "checks" : 24
+    "levels" : 20
     "v3" : 15
     "model" : 13
     "schema-v2" : 13
@@ -1375,6 +1383,7 @@ pie showData
 | `fields.test.ts` | Custom field definitions, tags, bulk edits, CSV columns |
 | `history-names.test.ts` | Names of undo steps, history jumps, command palette matching |
 | `outline.test.ts` | The outline tree, visible rows, type-ahead, the nearest device in a direction |
+| `levels.test.ts` | Format 6 (level positions and stacked levels), which devices stack, merged edges and summed findings on a stack card, level-tab grids, tidy and stubs |
 | `checks.test.ts` | Every built-in check, the office → RTU example, company policy matching, firewall verdicts |
 | `v5.test.ts` | v4 migration, policies in files and share links, reference checks, the change diff and Markdown record |
 | `store/prefs.test.ts` | Display preferences: defaults, stored panels and sections, widths kept within limits, bad values ignored |
@@ -1397,6 +1406,8 @@ pie showData
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
 | `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
 | `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
+| `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
+| `e2e/offline.spec.ts` | Opening and editing with the network off, a new version offered and reopened with the work kept, the install requirements, installing from the command palette |
 | `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, the long-press menu, an axe scan |
 
 ---
@@ -1409,6 +1420,7 @@ timeline
     v0.1 Foundation : Purdue canvas with devices and links : Modbus and DNP3 flows : Firewall rule editor : Zones and derived conduits : Validated save and open
     v0.2 Breadth : 85 device kinds with icons : Undo, copy, paste, autosave : 12 protocols from a registry : Sites, areas, search, filters : Templates, inventory, exports : Themes and keyboard access
     v0.3 Lifecycle : Notes and tidy layout : IP and VLAN planning : Revisions and change records : Share links and CSV import
+    v0.4 Security and scale : Browser tests and a 1,000-device benchmark : Ports, bend points, tags and custom fields : Command palette, outline and keyboard connections : IEC 62443 checks and company policies : ATT&CK for ICS attack paths and Attack Flow export : Report, draw.io and site merge : Level tabs and stacks : Works offline and installs
 ```
 
 The decisions behind each step are recorded in [decisions.md](decisions.md), and the current state is in [PROJECT_STATUS.md](PROJECT_STATUS.md).
