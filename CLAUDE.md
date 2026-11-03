@@ -14,5 +14,6 @@ For session continuity (including other Claude Code sessions/agents working on t
 - **PROJECT_STATUS.md:** Keep it current. Update it when milestones change, work completes, or blockers appear.
 - **Verify before trusting.** Don't assume external data, AI output, or copied code is correct. Check it.
 - **No placeholder data in production paths.** If something is simulated/demo, label it clearly.
+- **Releases:** follow **docs/RELEASING.md** for every release. In short: a version PR that raises `package.json` and adds the version to the README timeline (section 24); release notes checked against the code and approved by the owner; an annotated tag on the merge commit on `main`; `gh release create`; then a record in decisions.md and PROJECT_STATUS.md. When a version's milestones are all merged, offer a release. Never move or delete a pushed tag.
 
 The PostToolUse hooks in `.claude/settings.json` regenerate FILEMAP.md and mark edits for an end-of-turn review hook. Don't hand-edit FILEMAP.md.
