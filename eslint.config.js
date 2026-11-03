@@ -5,7 +5,8 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  { ignores: ['dist', 'coverage', 'node_modules', '.vite', '.playwright-mcp'] },
+  // video/ is a separate project (the ReSecArc videos, made with Showpilot) with its own dependencies.
+  { ignores: ['dist', 'coverage', 'node_modules', '.vite', '.playwright-mcp', 'video'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
