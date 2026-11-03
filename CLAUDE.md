@@ -9,7 +9,11 @@ For session continuity (including other Claude Code sessions/agents working on t
 
 ## Working rules
 - **FILEMAP first:** Read FILEMAP.md before using Glob for file discovery. It has every file in the project. Only use Glob when it's missing/stale, or Grep when searching file *contents*.
-- **Git:** commit logical chunks on a feature branch. Never commit directly on `main`; it changes only through merged PRs. Merge with a **merge commit** once CI passes. Before pushing, run the project's CI steps and confirm no conflicts with `main`.
+- **Git:** commit logical chunks on a feature branch. Never commit directly on `main`; it changes only through merged PRs. Merge with a **merge commit** once CI passes **and the owner says so** (push and open the PR, then wait for the go-ahead). Before pushing, run the project's CI steps and confirm no conflicts with `main`.
+- **No AI attribution** in commits or PR descriptions (no Co-Authored-By lines for AI tools).
+- **The product is ReSecArc.** Storage keys and the service-worker cache keep the old `conduitot` prefix on purpose, so saved work survives; don't rename them.
+- **Hosting:** the owner hosts on Vercel at https://resecarc.vijaykumarkk.in; merging `main` deploys it. Leave the deploy settings alone.
+- **`video/`** is a separate project (the ReSecArc videos, made with [Showpilot](https://github.com/vijaykumargowdakk/showpilot)) with its own `package.json`. Keep it out of the app's build, lint and tests.
 - **decisions.md:** Append an entry for every decision-worthy event. Format: date, decision, why, user input. This is maintained manually — do it as part of normal replies, not as an afterthought.
 - **PROJECT_STATUS.md:** Keep it current. Update it when milestones change, work completes, or blockers appear.
 - **Verify before trusting.** Don't assume external data, AI output, or copied code is correct. Check it.

@@ -1,0 +1,10 @@
+{
+  "name": "resecarc-videos",
+  "private": true,
+  "type": "module",
+  "description": "The ReSecArc launch video and walkthrough, scripted with Showpilot. Separate from the app: its own dependencies, not part of the app's build or tests.",
+  "devDependencies": {
+    "showpilot": "github:vijaykumargowdakk/showpilot#v0.1.0",
+    "@types/node": "^22.20.5"
+  }
+}
