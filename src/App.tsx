@@ -39,14 +39,19 @@ const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', tim
 /** Removes a share fragment from the address bar so a reload does not offer the same project again. */
 const clearShareFragment = () => history.replaceState(null, '', location.pathname + location.search);
 
-// After reloading to start a new version of the app, the work in progress opens again without asking.
-const resumed = takeResume();
-if (resumed) useProject.getState().load(resumed.project);
+// Read once at start. After reloading to start a new version of the app, the work in progress
+// opens again without asking; otherwise a snapshot found in storage is offered (null: none found).
+const startup: Promise<Snapshot | null> = takeResume().then((resumed) => {
+  if (!resumed) return readAutosave();
+  useProject.getState().load(resumed.project);
+  return null;
+});
 
 export function App() {
   const [errors, setErrors] = useState<string[]>([]);
-  // Read once: a pending snapshot must be restored or discarded before autosave may overwrite it.
-  const [pending, setPending] = useState<Snapshot | null>(() => (resumed ? null : readAutosave()));
+  // A pending snapshot must be restored or discarded before autosave may overwrite it. Undefined
+  // while storage is still being read, so autosave can't start before the snapshot is known.
+  const [pending, setPending] = useState<Snapshot | null | undefined>(undefined);
   const load = useProject((s) => s.load);
   const [searching, setSearching] = useState(false);
   const [choosingTemplate, setChoosingTemplate] = useState(false);
@@ -90,7 +95,19 @@ export function App() {
     [view, openSearch, openHelp],
   );
 
-  useEffect(() => (pending ? undefined : startAutosave()), [pending]);
+  useEffect(() => {
+    let current = true;
+    startup.then(
+      (snapshot) => current && setPending((p) => (p === undefined ? snapshot : p)),
+      // Without the validator the snapshot can't be checked; keep autosave off so it isn't overwritten.
+      () => current && setErrors(['Saved work could not be checked, so autosave is off. Reload the page to try again.']),
+    );
+    return () => {
+      current = false;
+    };
+  }, []);
+
+  useEffect(() => (pending === null ? startAutosave() : undefined), [pending]);
 
   // A shared link carries a whole project in its #fragment; offer it rather than replacing work silently.
   useEffect(() => {
@@ -301,7 +318,7 @@ export function App() {
             />
           )}
           {commanding && <CommandPalette ctx={commandContext} onClose={() => setCommanding(false)} />}
-          {touring && !pending && !shared && <Tour onClose={endTour} />}
+          {touring && pending === null && !shared && <Tour onClose={endTour} />}
           {sharing && <ShareDialog onClose={() => setSharing(false)} />}
           {merging && <MergeDialog onClose={() => setMerging(false)} />}
         </Suspense>

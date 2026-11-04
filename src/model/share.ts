@@ -1,7 +1,8 @@
 // Share-by-link: the whole project, compressed, in the URL fragment (`#share=...`). Browsers never
 // send the fragment to the server, so the design does not leave the sender's and receiver's machines
 // except through the link itself. Uses the built-in CompressionStream; no dependency.
-import { parseProject, serializeProject, type ParseResult } from './io';
+import { parseProjectText, serializeProject } from './fileFormat';
+import type { ParseResult } from './io';
 import type { Project } from './schema';
 
 const PREFIX = 'share=v1.';
@@ -63,10 +64,12 @@ export function isShareFragment(hash: string): boolean {
 export async function decodeShare(hash: string): Promise<ParseResult> {
   const body = hash.replace(/^#/, '');
   if (!body.startsWith(PREFIX)) return { ok: false, errors: ['This is not a ReSecArc share link.'] };
+  let text: string;
   try {
     const bytes = await readAll(pipe(fromBase64Url(body.slice(PREFIX.length)), new DecompressionStream('deflate-raw')), MAX_SHARED_BYTES);
-    return parseProject(new TextDecoder().decode(bytes));
+    text = new TextDecoder().decode(bytes);
   } catch (err) {
     return { ok: false, errors: [`The link is damaged or incomplete (${(err as Error).message || 'unreadable data'}). Ask for the link again.`] };
   }
+  return parseProjectText(text);
 }

@@ -1,20 +1,20 @@
 // Pure, immutable operations on a Project. The store wraps these; tests call them directly.
 import { areaAt } from './areas';
 import { DEVICE_CATALOG } from './catalog';
+import { SCHEMA_VERSION } from './fileFormat';
 import { DEFAULT_SITE } from './migrate';
 import { defaultPortFor, defaultSettings, getProtocol } from './protocols';
 import { levelAtY } from './purdue';
-import {
-  SCHEMA_VERSION,
-  type Asset,
-  type Device,
-  type DeviceType,
-  type FirewallRule,
-  type Flow,
-  type Link,
-  type Project,
-  type RuleEndpoint,
-  type Zone,
+import type {
+  Asset,
+  Device,
+  DeviceType,
+  FirewallRule,
+  Flow,
+  Link,
+  Project,
+  RuleEndpoint,
+  Zone,
 } from './schema';
 
 export function newId(prefix: string): string {
