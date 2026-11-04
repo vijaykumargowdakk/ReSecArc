@@ -1,5 +1,10 @@
 # ReSecArc
 
+[![CI](https://github.com/vijaykumargowdakk/ReSecArc/actions/workflows/ci.yml/badge.svg)](https://github.com/vijaykumargowdakk/ReSecArc/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/vijaykumargowdakk/ReSecArc)](https://github.com/vijaykumargowdakk/ReSecArc/releases/latest)
+[![Licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue)](LICENSE)
+[![Good first issues](https://img.shields.io/github/issues/vijaykumargowdakk/ReSecArc/good%20first%20issue?label=good%20first%20issues&color=7057ff)](https://github.com/vijaykumargowdakk/ReSecArc/labels/good%20first%20issue)
+
 **Design, document and share operational technology (OT) network architectures in the browser.**
 
 ReSecArc is a visual editor for industrial network architectures. You place controllers, field devices, servers and network gear on the levels of the Purdue reference model, then group them into IEC 62443 security zones. You draw the network links and industrial protocol flows between them and write the firewall rules that govern them. The result is one validated JSON file that you can save, version, compare, share as a link and export as diagrams, spreadsheets or a written architecture record.
@@ -1319,6 +1324,12 @@ gitGraph
 | A template | Add a JSON file under `src/examples/templates/` and list it in `index.ts`; the template tests validate it, its IP plan and its round-trip |
 | A file format change | Bump `SCHEMA_VERSION` in `schema.ts` and add a step to `migrate.ts`; older files keep opening |
 
+### 22.5 Contributing
+
+Anyone can contribute: fork the repository and open a pull request. [CONTRIBUTING.md](CONTRIBUTING.md) has the contribution terms, how to claim an issue, and what a pull request needs. Start with an issue labelled [`good first issue`](https://github.com/vijaykumargowdakk/ReSecArc/labels/good%20first%20issue). Everyone follows the [Code of Conduct](CODE_OF_CONDUCT.md); security problems are reported privately as [SECURITY.md](SECURITY.md) describes, and [SUPPORT.md](SUPPORT.md) says where to ask for help.
+
+Bug reports and feature requests use the issue forms in `.github/ISSUE_TEMPLATE/`, pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, and `CODEOWNERS` asks the maintainer to review every change. Labels are defined in `.github/labels.json`; the **Labels** workflow creates and updates them when that file changes on `main` (or when run by hand). Dependabot opens grouped dependency updates once a month.
+
 ---
 
 ## 23. Testing
@@ -1479,6 +1490,13 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 
 ## 27. Licence
 
-Copyright © 2026 Vijay Kumar Gowda K. All rights reserved.
+Copyright © 2026 Vijay Kumar Gowda K.
 
-This is not open-source software. Using, copying, modifying, rebuilding or distributing any part of it requires prior written permission from the copyright holder. See [LICENSE](LICENSE).
+ReSecArc is open-source software under the **GNU Affero General Public License, version 3 only** (AGPL-3.0-only). See [LICENSE](LICENSE) for the licence and [NOTICE](NOTICE) for the additional terms.
+
+- **Free to use, study, change and share**, for individuals and organisations alike.
+- **Credit the author.** Keep the NOTICE file and the "ReSecArc by Vijay Kumar Gowda K" attribution in every copy and modified version, including in the interface of a modified version offered over a network. Mark modified versions as changed, and don't use the ReSecArc name or logo to promote them.
+- **Share your changes.** If you distribute a modified version, or let people use one over a network, you must offer them its complete source code under the same licence.
+- **Commercial licences** are available for organisations that want to use or modify ReSecArc without the AGPL's obligations. Contact the copyright holder through [github.com/vijaykumargowdakk](https://github.com/vijaykumargowdakk).
+
+Contributors keep the copyright in their work and grant the copyright holder a licence to use and relicense it, so ReSecArc can also be offered under commercial licences; see [CONTRIBUTING.md](CONTRIBUTING.md#contribution-terms). Third-party components keep their own licences; see [docs/third-party.md](docs/third-party.md).

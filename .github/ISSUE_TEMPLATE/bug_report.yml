@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in ReSecArc doesn't work as it should.
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Security problems go through [SECURITY.md](https://github.com/vijaykumargowdakk/ReSecArc/blob/main/SECURITY.md), not here.**
+        Don't attach project files with real plant names, addresses or IP plans; use a template or the demo, or remove the details first.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Start from a known design if you can (the Riverbend demo or one of the templates).
+      placeholder: |
+        1. Open the Riverbend demo
+        2. Select the Filtration PLC
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Part of the app
+      options:
+        - Canvas and editing
+        - Properties panel or inventory
+        - Security checks or attack paths
+        - Export, report or share link
+        - Opening or saving files, CSV import
+        - Offline or install
+        - Accessibility or keyboard use
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The live site, a release (for example v0.4.0) or a commit.
+      placeholder: Live site
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 140 on Windows 11, mouse
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots, console errors or a sample file
+      description: Drag files in here. A share link to a small design that shows the problem helps most.
