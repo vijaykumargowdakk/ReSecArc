@@ -3,6 +3,12 @@ contact_links:
   - name: Report a security problem
     url: https://github.com/vijaykumargowdakk/ReSecArc/security/advisories/new
     about: Report vulnerabilities privately. Never in a public issue.
+  - name: Ask a question
+    url: https://github.com/vijaykumargowdakk/ReSecArc/discussions/categories/q-a
+    about: Questions go to Discussions, so answers stay findable.
+  - name: Suggest an idea
+    url: https://github.com/vijaykumargowdakk/ReSecArc/discussions/categories/ideas
+    about: Not sure it's a feature request yet? Talk it through first.
   - name: Read the guide
     url: https://github.com/vijaykumargowdakk/ReSecArc#contents
     about: The README covers every feature, workflow and shortcut.
