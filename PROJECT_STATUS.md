@@ -112,7 +112,6 @@ Work is committed on feature branches, **pushed to `origin`** (github.com/vijayk
 - Below 900px the palette and properties panel become slide-over drawers. On tablets devices are added by tapping the palette; dragging from the palette needs a mouse (HTML5 drag and drop).
 - The screenshots in `docs/images/` are retaken from the current build with `npm run readme:images` (2026-11-02); run it again after visible interface changes.
 - The lane label buttons (open a level tab, stack) are drawn on the canvas, so they shrink when the diagram is zoomed far out; the command palette has the same actions. On a tablet the canvas controls can cover the lowest lane's buttons until the canvas is panned.
-- `NODE_HEIGHT` in `src/model/purdue.ts` must match the `.device-node` height in `src/styles.css` (64px). If they drift apart, lane detection shifts slightly.
 - Chromium's synthetic drag in Playwright can't drive the palette's HTML5 drag-and-drop. In automated checks, dispatch `DragEvent`s on the canvas pane instead.
 
 ## Hosting
