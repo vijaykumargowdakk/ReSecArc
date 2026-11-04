@@ -59,6 +59,7 @@ Add a `decisions.md` entry with the tag, the commit and the go-ahead, and update
 ## Rules
 
 - **Never move or delete a pushed tag.** If a release is wrong, fix its notes with `gh release edit`. If the code is wrong, publish a new patch version.
+- **Cloud sessions can't tag or release.** A Claude Code cloud session can push branches but not tags (its git proxy answers HTTP 403), and has no tool to create releases. There, the owner runs step 3 from their own clone and publishes the release on GitHub, with the approved notes.
 - **Tags and releases are public.** Even after a delete, they may already have been seen or cached.
 - The version in `package.json`, the tag, the release title and the README timeline must all name the same version.
 
@@ -70,5 +71,6 @@ Add a `decisions.md` entry with the tag, the commit and the go-ahead, and update
 | v0.2.0 | Breadth | `c9dfbcf` |
 | v0.3.0 | Lifecycle | `6d09e1b` |
 | v0.4.0 | Security and scale | `3f2a285` (PR #11 merge) |
+| v0.5.0 | Open source | `a0dccab` (PR #24 merge); tag and release pushed by the owner |
 
 v0.1.0 to v0.3.0 were tagged afterwards, on the last merge before the next roadmap began. In those versions the app says ConduitOT and `package.json` does not match the tag. From v0.4.0 on, the version is raised before tagging.
