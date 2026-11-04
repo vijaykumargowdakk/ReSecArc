@@ -1,28 +1,10 @@
 import { z } from 'zod';
+import { DEVICE_TYPES, MAX_COORDINATE, SCHEMA_VERSION } from './fileFormat';
 
-export const SCHEMA_VERSION = 6;
+// Kept here too, so existing imports from the schema keep working.
+export { MAX_COORDINATE, SCHEMA_VERSION };
 
-export const deviceTypeSchema = z.enum([
-  'plc',
-  'rtu',
-  'hmi',
-  'scada',
-  'ews',
-  'historian',
-  'sis',
-  'firewall',
-  'switch',
-  'router',
-  'sensor',
-  'actuator',
-  'jumphost',
-  'workstation',
-  'internet',
-  'gateway',
-  'wap',
-  'server',
-  'machine',
-]);
+export const deviceTypeSchema = z.enum(DEVICE_TYPES);
 
 export const purdueLevelSchema = z.union([
   z.literal(0),
@@ -37,8 +19,6 @@ export const purdueLevelSchema = z.union([
 const idSchema = z.string().min(1);
 const portSchema = z.number().int().min(1).max(65535);
 const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
-/** Canvas coordinates and sizes. The bound is far beyond any real diagram and keeps layout arithmetic exact. */
-export const MAX_COORDINATE = 1_000_000;
 const coordSchema = z.number().min(-MAX_COORDINATE).max(MAX_COORDINATE);
 const sizeSchema = z.number().positive().max(MAX_COORDINATE);
 const pointSchema = z.object({ x: coordSchema, y: coordSchema });

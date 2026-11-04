@@ -534,9 +534,10 @@ flowchart LR
 
 | Path | Responsibility |
 |------|----------------|
-| `src/model/schema.ts` | zod schema for the whole project file; exported TypeScript types |
+| `src/model/fileFormat.ts` | `SCHEMA_VERSION`, coordinate bounds, device types and serialising, without zod; `parseProjectText` loads the validator on demand |
+| `src/model/schema.ts` | zod schema for the whole project file; exported TypeScript types. Loads on demand: startup code imports only its types |
 | `src/model/migrate.ts` | Upgrades older files step by step (v1 → v2 → v3 → v4 → v5 → v6) |
-| `src/model/io.ts` | Parse, migrate, validate and cross-check a file; serialise a project |
+| `src/model/io.ts` | Parse, migrate, validate and cross-check a file; loads on demand |
 | `src/model/ops.ts` | Device, link, flow, zone and rule operations; copy and paste; align and distribute |
 | `src/model/structure.ts` | Sites and areas |
 | `src/model/notes.ts` | Canvas notes |
@@ -1279,11 +1280,11 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["252 unit tests"]
+    A1 --> A2["254 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["84 browser tests in Chromium"]
+    B1 --> B2["85 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1322,7 +1323,7 @@ gitGraph
 | A device kind | Add a variant to the type in `src/model/catalog.ts`, then an icon in `src/ui/icons/` (a test checks that every kind has one) |
 | A protocol | Add one entry to `PROTOCOLS` in `src/model/protocols.ts`; forms, labels, legend and validation follow |
 | A template | Add a JSON file under `src/examples/templates/` and list it in `index.ts`; the template tests validate it, its IP plan and its round-trip |
-| A file format change | Bump `SCHEMA_VERSION` in `schema.ts` and add a step to `migrate.ts`; older files keep opening |
+| A file format change | Bump `SCHEMA_VERSION` in `fileFormat.ts` and add a step to `migrate.ts`; older files keep opening |
 
 ### 22.5 Contributing
 
@@ -1390,6 +1391,7 @@ pie showData
 | `revisions.test.ts` | Saving, restoring and comparing revisions |
 | `share.test.ts` | Share link round-trips and damaged links |
 | `templates.test.ts` | Every template loads, round-trips, uses every protocol and has a clean IP plan |
+| `demo.test.ts` | The demo, loaded without the validator at startup, equals the validated file and is a fresh copy each time |
 | `icons.test.ts` | Every device kind has an icon |
 | `v4.test.ts` | v3 migration, link ports, VLANs, networks, locking, tags and custom fields in the file |
 | `ports.test.ts` | Link interface and VLAN warnings, bend points |
@@ -1409,7 +1411,7 @@ pie showData
 | Browser test file | Covers |
 |-------------------|--------|
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
-| `e2e/data.spec.ts` | Save and open, broken files, autosave restore, share links, IP warnings, revisions, CSV import |
+| `e2e/data.spec.ts` | Save and open, broken files, autosave restore, saved blocks kept after a reload, share links, IP warnings, revisions, CSV import |
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour, the empty-site hint |

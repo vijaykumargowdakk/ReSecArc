@@ -1,9 +1,7 @@
 // Reusable groups of devices ("blocks") saved per browser. Storage may be unavailable, so reads
 // and writes are guarded and the palette simply shows no blocks in that case.
-import { z } from 'zod';
 import { create } from 'zustand';
 import { newId, type Fragment } from '../model/ops';
-import { deviceSchema, flowSchema, linkSchema } from '../model/schema';
 
 const KEY = 'conduitot:blocks';
 
@@ -14,20 +12,17 @@ export interface Block {
   fragment: Fragment;
 }
 
-const blockSchema = z.object({
-  id: z.string().min(1),
-  name: z.string(),
-  savedAt: z.number(),
-  fragment: z.object({ devices: z.array(deviceSchema).min(1), links: z.array(linkSchema), flows: z.array(flowSchema) }),
-});
-
-function read(): Block[] {
+/** The stored blocks, validated. The validator loads on demand, and only if any blocks are stored. */
+async function read(): Promise<Block[]> {
+  let raw: unknown;
   try {
-    const parsed = z.array(blockSchema).safeParse(JSON.parse(localStorage.getItem(KEY) ?? '[]'));
-    return parsed.success ? parsed.data : [];
+    raw = JSON.parse(localStorage.getItem(KEY) ?? '[]');
   } catch {
     return [];
   }
+  if (Array.isArray(raw) && raw.length === 0) return [];
+  const { parseBlocks } = await import('./blockSchema');
+  return parseBlocks(raw);
 }
 
 function write(blocks: Block[]): boolean {
@@ -41,22 +36,33 @@ function write(blocks: Block[]): boolean {
 
 interface BlocksState {
   blocks: Block[];
+  /** False until the stored blocks have been read; saving waits for it so none are overwritten. */
+  ready: boolean;
   /** Returns false when the browser would not store it. */
   save: (name: string, fragment: Fragment) => boolean;
   remove: (id: string) => void;
 }
 
 export const useBlocks = create<BlocksState>((set, get) => ({
-  blocks: read(),
+  blocks: [],
+  ready: false,
   save: (name, fragment) => {
+    if (!get().ready) return false;
     const blocks = [...get().blocks, { id: newId('block'), name, savedAt: Date.now(), fragment }];
     if (!write(blocks)) return false;
     set({ blocks });
     return true;
   },
   remove: (id) => {
+    if (!get().ready) return;
     const blocks = get().blocks.filter((b) => b.id !== id);
     write(blocks);
     set({ blocks });
   },
 }));
+
+void read().then(
+  (blocks) => useBlocks.setState({ blocks, ready: true }),
+  // If the validator can't load, stored blocks stay untouched: saving keeps returning false.
+  () => undefined,
+);

@@ -34,6 +34,20 @@ test('restores unsaved work after a reload', async ({ page }) => {
   await expect(deviceNode(page, 'Renamed PLC')).toBeVisible();
 });
 
+test('keeps a saved block after a reload and inserts it from the palette', async ({ page }) => {
+  await deviceNode(page, 'Filtration PLC').click();
+  await deviceNode(page, 'Chemical dosing PLC').click({ modifiers: ['Control'] });
+  page.once('dialog', (dialog) => dialog.accept('Dosing pair'));
+  await page.getByRole('button', { name: 'Save as reusable block' }).click();
+  const block = page.getByRole('button', { name: 'Dosing pair', exact: true });
+  await expect(block).toBeVisible();
+
+  // Stored blocks are read and validated after startup, with the validator loaded on demand.
+  await page.reload();
+  await block.click();
+  await expect.poll(() => deviceCount(page)).toBe(21);
+});
+
 test('shares a design as a link that opens in another tab', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await loadTemplate(page, /Gas pipeline/);

@@ -20,7 +20,8 @@ import { addNote, createNote, moveNote, removeNote } from '../../model/notes';
 import { addDevice, addFlow, addLink, createDevice, defaultFlow, moveDevice, removeDevice, removeFlow, removeLink, replaceFlow, updateLink } from '../../model/ops';
 import { insertWaypoint } from '../../model/routing';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../../model/purdue';
-import { deviceTypeSchema, type Device, type DeviceType, type Project } from '../../model/schema';
+import { isDeviceType } from '../../model/fileFormat';
+import type { Device, DeviceType, Project } from '../../model/schema';
 import { moveArea, removeArea } from '../../model/structure';
 import { announce } from '../../store/announcer';
 import { useComparison } from '../../store/compare';
@@ -59,9 +60,8 @@ export const NOTE_DND_MIME = 'application/x-resecarc-note';
 /** Drag payload `type` or `type:variant`, validated against the catalog. */
 export function parseDeviceKind(payload: string): { type: DeviceType; variant: string } | null {
   const [rawType, variant = 'generic'] = payload.split(':');
-  const type = deviceTypeSchema.safeParse(rawType);
-  if (!type.success || !variantInfo(type.data, variant)) return null;
-  return { type: type.data, variant };
+  if (!isDeviceType(rawType) || !variantInfo(rawType, variant)) return null;
+  return { type: rawType, variant };
 }
 
 /** Above this many nodes, only the visible part of the site is drawn. */
