@@ -1432,6 +1432,7 @@ timeline
     v0.2 Breadth : 85 device kinds with icons : Undo, copy, paste, autosave : 12 protocols from a registry : Sites, areas, search, filters : Templates, inventory, exports : Themes and keyboard access
     v0.3 Lifecycle : Notes and tidy layout : IP and VLAN planning : Revisions and change records : Share links and CSV import
     v0.4 Security and scale : Browser tests and a 1,000-device benchmark : Ports, bend points, tags and custom fields : Command palette, outline and keyboard connections : IEC 62443 checks and company policies : ATT&CK for ICS attack paths and Attack Flow export : Report, draw.io and site merge : Level tabs and stacks : Works offline and installs
+    v0.5 Open source : AGPL-3.0 licence, with commercial licences : Contributor guide, code of conduct and security policy : Issue forms, labels and starter issues
 ```
 
 The decisions behind each step are recorded in [decisions.md](decisions.md), and the current state is in [PROJECT_STATUS.md](PROJECT_STATUS.md).
