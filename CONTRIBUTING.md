@@ -22,6 +22,7 @@ The pull request template has a checkbox for these terms. A pull request is merg
 ## How work is organised
 
 - **Issues** are the to-do list. Every change starts as an issue, so it can be discussed before code is written. Look for [`good first issue`](https://github.com/vijaykumargowdakk/ReSecArc/labels/good%20first%20issue) for a small, well-described place to start, and [`help wanted`](https://github.com/vijaykumargowdakk/ReSecArc/labels/help%20wanted) for larger work that is ready to pick up.
+- **Discussions** are for everything that isn't yet a piece of work: questions in [Q&A](https://github.com/vijaykumargowdakk/ReSecArc/discussions/categories/q-a), rough ideas in [Ideas](https://github.com/vijaykumargowdakk/ReSecArc/discussions/categories/ideas), designs you made with ReSecArc in [Show and tell](https://github.com/vijaykumargowdakk/ReSecArc/discussions/categories/show-and-tell), and release news in Announcements. An idea that the maintainer agrees to build becomes an issue.
 - **Claim an issue** by commenting on it before you start, so two people don't do the same work. The maintainer assigns it to you.
 - **Labels** say what an issue is (`bug`, `enhancement`, `documentation`, `chore`), which part of the app it touches (`area: …`), and where it stands (`needs triage`, `blocked`). They are defined in [.github/labels.json](.github/labels.json) and synced by a workflow, so change them there, not in the GitHub settings.
 - **Decisions** that change how the project works are recorded in [decisions.md](decisions.md), and the current state is in [PROJECT_STATUS.md](PROJECT_STATUS.md). Read both before starting a larger change.
@@ -72,12 +73,12 @@ Then make sure your branch has no conflicts with `main`.
 - Fill in the pull request template, link the issue (`Closes #123`), and tick the contribution terms.
 - Add screenshots for visible changes.
 - CI must pass: the `ci` and `e2e` jobs.
-- The maintainer reviews every pull request. It is merged with a **merge commit**, only after CI passes and the maintainer approves.
+- The maintainer reviews every pull request. `main` is protected: a pull request can be merged only when the `ci` and `e2e` checks pass and the maintainer (the code owner) has approved it, and every review thread is resolved. A new push dismisses an earlier approval, so it is approved again. Nobody can push to `main` directly or force-push it, and only merge commits are allowed.
 - Merging `main` deploys the live app, so a pull request is not merged until it is ready to ship.
 
 ## Reporting bugs and asking for features
 
-Use the issue forms: **Bug report** or **Feature request**. For a question, open an issue with the `question` label.
+Use the issue forms: **Bug report** or **Feature request**. Ask questions in [Discussions → Q&A](https://github.com/vijaykumargowdakk/ReSecArc/discussions/categories/q-a), and float an idea you're unsure about in [Discussions → Ideas](https://github.com/vijaykumargowdakk/ReSecArc/discussions/categories/ideas) before filing a feature request.
 
 **Security problems are never reported in a public issue.** See [SECURITY.md](SECURITY.md).
 

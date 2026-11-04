@@ -42,6 +42,7 @@ git tag -a v0.5.0 "$SHA" -m "ReSecArc v0.5.0 - <Name>"
 git push origin v0.5.0
 
 gh release create v0.5.0 --verify-tag --latest \
+  --discussion-category "Announcements" \
   --title "ReSecArc v0.5.0 — <Name>" \
   --notes-file notes-v0.5.0.md
 gh release list
