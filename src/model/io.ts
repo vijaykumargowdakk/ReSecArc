@@ -1,13 +1,13 @@
 import { variantInfo } from './catalog';
 import { migrate } from './migrate';
 import { getProtocol, ruleProtocolOptions, settingsErrors } from './protocols';
-import { projectSchema, SCHEMA_VERSION, type Design, type Project } from './schema';
+import { SCHEMA_VERSION } from './fileFormat';
+import { projectSchema, type Design, type Project } from './schema';
+
+// io.ts holds the validator, so it loads on demand: startup code calls parseProjectText in fileFormat.ts.
+export { serializeProject } from './fileFormat';
 
 export type ParseResult = { ok: true; project: Project } | { ok: false; errors: string[] };
-
-export function serializeProject(project: Project): string {
-  return JSON.stringify(project, null, 2) + '\n';
-}
 
 const RULE_PROTOCOLS = new Set(ruleProtocolOptions().map((o) => o.value));
 

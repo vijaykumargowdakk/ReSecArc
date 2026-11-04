@@ -1,7 +1,7 @@
 // Per-browser autosave of the working project. Storage can be unavailable (private mode, blocked
 // site data), so every access is guarded and the editor keeps working without it.
 import { create } from 'zustand';
-import { parseProject, serializeProject } from '../model/io';
+import { parseProjectText, serializeProject } from '../model/fileFormat';
 import type { Project } from '../model/schema';
 import { useProject } from './useProject';
 
@@ -16,16 +16,19 @@ export interface Snapshot {
 
 export const useAutosaveStatus = create<{ savedAt: number | null; failed: boolean }>(() => ({ savedAt: null, failed: false }));
 
-export function readAutosave(): Snapshot | null {
+/** The saved snapshot, validated like an opened file. The validator loads only if there is one. */
+export async function readAutosave(): Promise<Snapshot | null> {
+  let savedAt: unknown, project: unknown;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
-    const { savedAt, project } = JSON.parse(raw) as { savedAt: unknown; project: unknown };
-    const parsed = parseProject(JSON.stringify(project));
-    return typeof savedAt === 'number' && parsed.ok ? { savedAt, project: parsed.project } : null;
+    ({ savedAt, project } = JSON.parse(raw) as { savedAt: unknown; project: unknown });
   } catch {
     return null;
   }
+  if (typeof savedAt !== 'number') return null;
+  const parsed = await parseProjectText(JSON.stringify(project));
+  return parsed.ok ? { savedAt, project: parsed.project } : null;
 }
 
 function write(project: Project): void {
@@ -85,7 +88,7 @@ export function saveForReload(): void {
 }
 
 /** The snapshot saved by saveForReload, once; null on any other page load. */
-export function takeResume(): Snapshot | null {
+export async function takeResume(): Promise<Snapshot | null> {
   try {
     if (!sessionStorage.getItem(RESUME_KEY)) return null;
     sessionStorage.removeItem(RESUME_KEY);

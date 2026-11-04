@@ -1,6 +1,6 @@
 // Bend points on links and flows. Edges run from the source device through each waypoint to the
 // target device; these helpers keep that list in a sensible order as points are added and removed.
-import { MAX_COORDINATE } from './schema';
+import { MAX_COORDINATE } from './fileFormat';
 
 export interface Point {
   x: number;
