@@ -1417,7 +1417,7 @@ pie showData
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
-| `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
+| `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |
 | `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
 | `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
