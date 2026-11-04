@@ -59,14 +59,15 @@ export function Outline() {
   const indexById = useMemo(() => new Map(rows.map((r, i) => [r.item.id, i])), [rows]);
   const deviceById = useMemo(() => new Map(project.devices.map((d) => [d.id, d])), [project.devices]);
   const [focusedId, setFocusedId] = useState(() => rows[0]?.item.id ?? '');
-  const lastIndex = useRef(0);
+  const [lastIndex, setLastIndex] = useState(0);
   // Set when a key press moves focus, so the effect below focuses the new row (not on every render).
   const moveFocus = useRef(false);
   const [picking, setPicking] = useState<{ mode: ConnectMode; device: Device } | null>(null);
 
   // The focused row may disappear (deleted, filtered out, parent collapsed); fall back to the row now in its place.
-  const current = indexById.get(focusedId) ?? Math.min(lastIndex.current, rows.length - 1);
-  lastIndex.current = current;
+  const current = indexById.get(focusedId) ?? Math.min(lastIndex, rows.length - 1);
+  // Remembered while rendering (React allows a component to update its own state here).
+  if (current !== lastIndex) setLastIndex(current);
   const currentId = rows[current]?.item.id;
 
   useEffect(() => {

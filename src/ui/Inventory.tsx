@@ -1,5 +1,5 @@
 import { ArrowDownUp, Crosshair, Download, Trash2, TriangleAlert, Upload } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../model/catalog';
 import { addressesToCsv, addressRows, devicesToCsv, endpointName, flowsToCsv, linksToCsv, rulesToCsv } from '../model/csv';
 import { addressSortKey, deviceAddresses } from '../model/ipam';
@@ -12,7 +12,7 @@ import { useAddressReport, useLinkIssues } from '../store/derived';
 import { NO_SELECTION, useProject } from '../store/useProject';
 import { downloadText, slug } from './download';
 import { FieldInput } from './fields';
-import { VlanInput } from './form';
+import { useDraft, VlanInput } from './form';
 import { DeviceIcon } from './icons';
 import { ImportDialog } from './ImportDialog';
 
@@ -28,8 +28,7 @@ function Cell({ value, onChange, label }: { value: string; onChange: (v: string)
 /** Tags as "a; b" text, applied on blur so separators can be typed. */
 function TagsCell({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
   const text = tags.join('; ');
-  const [draft, setDraft] = useState(text);
-  useEffect(() => setDraft(text), [text]);
+  const [draft, setDraft] = useDraft(text);
   return (
     <input
       type="text"

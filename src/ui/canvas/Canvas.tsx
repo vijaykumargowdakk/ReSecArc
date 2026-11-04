@@ -139,7 +139,10 @@ export function Canvas() {
   const [edges, setEdges] = useState<CanvasEdge[]>(view.edges);
 
   useEffect(() => {
+    // React Flow owns the drawn nodes (it adds measured sizes and drag state), so the computed view
+    // is merged into its state here; this is the external-system sync the rule allows for.
     // A level tab draws its own band instead of the lanes.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNodes((prev) => mergeNodes([...(level === null ? LANE_NODES : []), ...view.nodes], prev));
     setEdges(view.edges);
     setDrawnDevices(view.drawn);
@@ -155,7 +158,10 @@ export function Canvas() {
   // Frame the newly shown site or newly loaded project (devices, areas, notes and stubs), unless a search
   // result is about to be centred instead.
   const latestView = useRef(view);
-  latestView.current = view;
+  // Declared before the effect that reads it, so it runs first in each commit.
+  useEffect(() => {
+    latestView.current = view;
+  });
   // Bounds come from known node sizes rather than measured ones: when only visible nodes are drawn,
   // most of a newly opened site has not been measured yet.
   useEffect(() => {

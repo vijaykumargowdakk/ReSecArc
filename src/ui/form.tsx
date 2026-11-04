@@ -1,7 +1,22 @@
 import { ChevronRight } from 'lucide-react';
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { parseVlans } from '../model/ipam';
 import { sectionKey, usePrefs } from '../store/prefs';
+
+/**
+ * Text being edited from `source`, which starts over whenever `source` changes (an undo, another
+ * device selected). It is reset while rendering rather than in an effect, so the input never shows
+ * the old text for a frame (https://react.dev/learn/you-might-not-need-an-effect).
+ */
+export function useDraft(source: string): [string, (draft: string) => void] {
+  const [draft, setDraft] = useState(source);
+  const [seen, setSeen] = useState(source);
+  if (seen !== source) {
+    setSeen(source);
+    setDraft(source);
+  }
+  return [draft, setDraft];
+}
 
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
@@ -47,8 +62,7 @@ export function IntInput({
   allowEmpty?: boolean;
   placeholder?: string;
 }) {
-  const [draft, setDraft] = useState(value === null ? '' : String(value));
-  useEffect(() => setDraft(value === null ? '' : String(value)), [value]);
+  const [draft, setDraft] = useDraft(value === null ? '' : String(value));
   const valid = (raw: string) => {
     if (raw === '') return allowEmpty;
     const n = Number(raw);
@@ -88,8 +102,7 @@ export function VlanInput({
   placeholder?: string;
 }) {
   const text = value.join(' ');
-  const [draft, setDraft] = useState(text);
-  useEffect(() => setDraft(text), [text]);
+  const [draft, setDraft] = useDraft(text);
   const parsed = parseVlans(draft);
   return (
     <input

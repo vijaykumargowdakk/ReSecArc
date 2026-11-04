@@ -1235,7 +1235,7 @@ Treat project files, exports and share links as sensitive: they can contain addr
 | Offline | A hand-written service worker (`src/offline/sw.js`) and a small Vite plugin that lists every built file in it | About 60 lines with nothing to configure; the list comes from the build, so no file can be missed |
 | Build | Vite 5 | Fast development server and small production bundles |
 | Tests | Vitest 2; Playwright with axe-core | Fast unit tests; real-browser flows and accessibility checks against the production build |
-| Lint | ESLint 9 with typescript-eslint | Consistent code |
+| Lint | ESLint 10 with typescript-eslint and the React hooks rules | Consistent code |
 
 Licences of all runtime dependencies are listed in [docs/third-party.md](docs/third-party.md).
 
