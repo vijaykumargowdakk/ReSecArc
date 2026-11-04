@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/vijaykumargowdakk/ReSecArc/security/advisories/new
+    about: Report vulnerabilities privately. Never in a public issue.
+  - name: Read the guide
+    url: https://github.com/vijaykumargowdakk/ReSecArc#contents
+    about: The README covers every feature, workflow and shortcut.

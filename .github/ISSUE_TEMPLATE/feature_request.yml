@@ -1,0 +1,33 @@
+name: Feature request
+description: An idea for something ReSecArc should do.
+labels: ["enhancement", "needs triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you'd like
+      description: How it could work. Sketches and examples from other tools are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Other ways you've considered
+  - type: textarea
+    id: standards
+    attributes:
+      label: Standards involved
+      description: If it relates to IEC 62443, the Purdue model, MITRE ATT&CK for ICS or a protocol, name the clause or section.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Helping out
+      options:
+        - label: I'd like to work on this myself.

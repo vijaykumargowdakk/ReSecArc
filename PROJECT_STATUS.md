@@ -24,6 +24,11 @@ M24 added design checks that cite IEC 62443, plus company policy rules (schema v
 
 Work is committed on feature branches, **pushed to `origin`** (github.com/vijaykumargowdakk/ReSecArc) and merged into `main` **through a pull request** with a merge commit once CI passes. Never merge locally and push `main`, and never delete a branch before its PR is merged. Up to M23 every branch was merged locally and only `main` was pushed, so no branches or PRs exist on GitHub for M0–M23 (decisions.md, 2026-10-28). Before each push, sweep history for retired names and confirm no AI attribution lines.
 
+## Community and contributing
+The repository is run like an open-source project while the licence stays all rights reserved (decisions.md, 2026-11-04). Contributor-facing files: `CONTRIBUTING.md` (by invitation; contributors grant a licence that allows relicensing, so a future open-source LICENSE needs no contributor sign-off), `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, issue forms and a PR template in `.github/`, `CODEOWNERS`, labels in `.github/labels.json` (synced by `.github/workflows/labels.yml`, never deletes), and monthly Dependabot updates. **Every change starts as a GitHub issue**; turn new known issues into issues too. Open issues: #14 and #15 (`good first issue`), #16 (`help wanted`, toolbar), #17–#21 (touch drag, tablet lane buttons, lane buttons when zoomed out, IPv6, draw.io flows).
+
+**Owner to do in GitHub settings** (can't be done from the repository): enable private vulnerability reporting (Settings → Code security), protect `main` (require a PR, the `ci` and `e2e` checks and a CODEOWNERS review), add the second account and the friend as collaborators, optionally enable Discussions, and run the **Labels** workflow once after merging (Actions → Labels → Run workflow).
+
 ## Dev loop
 - Install: `npm ci` (browser tests also need `npx playwright install chromium` once)
 - Dev server: `npm run dev`
