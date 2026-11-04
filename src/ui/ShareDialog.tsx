@@ -11,7 +11,9 @@ export function ShareDialog({ onClose }: { onClose: () => void }) {
   const [includeRevisions, setIncludeRevisions] = useState(false);
   const [link, setLink] = useState('');
   const [error, setError] = useState('');
-  const [copied, setCopied] = useState(false);
+  // The link last copied; a changed link (revisions included or not) shows as not copied yet.
+  const [copiedLink, setCopiedLink] = useState('');
+  const copied = link !== '' && copiedLink === link;
 
   useEffect(() => {
     dialog.current?.showModal();
@@ -19,7 +21,6 @@ export function ShareDialog({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     let cancelled = false;
-    setCopied(false);
     encodeShare(project, { includeRevisions })
       .then((fragment) => {
         if (!cancelled) setLink(`${location.origin}${location.pathname}#${fragment}`);
@@ -33,7 +34,7 @@ export function ShareDialog({ onClose }: { onClose: () => void }) {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link);
-      setCopied(true);
+      setCopiedLink(link);
     } catch {
       // Clipboard access can be refused; leave the link selected so it can be copied by hand.
       input.current?.select();

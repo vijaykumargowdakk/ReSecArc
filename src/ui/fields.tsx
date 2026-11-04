@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import type { FieldDef } from '../model/schema';
+import { useDraft } from './form';
 
 /** Tags as removable chips plus an input with suggestions; Enter or comma adds, Backspace on empty removes the last. */
 export function TagEditor({
@@ -98,8 +99,7 @@ export function FieldInput({
 /** Comma-separated choices for a list field, applied when the input loses focus or Enter is pressed. */
 export function OptionsInput({ options, onChange, ariaLabel }: { options: string[]; onChange: (options: string[]) => void; ariaLabel?: string }) {
   const text = options.join(', ');
-  const [draft, setDraft] = useState(text);
-  useEffect(() => setDraft(text), [text]);
+  const [draft, setDraft] = useDraft(text);
   const commit = () => {
     const next = [...new Set(draft.split(',').map((o) => o.trim().slice(0, 60)).filter(Boolean))].slice(0, 100);
     if (next.join('|') !== options.join('|')) onChange(next);
@@ -120,8 +120,7 @@ export function OptionsInput({ options, onChange, ariaLabel }: { options: string
 
 /** Text applied when the input loses focus or Enter is pressed; an empty value reverts, for names that must not be blank. */
 export function NameInput({ value, onCommit, ariaLabel }: { value: string; onCommit: (value: string) => void; ariaLabel?: string }) {
-  const [draft, setDraft] = useState(value);
-  useEffect(() => setDraft(value), [value]);
+  const [draft, setDraft] = useDraft(value);
   const commit = () => {
     const next = draft.trim().slice(0, 60);
     if (next && next !== value) onCommit(next);
