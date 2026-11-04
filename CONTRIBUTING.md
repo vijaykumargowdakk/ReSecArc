@@ -4,21 +4,18 @@ Thank you for helping with ReSecArc. This guide covers who can contribute, the t
 
 ## Who can contribute
 
-ReSecArc is **not open-source software** (see [LICENSE](LICENSE)). The repository is public so the work can be read, but using, copying or changing it needs the copyright holder's permission.
-
-Contributions are by invitation. The copyright holder gives that permission by adding you as a collaborator on this repository, or in writing on an issue. That permission covers working on ReSecArc in this repository; it does not grant any other use of the software.
-
-If you are not a collaborator and want to help, open an issue and ask.
+Anyone. ReSecArc is open source under the GNU Affero General Public License, version 3 only ([LICENSE](LICENSE)), with the additional terms in [NOTICE](NOTICE). Fork the repository, make your change on a branch in your fork, and open a pull request. Collaborators can push branches to this repository directly instead.
 
 ## Contribution terms
 
 By opening a pull request, you agree that:
 
 1. **You wrote the contribution**, or you have the right to submit it, and it does not include code, images or data you may not share.
-2. **You keep the copyright** in your contribution, and you grant the copyright holder of ReSecArc a perpetual, worldwide, non-exclusive, royalty-free, irrevocable licence to use, copy, modify, publish, distribute, sublicense and **relicense** it, under any terms, as part of ReSecArc. This includes releasing it later under an open-source licence.
-3. **Third-party material is marked.** Anything taken from elsewhere is named in the pull request, with its licence, and listed in [docs/third-party.md](docs/third-party.md).
+2. **Your contribution is licensed under the AGPL-3.0-only**, like the rest of ReSecArc, so everyone receives it under the same terms.
+3. **You keep the copyright** in your contribution, and you also grant the copyright holder of ReSecArc a perpetual, worldwide, non-exclusive, royalty-free, irrevocable licence to use, copy, modify, publish, distribute, sublicense and **relicense** it, under any terms, as part of ReSecArc. This includes offering it under a commercial licence.
+4. **Third-party material is marked.** Anything taken from elsewhere is named in the pull request, with its licence, and listed in [docs/third-party.md](docs/third-party.md). It must be compatible with the AGPL-3.0 (MIT, BSD, ISC and Apache-2.0 are).
 
-These terms exist so that ReSecArc can change its licence later, for example to an open-source one, without having to trace every past contributor. They are not legal advice; the copyright holder should check them with a lawyer before relicensing.
+Term 3 is what lets ReSecArc offer commercial licences, or change its licence later, without tracing every past contributor; the open-source version stays AGPL either way. These terms are not legal advice; the copyright holder should have a lawyer check them before selling commercial licences or relicensing.
 
 The pull request template has a checkbox for these terms. A pull request is merged only with it ticked.
 

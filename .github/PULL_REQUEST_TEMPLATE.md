@@ -21,4 +21,4 @@ Closes #
 
 ## Contribution terms
 
-- [ ] I agree to the [contribution terms](https://github.com/vijaykumargowdakk/ReSecArc/blob/main/CONTRIBUTING.md#contribution-terms): I have the right to submit this, I keep my copyright, and I grant the copyright holder a licence to use and relicense it as part of ReSecArc, including under a future open-source licence.
+- [ ] I agree to the [contribution terms](https://github.com/vijaykumargowdakk/ReSecArc/blob/main/CONTRIBUTING.md#contribution-terms): I have the right to submit this, it is licensed under the AGPL-3.0-only, I keep my copyright, and I grant the copyright holder a licence to use and relicense it as part of ReSecArc, including under a commercial licence.
