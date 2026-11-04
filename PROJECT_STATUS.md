@@ -29,7 +29,9 @@ Work is committed on feature branches, **pushed to `origin`** (github.com/vijayk
 
 **Major upgrades not done yet** (Dependabot's single-package PRs #26–#30 failed `npm ci` and were closed): React 19 needs `react`, `react-dom`, `@types/react`, `@types/react-dom` and a compatible `@xyflow/react` moved together; TypeScript 7 waits for `typescript-eslint` to accept it (8.72 allows < 6.1); ESLint 10 needs `eslint-plugin-react-hooks` upgraded with it. Do each as one PR with the related packages, then fix code and run both test suites.
 
-**Owner to do in GitHub settings** (can't be done from the repository): enable private vulnerability reporting (Settings → Code security), protect `main` (require a PR, the `ci` and `e2e` checks and a CODEOWNERS review), add the second account and the friend as collaborators, optionally enable Discussions, and run the **Labels** workflow once after merging (Actions → Labels → Run workflow).
+**GitHub settings (2026-11-04):** private vulnerability reporting is **on** (SECURITY.md relies on it), the **Labels** workflow has been run, and the repository has search topics (ot-security, ics-security, iec-62443, purdue-model, mitre-attack and others). GitHub detects the licence as AGPL-3.0 and the community profile is 100%. **Still for the owner:** add the second account and the friend as collaborators (needs their GitHub usernames), and optionally enable Discussions. **Branch protection for `main` is not set on purpose:** requiring a CODEOWNERS review would block the owner's own PRs, because the owner is the only code owner and GitHub doesn't let authors approve their own PRs. Revisit it once a second maintainer can review; requiring the `ci` and `e2e` checks alone would be safe.
+
+**Why v0.5.0 exists:** ReSecArc is submitted to Black Hat Asia 2027 Arsenal (results 2026-12-01, demo 2027-03-02 to 03), which is for open-source tools. Keep `main` open source under AGPL, green, and with an accurate README and working live app until Arsenal is over.
 
 ## Dev loop
 - Install: `npm ci` (browser tests also need `npx playwright install chromium` once)
