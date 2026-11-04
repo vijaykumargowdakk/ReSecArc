@@ -1328,7 +1328,7 @@ gitGraph
 
 Anyone can contribute: fork the repository and open a pull request. [CONTRIBUTING.md](CONTRIBUTING.md) has the contribution terms, how to claim an issue, and what a pull request needs. Start with an issue labelled [`good first issue`](https://github.com/vijaykumargowdakk/ReSecArc/labels/good%20first%20issue). Everyone follows the [Code of Conduct](CODE_OF_CONDUCT.md); security problems are reported privately as [SECURITY.md](SECURITY.md) describes, and [SUPPORT.md](SUPPORT.md) says where to ask for help.
 
-Bug reports and feature requests use the issue forms in `.github/ISSUE_TEMPLATE/`, pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, and `CODEOWNERS` asks the maintainer to review every change. Labels are defined in `.github/labels.json`; the **Labels** workflow creates and updates them when that file changes on `main` (or when run by hand). Dependabot opens grouped dependency updates once a month.
+Bug reports and feature requests use the issue forms in `.github/ISSUE_TEMPLATE/`, pull requests use `.github/PULL_REQUEST_TEMPLATE.md`, and `CODEOWNERS` asks the maintainer to review every change. Labels are defined in `.github/labels.json`; the **Labels** workflow creates and updates them when that file changes on `main` (or when run by hand). Dependabot opens grouped dependency updates once a month: minor and patch versions for npm packages, and every version for GitHub Actions. Major npm upgrades (such as React 19 or TypeScript 7) often need their related packages moved at the same time, so they are done by hand.
 
 ---
 

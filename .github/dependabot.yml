@@ -6,6 +6,9 @@ updates:
       interval: monthly
     open-pull-requests-limit: 5
     labels: ["dependencies", "chore"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
