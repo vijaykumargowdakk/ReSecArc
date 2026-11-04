@@ -812,7 +812,7 @@ React Flow then draws these nodes and edges above the Purdue lanes, which are lo
 
 Some details worth knowing:
 
-- **Lanes** are 150 px tall and drawn as locked background nodes. A device's level comes from where its centre is, so `NODE_HEIGHT` in `src/model/purdue.ts` must match the node height in `styles.css`.
+- **Lanes** are 150 px tall and drawn as locked background nodes. A device's level comes from where its centre is, so `NODE_HEIGHT` in `src/model/purdue.ts` must match the node height in `styles.css` (`purdue.test.ts` checks this).
 - **Edges** are straight lines from border to border. Flows run slightly offset from links so both stay visible, and each flow's label shows its protocol and key settings, for example `Modbus RW`.
 - **Moves** are committed when a drag ends, or immediately for arrow-key nudges, so a drag is one undo step.
 - **Areas** carry their member devices while being dragged.
@@ -1280,7 +1280,7 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["254 unit tests"]
+    A1 --> A2["255 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
@@ -1399,6 +1399,7 @@ pie showData
 | `history-names.test.ts` | Names of undo steps, history jumps, command palette matching |
 | `outline.test.ts` | The outline tree, visible rows, type-ahead, the nearest device in a direction |
 | `levels.test.ts` | Format 6 (level positions and stacked levels), which devices stack, merged edges and summed findings on a stack card, level-tab grids, tidy and stubs |
+| `purdue.test.ts` | `NODE_HEIGHT` matches the `.device-node` height in `styles.css`, so lane detection lines up with the drawn boxes |
 | `checks.test.ts` | Every built-in check, the office → RTU example, company policy matching, firewall verdicts |
 | `v5.test.ts` | v4 migration, policies in files and share links, reference checks, the change diff and Markdown record |
 | `store/prefs.test.ts` | Display preferences: defaults, stored panels and sections, widths kept within limits, bad values ignored |
@@ -1418,7 +1419,7 @@ pie showData
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
-| `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites |
+| `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |
 | `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
 | `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
