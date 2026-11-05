@@ -1,6 +1,6 @@
 {
   "name": "resecarc",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Browser-based designer for OT network architectures: Purdue levels, IEC 62443 zones, industrial protocol flows, firewall rules, IP plans and revisions.",
   "private": true,
   "license": "AGPL-3.0-only",
