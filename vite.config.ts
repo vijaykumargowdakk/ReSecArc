@@ -1,7 +1,7 @@
-/// <reference types="vitest" />
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { offline } from './scripts/offline-plugin';
+import { offline } from './scripts/offline-plugin.ts';
 
 // Relative base so the build works from any GitHub Pages sub-path.
 export default defineConfig({
