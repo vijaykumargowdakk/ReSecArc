@@ -1,4 +1,4 @@
-import { Handle, NodeResizer, Position, type Node, type NodeProps } from '@xyflow/react';
+import { Handle, NodeResizer, Position, useStore, type Node, type NodeProps } from '@xyflow/react';
 import { ChevronsDownUp, ChevronsUpDown, ExternalLink, Layers, Lock, ShieldAlert } from 'lucide-react';
 import { useState, type CSSProperties } from 'react';
 import { DEVICE_CATALOG, kindLabel } from '../../model/catalog';
@@ -7,6 +7,7 @@ import { updateNote } from '../../model/notes';
 import { updateArea } from '../../model/structure';
 import { useProject } from '../../store/useProject';
 import { DeviceIcon } from '../icons';
+import { LANE_BUTTON_PX, laneButtonSize } from './laneButtons';
 import type { AreaNodeData, DeviceNodeData, NoteNodeData, PortalNodeData } from './view';
 
 export type DeviceFlowNode = Node<DeviceNodeData, 'device'>;
@@ -209,6 +210,12 @@ export function NoteNode({ id, data, selected }: NodeProps<NoteFlowNode>) {
 
 export function LaneNode({ data }: NodeProps<LaneFlowNode>) {
   const { level } = data.lane;
+  // Only zooms below 100 % change the buttons, so lanes re-render only then.
+  const zoom = useStore((s) => Math.min(1, s.transform[2]));
+  const buttonSize = laneButtonSize(zoom);
+  const sized = buttonSize > LANE_BUTTON_PX;
+  const buttonStyle = sized ? { width: buttonSize, height: buttonSize } : undefined;
+  const iconSize = sized ? Math.round((13 * buttonSize) / LANE_BUTTON_PX) : 13;
   const label = levelLabel(level);
   const stacked = useProject((s) => s.project.sites.find((x) => x.id === s.activeSiteId)?.stackedLevels?.includes(level) === true);
   // Stacking is switched by a module that loads on the first use.
@@ -222,11 +229,11 @@ export function LaneNode({ data }: NodeProps<LaneFlowNode>) {
       <span className="lane__name">{data.lane.name}</span>
       {!data.tab && (
         <span className="lane__actions nodrag nopan">
-          <button type="button" className="lane__button" onClick={() => useProject.getState().openLevel(level)} aria-label={`Open ${label} in its own tab`} title="Open this level in its own tab">
-            <ExternalLink size={13} aria-hidden="true" />
+          <button type="button" className="lane__button" style={buttonStyle} onClick={() => useProject.getState().openLevel(level)} aria-label={`Open ${label} in its own tab`} title="Open this level in its own tab">
+            <ExternalLink size={iconSize} aria-hidden="true" />
           </button>
-          <button type="button" className="lane__button" onClick={toggleStack} aria-pressed={stacked} aria-label={`Stack similar devices on ${label}`} title="Draw devices of the same kind, area and zone as one stack">
-            <Layers size={13} aria-hidden="true" />
+          <button type="button" className="lane__button" style={buttonStyle} onClick={toggleStack} aria-pressed={stacked} aria-label={`Stack similar devices on ${label}`} title="Draw devices of the same kind, area and zone as one stack">
+            <Layers size={iconSize} aria-hidden="true" />
           </button>
         </span>
       )}
