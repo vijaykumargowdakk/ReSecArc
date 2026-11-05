@@ -1280,11 +1280,11 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["255 unit tests"]
+    A1 --> A2["258 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["85 browser tests in Chromium"]
+    B1 --> B2["87 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1400,6 +1400,7 @@ pie showData
 | `outline.test.ts` | The outline tree, visible rows, type-ahead, the nearest device in a direction |
 | `levels.test.ts` | Format 6 (level positions and stacked levels), which devices stack, merged edges and summed findings on a stack card, level-tab grids, tidy and stubs |
 | `purdue.test.ts` | `NODE_HEIGHT` matches the `.device-node` height in `styles.css`, so lane detection lines up with the drawn boxes |
+| `ui/canvas/laneButtons.test.ts` | Lane buttons grow when zoomed out to stay at least 24 px on screen, and never outgrow their lane |
 | `checks.test.ts` | Every built-in check, the office → RTU example, company policy matching, firewall verdicts |
 | `v5.test.ts` | v4 migration, policies in files and share links, reference checks, the change diff and Markdown record |
 | `store/prefs.test.ts` | Display preferences: defaults, stored panels and sections, widths kept within limits, bad values ignored |
@@ -1416,7 +1417,7 @@ pie showData
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour, the empty-site hint |
-| `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import |
+| `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import, lane buttons kept usable when zoomed out |
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |
@@ -1424,7 +1425,7 @@ pie showData
 | `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
 | `e2e/offline.spec.ts` | Opening and editing with the network off, a new version offered and reopened with the work kept, the install requirements, installing from the command palette |
-| `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, the long-press menu, an axe scan |
+| `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, the long-press menu, the canvas controls never covering a lane button, an axe scan |
 
 ---
 
@@ -1455,7 +1456,7 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **Drawing works best with a mouse or trackpad.** Tablets are supported (larger targets, long-press menus), but devices are added from the palette by tapping rather than dragging; below 900 px the side panels become drawers.
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
 - **Level tabs change positions only.** Dragging a device in a level tab never changes its level or area; change those in the overview or the properties panel. Area frames in a level tab are drawn around their devices and cannot be moved or resized there.
-- **Lane buttons shrink with the canvas.** The open-tab and stack buttons on a lane label are drawn on the canvas, so they get small when the diagram is zoomed far out; the command palette has the same actions.
+- **Lane buttons get small when zoomed far out.** The open-tab and stack buttons on a lane label stay at least 24 px on screen as the diagram is zoomed out, down to about 30 % zoom; further out they are as large as their lane allows, so they shrink again. The command palette has the same actions.
 - **Report text is sized by estimate.** The static renderer cannot measure text, so long device names are shortened by an estimate of their width and clipped to the device box.
 - **draw.io draws flows over links.** draw.io routes each connection itself, so a protocol flow without bend points runs on top of its link instead of beside it; turn the *Protocol flows* layer off to see the links.
 

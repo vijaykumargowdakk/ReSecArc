@@ -5,11 +5,13 @@ import {
   ConnectionMode,
   Controls,
   MiniMap,
+  getViewportForBounds,
   ReactFlow,
   useReactFlow,
   type Connection,
   type Edge,
   type EdgeChange,
+  type FitViewOptions,
   type Node,
   type NodeChange,
 } from '@xyflow/react';
@@ -67,6 +69,15 @@ export function parseDeviceKind(payload: string): { type: DeviceType; variant: s
 /** Above this many nodes, only the visible part of the site is drawn. */
 const VIRTUALIZE_ABOVE = 300;
 
+/** How far the canvas zooms out and in (React Flow's own maximum is 2). */
+const MIN_ZOOM = 0.05;
+const MAX_ZOOM = 2;
+
+/** Room around the framed diagram, as a share of the canvas (React Flow's `padding` number). */
+const FRAME_PADDING = 0.1;
+/** Space between the zoom and fit buttons and the lane labels when the canvas is framed. */
+const CONTROLS_GAP = 12;
+
 const DROP_OFFSET = { x: NODE_WIDTH / 2, y: NODE_HEIGHT / 2 };
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -116,12 +127,36 @@ export function Canvas() {
   const stacked = useProject((s) => !!s.project.sites.find((x) => x.id === s.activeSiteId)?.stackedLevels?.length);
   const modes = useModes(level !== null || stacked);
   const [menu, setMenu] = useState<{ deviceId: string; x: number; y: number } | null>(null);
-  const { screenToFlowPosition, setCenter, fitView, fitBounds, getInternalNode, getViewport } = useReactFlow();
+  const { screenToFlowPosition, setCenter, fitView, fitBounds, setViewport, getInternalNode, getViewport } = useReactFlow();
   const theme = useTheme((s) => s.theme);
   const renderAll = useRenderAll((s) => s.all);
   const dragging = useRef(false);
   const [coarsePointer] = useState(() => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches);
   const container = useRef<HTMLDivElement>(null);
+
+  /**
+   * Padding for framing the canvas. The zoom and fit buttons sit at the bottom left, where the lane
+   * labels are, so the left side leaves room for them; otherwise they cover the lowest lanes' buttons
+   * on a tablet until the canvas is panned (issue #18). The other sides keep the usual 10 %.
+   */
+  const framePadding = useCallback(() => {
+    const pane = container.current?.getBoundingClientRect();
+    const controls = container.current?.querySelector('.react-flow__controls')?.getBoundingClientRect();
+    if (!pane || !controls || controls.width === 0) return FRAME_PADDING;
+    const clear = Math.ceil(controls.right - pane.left + CONTROLS_GAP);
+    // What a padding of 0.1 gives on each side (see parsePadding in @xyflow/system).
+    const usual = Math.floor((pane.width - pane.width / (1 + FRAME_PADDING)) / 2);
+    return { top: FRAME_PADDING, right: FRAME_PADDING, bottom: FRAME_PADDING, left: clear > usual ? (`${clear}px` as const) : FRAME_PADDING };
+  }, []);
+  // The Fit button frames with the same padding; it depends on the canvas size, so it follows resizes.
+  const [fitOptions, setFitOptions] = useState<FitViewOptions>({ padding: FRAME_PADDING });
+  useEffect(() => {
+    const el = container.current;
+    if (!el || typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(() => setFitOptions({ padding: framePadding() }));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [framePadding]);
 
   const dimmed = useMemo(() => dimmedIds(project, filter), [project, filter]);
   const comparison = useComparison();
@@ -169,7 +204,7 @@ export function Canvas() {
     const nodes = latestView.current.nodes;
     const frame = requestAnimationFrame(() => {
       if (nodes.length === 0) {
-        fitView({ padding: 0.1, duration: reducedMotion() ? 0 : 250 });
+        fitView({ padding: framePadding(), duration: reducedMotion() ? 0 : 250 });
         return;
       }
       // The lane labels at the left edge stay in view, with their buttons.
@@ -177,10 +212,14 @@ export function Canvas() {
       const ys = nodes.flatMap((n) => [n.position.y, n.position.y + (n.height ?? NODE_HEIGHT)]);
       const x = Math.min(...xs);
       const y = Math.min(...ys);
-      fitBounds({ x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y }, { padding: 0.1, duration: reducedMotion() ? 0 : 250 });
+      const pane = container.current?.getBoundingClientRect();
+      if (!pane) return;
+      // getViewportForBounds rather than fitBounds, whose options take only a single padding number.
+      const bounds = { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
+      void setViewport(getViewportForBounds(bounds, pane.width, pane.height, MIN_ZOOM, MAX_ZOOM, framePadding()), { duration: reducedMotion() ? 0 : 250 });
     });
     return () => cancelAnimationFrame(frame);
-  }, [siteId, level, loadCount, fitView, fitBounds]);
+  }, [siteId, level, loadCount, fitView, setViewport, framePadding]);
 
   useEffect(() => {
     if (!focus) return;
@@ -446,13 +485,14 @@ export function Canvas() {
         isValidConnection={(c) => c.source !== c.target}
         connectionMode={ConnectionMode.Loose}
         deleteKeyCode={['Delete', 'Backspace']}
-        minZoom={0.05}
+        minZoom={MIN_ZOOM}
+        maxZoom={MAX_ZOOM}
         colorMode={flowColorMode(theme)}
         ariaLabelConfig={{ 'node.a11yDescription.default':
             'Press Enter or Space to select. Use arrow keys to move the selection. Press Delete to remove it. On a device, press L to link it or F to add a flow to another device.' }}
       >
         <Background gap={25} size={1} />
-        <Controls showInteractive={false} />
+        <Controls showInteractive={false} fitViewOptions={fitOptions} />
         <Legend />
         <MiniMap
           pannable

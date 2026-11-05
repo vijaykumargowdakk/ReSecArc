@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { deviceCount, deviceNode, openApp } from './helpers';
+import { canvasSettled, deviceCount, deviceNode, laneButtons, openApp } from './helpers';
 
 test.beforeEach(async ({ page }) => openApp(page));
 
@@ -82,6 +82,21 @@ test('lane buttons are 44 px targets, and tapping one opens the level tab', asyn
   await open.tap();
   await expect(page.getByRole('navigation', { name: 'Levels' }).getByRole('button', { name: /L3 Site operations/ })).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('.react-flow__node-device')).toHaveCount(4);
+});
+
+test('the canvas controls never cover a lane button, when the site is framed or after Fit (issue #18)', async ({ page }) => {
+  const controls = page.locator('.react-flow__controls');
+  const covered = async () => {
+    await canvasSettled(page);
+    const c = (await controls.boundingBox())!;
+    return (await laneButtons(page))
+      .filter((b) => b.x < c.x + c.width && c.x < b.x + b.width && b.y < c.y + c.height && c.y < b.y + b.height)
+      .map((b) => b.label);
+  };
+  expect(await covered()).toEqual([]);
+  await page.locator('.react-flow__controls-zoomin').tap();
+  await page.locator('.react-flow__controls-fitview').tap();
+  expect(await covered()).toEqual([]);
 });
 
 test('the tablet layout has no accessibility violations', async ({ page }) => {

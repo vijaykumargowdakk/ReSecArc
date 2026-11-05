@@ -35,3 +35,28 @@ export async function loadTemplate(page: Page, title: RegExp): Promise<void> {
   await page.getByRole('button', { name: title }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
 }
+
+/** Waits until the canvas stops moving: it animates for a moment when it frames a site or zooms. */
+export async function canvasSettled(page: Page): Promise<void> {
+  const viewport = page.locator('.react-flow__viewport');
+  let last = '';
+  await expect
+    .poll(async () => {
+      const now = await viewport.evaluate((el) => (el as HTMLElement).style.transform);
+      const still = now === last;
+      last = now;
+      return still;
+    }, { intervals: [150] })
+    .toBe(true);
+}
+
+/** Where each lane button is on screen, with the lane it belongs to. */
+export async function laneButtons(page: Page) {
+  return page.locator('.lane__button').evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      const lane = el.closest('.react-flow__node')!.getBoundingClientRect();
+      return { label: el.getAttribute('aria-label')!, x: r.x, y: r.y, width: r.width, height: r.height, laneTop: lane.top, laneBottom: lane.bottom };
+    }),
+  );
+}

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { clearSelection, deviceNode, loadTemplate, openApp } from './helpers';
+import { canvasSettled, clearSelection, deviceNode, laneButtons, loadTemplate, openApp } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await openApp(page);
@@ -68,4 +68,34 @@ test('imports links from CSV and reports a bad row', async ({ page }) => {
   await expect(page.locator('.import-errors')).toContainText('no device named "Nowhere"');
   await page.getByRole('button', { name: 'Import 1 link' }).click();
   await expect(linkBetween(page, 'Controls engineer laptop', 'Cell B PLC')).toHaveCount(1);
+});
+
+test('lane buttons stay at least 24 px on screen when zoomed out, as long as their lane can hold them (issue #19)', async ({ page }) => {
+  const zoomOut = page.locator('.react-flow__controls-zoomout');
+  const zoom = () => page.locator('.react-flow__viewport').evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a);
+  let large = 0;
+  let capped = 0;
+  while (await zoomOut.isEnabled()) {
+    await zoomOut.click();
+    await canvasSettled(page);
+    const z = await zoom();
+    const buttons = await laneButtons(page);
+    expect(buttons.length, `zoom ${z.toFixed(2)}`).toBeGreaterThan(0);
+    for (const b of buttons) {
+      const at = `${b.label} at zoom ${z.toFixed(2)}`;
+      // A lane holds a 24 px button down to about 30 % zoom; further out the buttons are as large as the lane allows.
+      if (z >= 0.3) expect(Math.min(b.width, b.height), at).toBeGreaterThanOrEqual(24);
+      else expect(Math.min(b.width, b.height), at).toBeGreaterThanOrEqual(81 * z - 1);
+      expect(b.y, at).toBeGreaterThanOrEqual(b.laneTop - 0.5);
+      expect(b.y + b.height, at).toBeLessThanOrEqual(b.laneBottom + 0.5);
+    }
+    if (z >= 0.3) large++;
+    else capped++;
+  }
+  expect(large).toBeGreaterThan(0);
+  expect(capped).toBeGreaterThan(0);
+  // The command palette has the same actions.
+  await page.keyboard.press('Control+Shift+P');
+  await page.getByRole('combobox', { name: 'Command' }).fill('Open L3');
+  await expect(page.getByRole('option', { name: /Open L3 Site operations in its own tab/ })).toBeVisible();
 });
