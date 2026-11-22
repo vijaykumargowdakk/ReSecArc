@@ -49,7 +49,7 @@ The README's [development guide](README.md#22-development-guide) lists every com
 4. **Mind the startup budget.** The startup bundle must stay under 575 kB (`scripts/check-bundle.mjs`). New dialogs and panels load on demand with `lazy()` or `import()`.
 5. **Keep saved work safe.** Storage keys and the service-worker cache keep the old `conduitot` prefix on purpose; don't rename them. A file format change bumps `SCHEMA_VERSION` and adds a migration, so older files keep opening.
 6. **Add tests** for new behaviour: unit tests next to the code (`*.test.ts`), browser tests in `e2e/` for anything a user clicks.
-7. **Update the docs.** The README is the full guide; change it when behaviour changes. Retake screenshots with `npm run readme:images` after visible interface changes.
+7. **Update the docs.** The README is the full guide; change it when behaviour changes. Retake screenshots with `npm run readme:images`, and the animated demo with `npm run readme:demo` (needs `ffmpeg`), after visible interface changes.
 
 ### Before you push
 
