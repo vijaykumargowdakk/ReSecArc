@@ -14,7 +14,8 @@
     "test": "vitest run",
     "ci": "npm run typecheck && npm run lint && npm test && npm run build && node scripts/check-bundle.mjs",
     "e2e": "playwright test",
-    "readme:images": "playwright test --config playwright.readme.config.ts"
+    "readme:images": "playwright test --config playwright.readme.config.ts readme-images",
+    "readme:demo": "playwright test --config playwright.readme.config.ts readme-demo"
   },
   "dependencies": {
     "@xyflow/react": "^12.12.0",

@@ -13,7 +13,7 @@ Everything runs in your browser. There is no server, no account, no tracking, an
 
 **Live app:** [resecarc.vijaykumarkk.in](https://resecarc.vijaykumarkk.in/)
 
-![The ReSecArc editor showing the fictional Riverbend water treatment plant on Purdue levels](docs/images/diagram.png)
+![Animated demo: in the fictional Riverbend water treatment plant, a link is drawn from the office workstation (L4) straight to the pump station RTU (L1). The Security count goes from 3 to 4 with an IEC 62443 communication violation, and the Attack paths tab highlights the office workstation to pump station RTU path on the canvas, each step labelled with MITRE ATT&CK for ICS](docs/images/demo.gif)
 
 ---
 
@@ -209,6 +209,8 @@ flowchart TB
         T --> N --> Work
     end
 ```
+
+![The ReSecArc editor showing the fictional Riverbend water treatment plant on Purdue levels](docs/images/diagram.png)
 
 | Area | What it is for |
 |------|----------------|
@@ -1266,6 +1268,7 @@ Open the printed local URL. The fictional Riverbend water treatment plant loads 
 | `npm run ci` | Type check, lint, unit tests, build and bundle-size check, as run in CI |
 | `npm run e2e` | Browser tests with accessibility checks (Playwright; run `npx playwright install chromium` once) |
 | `npm run readme:images` | Retakes the screenshots in `docs/images/` from a fresh production build (`e2e/readme-images.ts`) |
+| `npm run readme:demo` | Records the animated demo at the top of this README, `docs/images/demo.gif`, from a fresh production build (`e2e/readme-demo.ts`; needs `ffmpeg` on the PATH) |
 
 The build uses relative asset paths, so `dist/` can be served from any static host or sub-path.
 
