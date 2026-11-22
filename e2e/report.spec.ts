@@ -35,7 +35,8 @@ test('the full report includes every site and passes an accessibility scan', asy
 test('the report shortens device names by their measured width, not an estimate (issue #40)', async ({ page, context }) => {
   // Wide letters, which an estimate from the character count lets run past the box, and narrow ones, which it cut short.
   const wide = 'WWMM WMWM MW';
-  const narrow = 'Illi lil 1111 illi lil';
+  // Letters only: digits are as wide as other figures in most fonts, so they aren't narrow everywhere.
+  const narrow = 'Illi lil illi lil illi';
   for (const [from, to] of [['Filtration PLC', wide], ['Dosing pump', narrow]]) {
     await deviceNode(page, from).click();
     await page.getByRole('textbox', { name: 'Name', exact: true }).fill(to);
