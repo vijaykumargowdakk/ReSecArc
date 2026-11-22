@@ -15,7 +15,7 @@ import { levelLabel } from '../model/purdue';
 import type { Device, Project } from '../model/schema';
 import { stacksOf } from '../model/stacks';
 import { escapeXml as h } from './markup';
-import { DIAGRAM_COLORS, renderSiteSvg } from './siteSvg';
+import { DIAGRAM_COLORS, renderSiteSvg, type TextMeasure } from './siteSvg';
 
 /** Names the stacks drawn in a site's diagram; every member is still listed in the tables. */
 function stackCaption(project: Project, siteId: string): string {
@@ -91,7 +91,12 @@ footer { margin-top: 48px; padding-top: 12px; border-top: 1px solid var(--line);
   a { color: inherit; text-decoration: none; }
 }`;
 
-export function projectToHtmlReport(project: Project, generatedAt = new Date()): string {
+export interface ReportOptions {
+  /** Measures diagram text, so long names are shortened by their real width (see measureText.ts). */
+  measure?: TextMeasure;
+}
+
+export function projectToHtmlReport(project: Project, generatedAt = new Date(), options: ReportOptions = {}): string {
   const date = generatedAt.toISOString().slice(0, 10);
   const zone = new Map(project.zones.map((z) => [z.id, z]));
   const zoneName = (id: string | null) => (id ? (zone.get(id)?.name ?? '') : '');
@@ -159,7 +164,7 @@ export function projectToHtmlReport(project: Project, generatedAt = new Date()):
       `<p>${devices.length} devices, ${links.length} network links and ${flows.length} protocol flows${areas.length ? `, in ${areas.length} area(s): ${h(areas.map((a) => a.name).join(', '))}` : ''}.</p>`,
     );
     out.push(
-      `<figure>${renderSiteSvg(project, s.id, { idPrefix: `s${i + 1}`, findings: byItem })}<figcaption>` +
+      `<figure>${renderSiteSvg(project, s.id, { idPrefix: `s${i + 1}`, findings: byItem, measure: options.measure })}<figcaption>` +
         'Each device’s left edge shows its zone colour; the letter is its criticality. Solid grey lines are network links (dotted: serial, dashed: wireless); ' +
         'coloured dashed arrows are protocol flows. Red lines carry a high-severity security finding, and a number on a device counts its findings. ' +
         'Rounded dashed boxes on the right stand for devices on other sites. Areas are drawn open.' +

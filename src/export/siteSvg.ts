@@ -32,15 +32,31 @@ const NOTE_LINE = 18;
 const FONT = "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 const MONO = "ui-monospace, 'Cascadia Code', Consolas, monospace";
 
-/** Rough text width, enough to size label backgrounds and shorten long names. */
-const CHAR = { bold: 0.55, normal: 0.5 };
-const textWidth = (s: string, size: number, bold = false) => s.length * size * (bold ? CHAR.bold : CHAR.normal);
+/** The width of `text` in pixels, at a font size, in the diagram's font (semibold when `bold`). */
+export type TextMeasure = (text: string, size: number, bold: boolean) => number;
 
-/** Shortens `s` with an ellipsis so it fits in about `px` pixels. */
-export function fit(s: string, px: number, size: number, bold = false): string {
-  if (textWidth(s, size, bold) <= px) return s;
-  const keep = Math.max(1, Math.floor(px / (size * (bold ? CHAR.bold : CHAR.normal))) - 1);
-  return `${s.slice(0, keep).trimEnd()}…`;
+const CHAR = { bold: 0.55, normal: 0.5 };
+/**
+ * A rough width from the number of characters, for where text can't be measured (unit tests, Node).
+ * In the browser the report passes a measured width instead (see measureText.ts).
+ */
+export const estimateTextWidth: TextMeasure = (s, size, bold) => s.length * size * (bold ? CHAR.bold : CHAR.normal);
+
+/** The font the diagram's text is drawn in, for measuring it. */
+export const diagramFont = (size: number, bold: boolean) => `${bold ? 600 : 400} ${size}px ${FONT}`;
+
+/** Shortens `s` with an ellipsis so it fits in `px` pixels, as `measure` sees it. */
+export function fit(s: string, px: number, size: number, bold = false, measure: TextMeasure = estimateTextWidth): string {
+  if (measure(s, size, bold) <= px) return s;
+  // The longest start that fits with the ellipsis; a longer start is never narrower, so search by halves.
+  let lo = 1;
+  let hi = s.length - 1;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (measure(`${s.slice(0, mid).trimEnd()}…`, size, bold) <= px) lo = mid;
+    else hi = mid - 1;
+  }
+  return `${s.slice(0, lo).trimEnd()}…`;
 }
 
 /** Splits note text into lines of about `chars` characters, breaking at spaces where it can. */
@@ -120,6 +136,8 @@ export interface SiteSvgOptions {
   idPrefix?: string;
   /** Findings per item id: links and flows with a high-severity finding are drawn red, devices show a count. */
   findings?: ReadonlyMap<string, readonly Finding[]>;
+  /** Measures text, to shorten long names and size labels; an estimate from the character count by default. */
+  measure?: TextMeasure;
 }
 
 const worst = (list: readonly Finding[]): Severity =>
@@ -128,6 +146,8 @@ const worst = (list: readonly Finding[]): Severity =>
 export function renderSiteSvg(project: Project, siteId: string, options: SiteSvgOptions = {}): string {
   const id = options.idPrefix ?? 'site';
   const findings = options.findings ?? new Map<string, readonly Finding[]>();
+  const measure = options.measure ?? estimateTextWidth;
+  const textWidth = (s: string, size: number, bold = false) => measure(s, size, bold);
   const site = project.sites.find((s) => s.id === siteId);
   const zone = new Map(project.zones.map((z) => [z.id, z]));
   const devices = project.devices.filter((d) => d.siteId === siteId);
@@ -195,7 +215,7 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
 
   // Area frames, always drawn open so every device shows.
   for (const a of areas) {
-    const head = fit(a.name, a.rect.width - 20, 12, true);
+    const head = fit(a.name, a.rect.width - 20, 12, true, measure);
     out.push(
       `<g><rect x="${a.rect.x}" y="${a.rect.y}" width="${a.rect.width}" height="${a.rect.height}" rx="12" fill="${a.color}" fill-opacity="0.06" stroke="${a.color}" stroke-width="2" stroke-dasharray="6 4"/>`,
       `<path d="M${a.rect.x} ${a.rect.y + 22}V${a.rect.y + 12}a12 12 0 0 1 12 -12H${r1(a.rect.x + textWidth(head, 12, true) + 20)}v12a10 10 0 0 1 -10 10z" fill="${a.color}"/>`,
@@ -236,7 +256,8 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
       [l.targetPort, along(points[points.length - 1], points[points.length - 2], 30)],
     ] as const) {
       if (!name) continue;
-      const w = textWidth(name, 10) + 8;
+      // Port names are drawn in the monospace font, which the measure doesn't cover, so they keep the estimate.
+      const w = estimateTextWidth(name, 10, false) + 8;
       labels.push(
         `<g><rect x="${r1(at.x - w / 2)}" y="${r1(at.y - 8)}" width="${r1(w)}" height="16" rx="3" fill="${C.background}" stroke="${C.line}"/>` +
           `<text x="${r1(at.x)}" y="${r1(at.y + 3.5)}" font-family="${x(MONO)}" font-size="10" text-anchor="middle" fill="${C.ink}">${x(name)}</text></g>`,
@@ -289,10 +310,11 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
       `<rect x="${dx + 5}" y="${dy + 1}" width="${NODE_WIDTH - 6}" height="${NODE_HEIGHT - 2}" rx="6" fill="#ffffff"/>`,
       `<rect x="${dx + 0.5}" y="${dy + 0.5}" width="${NODE_WIDTH - 1}" height="${NODE_HEIGHT - 1}" rx="8" fill="none" stroke="${C.line}"/>`,
       `<svg x="${dx + 13}" y="${dy + 15}" width="34" height="34" viewBox="0 0 32 32" ${iconAttrs(C.icon)}>${iconBody(d.type, d.variant, C.icon)}</svg>`,
-      // Names are shortened by an estimate of their width and clipped to the box in case the font is wider.
+      // Names are shortened to the measured width (an estimate outside the browser) and clipped to the box
+      // in case the reader's font is wider than the one they were measured in.
       `<clipPath id="${clip}"><rect x="${dx + 50}" y="${dy}" width="${NODE_WIDTH - 54}" height="${NODE_HEIGHT}"/></clipPath>`,
-      `<g clip-path="url(#${clip})"><text x="${dx + 54}" y="${dy + 29}" font-size="13" font-weight="600" fill="${C.ink}">${x(fit(name, NODE_WIDTH - 74, 13, true))}</text>`,
-      `<text x="${dx + 54}" y="${dy + 45}" font-size="11" fill="${C.faint}">${x(fit(meta, NODE_WIDTH - 62, 11))}</text></g>`,
+      `<g clip-path="url(#${clip})"><text x="${dx + 54}" y="${dy + 29}" font-size="13" font-weight="600" fill="${C.ink}">${x(fit(name, NODE_WIDTH - 74, 13, true, measure))}</text>`,
+      `<text x="${dx + 54}" y="${dy + 45}" font-size="11" fill="${C.faint}">${x(fit(meta, NODE_WIDTH - 62, 11, false, measure))}</text></g>`,
       `<circle cx="${dx + NODE_WIDTH - 11.5}" cy="${dy + 11.5}" r="7.5" fill="${C.severity[crit === 'high' ? 'high' : crit === 'medium' ? 'medium' : 'low']}"/>`,
       `<text x="${dx + NODE_WIDTH - 11.5}" y="${dy + 14.5}" font-size="9" font-weight="700" text-anchor="middle" fill="#ffffff">${crit[0].toUpperCase()}</text>`,
     );
@@ -318,8 +340,8 @@ export function renderSiteSvg(project: Project, siteId: string, options: SiteSvg
     out.push(
       `<g><title>${x(`${s.device.label} on site ${s.siteName}`)}</title>`,
       `<rect x="${s.x + 0.5}" y="${s.y + 0.5}" width="${PORTAL.width - 1}" height="${PORTAL.height - 1}" rx="18" fill="${C.laneA}" stroke="${C.line}" stroke-dasharray="4 3"/>`,
-      `<text x="${s.x + 16}" y="${s.y + 17}" font-size="12" font-weight="600" fill="${C.ink}">${x(fit(s.device.label, PORTAL.width - 30, 12, true))}</text>`,
-      `<text x="${s.x + 16}" y="${s.y + 31}" font-size="10.5" fill="${C.faint}">${x(fit(`↗ site ${s.siteName}`, PORTAL.width - 30, 10.5))}</text></g>`,
+      `<text x="${s.x + 16}" y="${s.y + 17}" font-size="12" font-weight="600" fill="${C.ink}">${x(fit(s.device.label, PORTAL.width - 30, 12, true, measure))}</text>`,
+      `<text x="${s.x + 16}" y="${s.y + 31}" font-size="10.5" fill="${C.faint}">${x(fit(`↗ site ${s.siteName}`, PORTAL.width - 30, 10.5, false, measure))}</text></g>`,
     );
   }
 
