@@ -3,3 +3,4 @@ export { devicesToCsv, flowsToCsv, linksToCsv, rulesToCsv } from './csv';
 export { projectToMarkdown } from './exportDoc';
 export { projectToDrawio } from '../export/drawio';
 export { projectToHtmlReport } from '../export/report';
+export { canvasTextMeasure } from '../export/measureText';

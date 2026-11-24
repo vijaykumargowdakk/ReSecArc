@@ -1283,11 +1283,11 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["258 unit tests"]
+    A1 --> A2["261 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["87 browser tests in Chromium"]
+    B1 --> B2["88 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1409,7 +1409,7 @@ pie showData
 | `store/prefs.test.ts` | Display preferences: defaults, stored panels and sections, widths kept within limits, bad values ignored |
 | `attack/paths.test.ts` | The office → RTU paths with and without the direct link, deny and allow rules, ranking, overrides, flows, firewall passes, a 1,000-device design |
 | `attack/attackFlow.test.ts` | The Attack Flow export against the official Attack Flow and STIX 2.1 schemas, references, ATT&CK labels |
-| `export/siteSvg.test.ts` | Icon serialisation, the static site renderer, escaping, unique ids, stubs, finding marks |
+| `export/siteSvg.test.ts` | Icon serialisation, the static site renderer, escaping, unique ids, stubs, finding marks, shortening names by a measured or estimated width |
 | `export/drawio.test.ts` | Pages per site, edges ending on shapes, stub page links, the locked lanes layer, icon data, escaping |
 | `export/report.test.ts` | Every site in the report, the office → RTU finding and path, escaping and the content security policy |
 
@@ -1424,7 +1424,7 @@ pie showData
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |
-| `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
+| `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), device names that fit their box when measured in the browser, printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
 | `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
 | `e2e/offline.spec.ts` | Opening and editing with the network off, a new version offered and reopened with the work kept, the install requirements, installing from the command palette |
@@ -1460,7 +1460,7 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
 - **Level tabs change positions only.** Dragging a device in a level tab never changes its level or area; change those in the overview or the properties panel. Area frames in a level tab are drawn around their devices and cannot be moved or resized there.
 - **Lane buttons get small when zoomed far out.** The open-tab and stack buttons on a lane label stay at least 24 px on screen as the diagram is zoomed out, down to about 30 % zoom; further out they are as large as their lane allows, so they shrink again. The command palette has the same actions.
-- **Report text is sized by estimate.** The static renderer cannot measure text, so long device names are shortened by an estimate of their width and clipped to the device box.
+- **Report names are measured in your fonts.** When the report is built in the browser, long device names are shortened to their measured width. Someone opening the report with different fonts may still see a name clipped at the edge of its box.
 - **draw.io draws flows over links.** draw.io routes each connection itself, so a protocol flow without bend points runs on top of its link instead of beside it; turn the *Protocol flows* layer off to see the links.
 
 ---

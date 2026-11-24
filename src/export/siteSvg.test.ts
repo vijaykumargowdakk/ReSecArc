@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { loadTemplate } from '../examples/templates';
 import { findingsByItem, runChecks } from '../model/checks';
 import { toMarkup } from './markup';
-import { fit, renderSiteSvg, siteStubs, wrap } from './siteSvg';
+import { estimateTextWidth, fit, renderSiteSvg, siteStubs, wrap, type TextMeasure } from './siteSvg';
 import { ICONS } from '../ui/icons';
 
 describe('toMarkup', () => {
@@ -71,6 +71,44 @@ describe('text helpers', () => {
   it('shortens long names with an ellipsis', () => {
     expect(fit('PLC', 100, 13)).toBe('PLC');
     expect(fit('A very long device name indeed', 60, 13)).toMatch(/…$/);
+  });
+
+  // A stand-in for a real font: narrow letters (i, l, I, 1, space) at 0.3 em, wide ones (W, M) at 0.95 em.
+  const measured: TextMeasure = (s, size) => [...s].reduce((sum, c) => sum + size * (/[ilI1 .]/.test(c) ? 0.3 : /[WM]/.test(c) ? 0.95 : 0.55), 0);
+
+  it('shortens by the measured width when given a measure (issue #40)', () => {
+    // Narrow letters: the estimate would shorten this name, but measured it fits and is kept whole.
+    const narrow = 'Illi lil 1111 illi lil';
+    expect(fit(narrow, 116, 13, true)).toMatch(/…$/);
+    expect(fit(narrow, 116, 13, true, measured)).toBe(narrow);
+    // Wide letters: the estimate would keep this name, but measured it is too wide and is shortened.
+    const wide = 'WWMM WMWM MW';
+    expect(fit(wide, 116, 13, true)).toBe(wide);
+    expect(fit(wide, 116, 13, true, measured)).toMatch(/…$/);
+  });
+
+  it('keeps as much of a name as fits, ellipsis included', () => {
+    for (const name of ['Pump station RTU number 7 (north)', 'WWWWWWWWWWWWWW', 'Main IT/OT firewall', 'Illi lil 1111 illi lil illi']) {
+      for (const measure of [estimateTextWidth, measured]) {
+        const out = fit(name, 116, 13, true, measure);
+        expect(measure(out, 13, true), `${name}: ${out}`).toBeLessThanOrEqual(116);
+        if (out !== name) {
+          // The same as trying every length and keeping the longest that fits.
+          let best = 1;
+          for (let k = 1; k < name.length; k++) if (measure(`${name.slice(0, k).trimEnd()}…`, 13, true) <= 116) best = k;
+          expect(out).toBe(`${name.slice(0, best).trimEnd()}…`);
+        }
+      }
+    }
+  });
+
+  it('the site diagram uses the measure it is given', () => {
+    const p = loadTemplate('water-treatment');
+    const long = { ...p, devices: p.devices.map((d) => (d.label === 'Filtration PLC' ? { ...d, label: 'Filtration PLC on the north train, line 1' } : d)) };
+    const site = long.sites[0].id;
+    // Everything fits when the measure says text is very narrow, and nothing does when it is very wide.
+    expect(renderSiteSvg(long, site, { measure: () => 1 })).toContain('>Filtration PLC on the north train, line 1<');
+    expect(renderSiteSvg(long, site, { measure: (s) => s.length * 50 })).not.toContain('>Filtration PLC on the north train, line 1<');
   });
 
   it('wraps at spaces and splits words longer than a line', () => {

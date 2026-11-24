@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import pipeline from '../src/examples/templates/pipeline.json' with { type: 'json' };
-import { deviceCount, loadTemplate, openApp } from './helpers';
+import { clearSelection, deviceCount, deviceNode, loadTemplate, openApp } from './helpers';
 
 test.beforeEach(async ({ page }) => openApp(page));
 
@@ -30,6 +30,31 @@ test('the full report includes every site and passes an accessibility scan', asy
   const { violations } = await new AxeBuilder({ page: report }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
   expect(violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test('the report shortens device names by their measured width, not an estimate (issue #40)', async ({ page, context }) => {
+  // Wide letters, which an estimate from the character count lets run past the box, and narrow ones, which it cut short.
+  const wide = 'WWMM WMWM MW';
+  // Letters only: digits are as wide as other figures in most fonts, so they aren't narrow everywhere.
+  const narrow = 'Illi lil illi lil illi';
+  for (const [from, to] of [['Filtration PLC', wide], ['Dosing pump', narrow]]) {
+    await deviceNode(page, from).click();
+    await page.getByRole('textbox', { name: 'Name', exact: true }).fill(to);
+    await page.keyboard.press('Enter');
+  }
+  await clearSelection(page);
+  const { text } = await exportFile(page, 'Full report (HTML)');
+
+  const report = await context.newPage();
+  await report.setContent(text);
+  // Device names are the 13 px semibold line in each card, shortened to fit 116 px (siteSvg.ts).
+  const names = await report.locator('figure svg text[font-size="13"][font-weight="600"]').evaluateAll((els) =>
+    els.map((el) => ({ text: el.textContent ?? '', width: (el as SVGTextElement).getComputedTextLength() })),
+  );
+  expect(names.length).toBeGreaterThan(10);
+  for (const n of names) expect(n.width, n.text).toBeLessThanOrEqual(116.5);
+  expect(names.map((n) => n.text)).toContain(narrow);
+  expect(names.find((n) => n.text.startsWith('WWMM'))?.text).toMatch(/…$/);
 });
 
 test('printing the full report loads it into a frame without leaving the app', async ({ page }) => {

@@ -17,7 +17,7 @@ export type TextExport = 'report' | 'drawio' | 'md' | 'devices' | 'links' | 'flo
 export async function exportText(project: Project, kind: TextExport): Promise<void> {
   const m = await import('../model/exportFiles');
   const files: Record<TextExport, [string, string, () => string]> = {
-    report: ['-report.html', 'text/html', () => m.projectToHtmlReport(project)],
+    report: ['-report.html', 'text/html', () => m.projectToHtmlReport(project, undefined, { measure: m.canvasTextMeasure() })],
     drawio: ['.drawio', 'application/xml', () => m.projectToDrawio(project)],
     md: ['.md', 'text/markdown', () => m.projectToMarkdown(project)],
     devices: ['-devices.csv', 'text/csv', () => m.devicesToCsv(project)],
@@ -32,7 +32,7 @@ export async function exportText(project: Project, kind: TextExport): Promise<vo
 /** Opens the browser's print dialog for the full report, where it can also be saved as PDF. */
 export async function printReport(project: Project): Promise<void> {
   const [m, { printHtml }] = await Promise.all([import('../model/exportFiles'), import('../export/print')]);
-  printHtml(m.projectToHtmlReport(project));
+  printHtml(m.projectToHtmlReport(project, undefined, { measure: m.canvasTextMeasure() }));
 }
 
 /**
