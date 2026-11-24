@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { loadTemplate, TEMPLATES } from '../examples/templates';
+import { NODE_HEIGHT, NODE_WIDTH } from '../model/purdue';
+import { FLOW_OFFSET } from '../model/routing';
 import { pageId, projectToDrawio } from './drawio';
 
 /** The cells of each page, read with a pattern; the browser test parses the whole file as XML. */
@@ -15,6 +17,41 @@ function pages(xml: string) {
 }
 
 describe('projectToDrawio', () => {
+  it('pins straight protocol flows beside their links, as the canvas draws them (issue #21)', () => {
+    const p = loadTemplate('water-treatment');
+    const [page] = pages(projectToDrawio(p));
+    const styleOf = (c: { attrs: Record<string, string> }) =>
+      Object.fromEntries(c.attrs.style.split(';').filter(Boolean).map((kv) => kv.split('=') as [string, string]));
+    const card = new Map(p.devices.map((d) => [`x-${d.id}`, d.position]));
+    const straight = p.flows.filter((f) => f.waypoints.length === 0);
+    expect(straight.length).toBeGreaterThan(0);
+    for (const f of straight) {
+      const cell = page.cells.find((c) => c.attrs.id === `x-${f.id}`)!;
+      const st = styleOf(cell);
+      expect(st.exitPerimeter, f.id).toBe('0');
+      expect(st.entryPerimeter, f.id).toBe('0');
+      const a = card.get(cell.attrs.source)!;
+      const b = card.get(cell.attrs.target)!;
+      const from = { x: a.x + Number(st.exitX) * NODE_WIDTH, y: a.y + Number(st.exitY) * NODE_HEIGHT };
+      const to = { x: b.x + Number(st.entryX) * NODE_WIDTH, y: b.y + Number(st.entryY) * NODE_HEIGHT };
+      // Each end is on its card's edge…
+      for (const [pt, at] of [[from, a], [to, b]] as const) {
+        const onX = Math.abs(pt.x - at.x) < 0.01 || Math.abs(pt.x - at.x - NODE_WIDTH) < 0.01;
+        const onY = Math.abs(pt.y - at.y) < 0.01 || Math.abs(pt.y - at.y - NODE_HEIGHT) < 0.01;
+        expect(onX || onY, `${f.id} end on the card's edge`).toBe(true);
+      }
+      // …and both ends sit FLOW_OFFSET to the same side of the line between the cards' centres, where the link runs.
+      const c1 = { x: a.x + NODE_WIDTH / 2, y: a.y + NODE_HEIGHT / 2 };
+      const c2 = { x: b.x + NODE_WIDTH / 2, y: b.y + NODE_HEIGHT / 2 };
+      const len = Math.hypot(c2.x - c1.x, c2.y - c1.y);
+      const side = (pt: { x: number; y: number }) => ((c2.x - c1.x) * (pt.y - c1.y) - (c2.y - c1.y) * (pt.x - c1.x)) / len;
+      expect(side(from), f.id).toBeCloseTo(FLOW_OFFSET, 1);
+      expect(side(to), f.id).toBeCloseTo(FLOW_OFFSET, 1);
+    }
+    // Links are left to draw.io: no pinned ends.
+    for (const l of p.links) expect(page.cells.find((c) => c.attrs.id === `x-${l.id}`)!.attrs.style).not.toContain('exitX');
+  });
+
   it('writes one page per site, every edge ending on a shape of that page', () => {
     for (const t of TEMPLATES) {
       const p = loadTemplate(t.id);
