@@ -3738,6 +3738,11 @@ textarea {
 /* Touch screens: targets of at least 44 × 44 px (WCAG 2.5.5), larger connection handles and grab
    areas on the canvas, and no text selection or callout when a finger rests on a device. */
 @media (pointer: coarse) {
+  /* A finger drags a palette item sideways onto the canvas (src/ui/touchDrag.ts); up and down still scrolls. */
+  .palette__item {
+    touch-action: pan-y;
+  }
+
   button,
   summary,
   select,
@@ -3797,4 +3802,19 @@ textarea {
   .canvas-bar {
     flex-wrap: wrap;
   }
+}
+
+/* The copy of a palette item that follows a finger while it is dragged onto the canvas. */
+.touch-drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  margin: -22px 0 0 -24px;
+  pointer-events: none;
+  opacity: 0.9;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }

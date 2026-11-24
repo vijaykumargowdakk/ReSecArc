@@ -15,6 +15,7 @@ import type { CanvasNode } from './canvas/nodes';
 import { FoldButton, useSectionOpen } from './form';
 import { DeviceIcon } from './icons';
 import { PanelEdge, PanelHeader } from './PanelChrome';
+import { useTouchDrag } from './touchDrag';
 
 function PaletteItem({
   type,
@@ -31,10 +32,12 @@ function PaletteItem({
   onAdd: (type: DeviceType, variant: string) => void;
   small?: boolean;
 }) {
+  const touch = useTouchDrag(DEVICE_DND_MIME, `${type}:${variant}`);
   return (
     <button
       type="button"
       className={`palette__item${small ? ' palette__item--variant' : ''}`}
+      {...touch}
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData(DEVICE_DND_MIME, `${type}:${variant}`);
@@ -45,6 +48,28 @@ function PaletteItem({
     >
       <DeviceIcon type={type} variant={variant} size={small ? 22 : 26} />
       <span>{label}</span>
+    </button>
+  );
+}
+
+/** The text note item: dragged onto the canvas, or clicked to add a note in view. */
+function NoteItem({ onAdd }: { onAdd: () => void }) {
+  const touch = useTouchDrag(NOTE_DND_MIME, 'note');
+  return (
+    <button
+      type="button"
+      className="palette__item"
+      {...touch}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData(NOTE_DND_MIME, 'note');
+        e.dataTransfer.effectAllowed = 'copy';
+      }}
+      onClick={onAdd}
+      title="A free text note on the canvas"
+    >
+      <StickyNote size={22} />
+      <span>Text note</span>
     </button>
   );
 }
@@ -152,20 +177,7 @@ export function Palette() {
         <PaletteGroup title="Annotate">
           <ul>
             <li>
-              <button
-                type="button"
-                className="palette__item"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData(NOTE_DND_MIME, 'note');
-                  e.dataTransfer.effectAllowed = 'copy';
-                }}
-                onClick={() => addNoteInView(reactFlow)}
-                title="A free text note on the canvas"
-              >
-                <StickyNote size={22} />
-                <span>Text note</span>
-              </button>
+              <NoteItem onAdd={() => addNoteInView(reactFlow)} />
             </li>
           </ul>
         </PaletteGroup>

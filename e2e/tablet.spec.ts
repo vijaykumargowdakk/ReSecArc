@@ -57,6 +57,49 @@ test('tapping a palette item adds the device', async ({ page }) => {
   expect(await deviceCount(page)).toBe(20);
 });
 
+/** Moves one finger from `from` to `to` in small steps, as a real drag does, then lifts it. */
+async function fingerDrag(page: Page, from: { x: number; y: number }, to: { x: number; y: number }): Promise<void> {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [from] });
+  for (let i = 1; i <= 16; i++) {
+    const at = { x: from.x + ((to.x - from.x) * i) / 16, y: from.y + ((to.y - from.y) * i) / 16 };
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [at] });
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
+
+const centre = (box: { x: number; y: number; width: number; height: number }) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+
+test('a palette item dragged with a finger lands on the level it is dropped on (issue #17)', async ({ page }) => {
+  const plc = page.locator('.palette__item', { hasText: /^PLC$/ });
+  const lane = page.locator('.react-flow__node-lane').filter({ has: page.locator('.lane__level', { hasText: /^L2$/ }) });
+  const laneBox = (await lane.boundingBox())!;
+  const before = await page.locator('.react-flow__node-device').evaluateAll((els) => els.map((el) => el.getAttribute('data-id')));
+  // An empty spot in the L2 lane, right of its label.
+  const target = { x: laneBox.x + Math.min(laneBox.width - 40, 260), y: laneBox.y + laneBox.height / 2 };
+  await fingerDrag(page, centre((await plc.boundingBox())!), target);
+
+  await expect.poll(() => deviceCount(page)).toBe(20);
+  const ids = await page.locator('.react-flow__node-device').evaluateAll((els) => els.map((el) => el.getAttribute('data-id')));
+  const id = ids.find((x) => !before.includes(x))!;
+  const box = (await page.locator(`.react-flow__node[data-id="${id}"]`).boundingBox())!;
+  const c = centre(box);
+  expect(c.y).toBeGreaterThan(laneBox.y);
+  expect(c.y).toBeLessThan(laneBox.y + laneBox.height);
+  // The finger was lifted where the device's centre now is.
+  expect(Math.abs(c.x - target.x)).toBeLessThan(box.width / 2);
+  // Only one device: the click that can follow the lifted finger adds nothing more.
+  await page.waitForTimeout(500);
+  expect(await deviceCount(page)).toBe(20);
+});
+
+test('a vertical swipe on the palette scrolls it and adds nothing', async ({ page }) => {
+  const plc = centre((await page.locator('.palette__item', { hasText: /^PLC$/ }).boundingBox())!);
+  await fingerDrag(page, plc, { x: plc.x + 4, y: plc.y - 120 });
+  await page.waitForTimeout(500);
+  expect(await deviceCount(page)).toBe(19);
+});
+
 test('a long press on a device opens its menu, and the lifting finger chooses nothing', async ({ page }) => {
   await longPress(page, '.react-flow__node-device:has-text("Filtration PLC")');
   const menu = page.getByRole('menu', { name: 'Actions for Filtration PLC' });

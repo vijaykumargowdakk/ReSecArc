@@ -1182,7 +1182,7 @@ stateDiagram-v2
 - **Not by colour alone:** protocols differ by dash pattern and label, criticality is a lettered badge, and comparison tags read "New" or "Changed".
 - **Motion:** animations are switched off when the system asks for reduced motion.
 - **Text size:** the **Aa** (Display) menu in the toolbar sets the interface text to 100, 115, 130 or 150 %. It scales the toolbar, panels, tables and dialogs as a whole, so nothing inside them is cut off, and the panels widen with it; the diagram keeps its own zoom. At larger sizes the toolbar wraps onto a second row. The choice is remembered in this browser.
-- **Touch screens and tablets:** on a touch screen every button, menu item, field and checkbox row is at least 44 × 44 px (WCAG 2.5.5), connection handles and the grab area of links are larger, the toolbar wraps instead of running off the screen, and a device moves only once it is clearly dragged. **Long-press a device** for the menu a right-click opens elsewhere. Tap a palette item to add it, since dragging from the palette needs a mouse.
+- **Touch screens and tablets:** on a touch screen every button, menu item, field and checkbox row is at least 44 × 44 px (WCAG 2.5.5), connection handles and the grab area of links are larger, the toolbar wraps instead of running off the screen, and a device moves only once it is clearly dragged. **Long-press a device** for the menu a right-click opens elsewhere. Tap a palette item to add it, or **slide it sideways with a finger** and drop it on the level you want; sliding up or down still scrolls the palette.
 - **Small screens:** below 900 px wide the palette and properties panel become slide-over drawers.
 - **Audited:** Lighthouse accessibility score 100.
 
@@ -1287,7 +1287,7 @@ flowchart TB
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["88 browser tests in Chromium"]
+    B1 --> B2["90 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1428,7 +1428,7 @@ pie showData
 | `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
 | `e2e/offline.spec.ts` | Opening and editing with the network off, a new version offered and reopened with the work kept, the install requirements, installing from the command palette |
-| `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, the long-press menu, the canvas controls never covering a lane button, an axe scan |
+| `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, dragging a palette item onto a level with a finger, a vertical swipe that only scrolls, the long-press menu, the canvas controls never covering a lane button, an axe scan |
 
 ---
 
@@ -1456,7 +1456,7 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **Share links are snapshots.** Edits after sharing are not synchronised, and very large designs make long links.
 - **Autosave is per browser.** Clearing site data removes it; save the project file to keep work.
 - **Offline needs one visit online.** A browser can only work offline after it has opened ReSecArc once with a connection. Clearing site data removes the stored app along with the autosave.
-- **Drawing works best with a mouse or trackpad.** Tablets are supported (larger targets, long-press menus), but devices are added from the palette by tapping rather than dragging; below 900 px the side panels become drawers.
+- **Below 900 px the side panels become drawers.** Dragging from the palette with a finger needs the palette beside the canvas (900 px and wider); in drawer mode, tap a palette item to add it.
 - **Tidy layout keeps lanes fixed.** It orders and spaces devices within their lanes and areas; it never moves a device to another level.
 - **Level tabs change positions only.** Dragging a device in a level tab never changes its level or area; change those in the overview or the properties panel. Area frames in a level tab are drawn around their devices and cannot be moved or resized there.
 - **Lane buttons get small when zoomed far out.** The open-tab and stack buttons on a lane label stay at least 24 px on screen as the diagram is zoomed out, down to about 30 % zoom; further out they are as large as their lane allows, so they shrink again. The command palette has the same actions.
