@@ -1230,7 +1230,7 @@ Treat project files, exports and share links as sensitive: they can contain addr
 | UI | React 18 and TypeScript (strict) | Mature, typed, component-based |
 | Canvas | React Flow (`@xyflow/react` 12) | Built for node-and-edge editors: zoom, pan, selection, keyboard and accessibility support |
 | State | Zustand 5 | Small, explicit store that works naturally with pure update functions |
-| Validation | zod 3 | One schema gives both runtime validation and TypeScript types |
+| Validation | zod 4 | One schema gives both runtime validation and TypeScript types |
 | Icons | Original two-tone SVG device icons; lucide-react for interface icons | No vendor artwork, consistent style, follows the theme |
 | CSV | papaparse 5 | Robust parsing and quoting, formula escaping |
 | Image export | html-to-image 1.11.11 (pinned) | The version React Flow recommends for exporting diagrams |

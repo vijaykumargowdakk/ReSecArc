@@ -7,7 +7,7 @@
 | react, react-dom | 18.3 | MIT | UI framework |
 | @xyflow/react (React Flow) | 12.x | MIT | Canvas, nodes, edges, zoom and pan |
 | zustand | 5.x | MIT | Project state store |
-| zod | 3.x | MIT | Project file schema and validation |
+| zod | 4.x | MIT | Project file schema and validation |
 | lucide-react | 1.x | ISC | Toolbar and panel icons |
 | papaparse | 5.x | MIT | CSV import and export |
 | html-to-image | 1.11.11 (pinned) | MIT | Diagram export to SVG and PNG |
