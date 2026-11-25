@@ -8,6 +8,12 @@ import { useRef, type MouseEvent, type PointerEvent } from 'react';
 /** How far a finger moves before a sideways movement becomes a drag rather than a tap. */
 const DRAG_START_PX = 12;
 
+/** Set on <body> while a finger drags a palette item; below 900 px it slides the palette drawer away (#51). */
+const DRAGGING_CLASS = 'touch-dragging';
+
+/** Sent on `window` after a finger drag drops an item on the canvas, so the app can close the drawer. */
+export const PALETTE_DROP_EVENT = 'resecarc:palette-drop';
+
 interface Drag {
   pointerId: number;
   startX: number;
@@ -25,6 +31,7 @@ export function useTouchDrag(mime: string, payload: string) {
   const end = () => {
     drag.current?.ghost?.remove();
     drag.current = null;
+    document.body.classList.remove(DRAGGING_CLASS);
   };
 
   return {
@@ -43,6 +50,7 @@ export function useTouchDrag(mime: string, payload: string) {
         if (dy >= dx) return end();
         e.currentTarget.setPointerCapture(e.pointerId);
         d.ghost = ghostOf(e.currentTarget);
+        document.body.classList.add(DRAGGING_CLASS);
       }
       d.ghost.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
     },
@@ -50,15 +58,17 @@ export function useTouchDrag(mime: string, payload: string) {
       const d = drag.current;
       if (!d || d.pointerId !== e.pointerId) return;
       const dragged = d.ghost !== null;
+      // Found before the drag ends: ending it slides the palette drawer back over the canvas.
+      const target = dragged ? document.elementFromPoint(e.clientX, e.clientY) : null;
       end();
       if (!dragged) return;
       justDropped.current = true;
       setTimeout(() => (justDropped.current = false), 400);
-      const target = document.elementFromPoint(e.clientX, e.clientY);
       if (!target?.closest('.canvas')) return;
       const data = new DataTransfer();
       data.setData(mime, payload);
       target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, dataTransfer: data }));
+      window.dispatchEvent(new Event(PALETTE_DROP_EVENT));
     },
     onPointerCancel: end,
     onClickCapture(e: MouseEvent<HTMLElement>) {
