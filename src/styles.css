@@ -1976,6 +1976,14 @@ dialog {
     visibility: visible;
   }
 
+  /* While a finger drags a palette item, the drawer slides away (still drawn, so the drag keeps its
+     pointer) and the canvas underneath takes the drop (src/ui/touchDrag.ts, issue #51). */
+  .touch-dragging .drawer-palette .palette {
+    transform: translateX(-100%);
+    /* At once, so the canvas is under the finger however quickly it moves. */
+    transition: none;
+  }
+
   .canvas-bar {
     flex-wrap: wrap;
   }

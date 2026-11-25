@@ -17,6 +17,7 @@ import { SiteTabs } from './ui/SiteTabs';
 import { Toolbar } from './ui/Toolbar';
 import { usePrefs } from './store/prefs';
 import type { CommandContext, ViewName } from './ui/commands';
+import { PALETTE_DROP_EVENT } from './ui/touchDrag';
 import { useShortcuts } from './ui/useShortcuts';
 
 // Views and dialogs that are not needed on first paint load on demand.
@@ -62,6 +63,12 @@ export function App() {
   const [helping, setHelping] = useState(false);
   const openHelp = useCallback(() => setHelping(true), []);
   const [drawer, setDrawer] = useState<'palette' | 'inspector' | null>(null);
+  // A device dragged from the palette drawer with a finger has landed: show the canvas (issue #51).
+  useEffect(() => {
+    const closePalette = () => setDrawer((d) => (d === 'palette' ? null : d));
+    window.addEventListener(PALETTE_DROP_EVENT, closePalette);
+    return () => window.removeEventListener(PALETTE_DROP_EVENT, closePalette);
+  }, []);
   const [sharing, setSharing] = useState(false);
   const [merging, setMerging] = useState(false);
   const [shared, setShared] = useState<{ ok: true; project: Project } | { ok: false; errors: string[] } | null>(null);

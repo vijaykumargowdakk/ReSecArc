@@ -57,13 +57,19 @@ test('tapping a palette item adds the device', async ({ page }) => {
   expect(await deviceCount(page)).toBe(20);
 });
 
-/** Moves one finger from `from` to `to` in small steps, as a real drag does, then lifts it. */
-async function fingerDrag(page: Page, from: { x: number; y: number }, to: { x: number; y: number }): Promise<void> {
+type Point = { x: number; y: number };
+
+/** Moves one finger from `from` to `to` (through `via`, if given) in small steps, as a real drag does, then lifts it. */
+async function fingerDrag(page: Page, from: Point, to: Point, via: Point[] = []): Promise<void> {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [from] });
-  for (let i = 1; i <= 16; i++) {
-    const at = { x: from.x + ((to.x - from.x) * i) / 16, y: from.y + ((to.y - from.y) * i) / 16 };
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [at] });
+  let at = from;
+  for (const next of [...via, to]) {
+    const start = at;
+    for (let i = 1; i <= 16; i++) {
+      at = { x: start.x + ((next.x - start.x) * i) / 16, y: start.y + ((next.y - start.y) * i) / 16 };
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [at] });
+    }
   }
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 }
@@ -89,6 +95,29 @@ test('a palette item dragged with a finger lands on the level it is dropped on (
   // The finger was lifted where the device's centre now is.
   expect(Math.abs(c.x - target.x)).toBeLessThan(box.width / 2);
   // Only one device: the click that can follow the lifted finger adds nothing more.
+  await page.waitForTimeout(500);
+  expect(await deviceCount(page)).toBe(20);
+});
+
+test('below 900 px a finger drag from the palette drawer drops onto the canvas and closes the drawer (issue #51)', async ({ page }) => {
+  await page.setViewportSize({ width: 820, height: 1180 });
+  const toggle = page.getByRole('button', { name: 'Device palette' });
+  await toggle.tap();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  const plc = page.locator('.palette__item', { hasText: /^PLC$/ });
+  await expect(plc).toBeVisible();
+  // Let the drawer finish sliding in, then drag the PLC a little to the right, to a spot the open drawer
+  // covers: the drawer slides away during the drag, so the canvas under it takes the drop.
+  await page.waitForTimeout(400);
+  const drawer = (await page.locator('.palette').boundingBox())!;
+  const canvas = (await page.locator('.canvas').boundingBox())!;
+  const spot = { x: Math.max(canvas.x, drawer.x) + 200, y: canvas.y + canvas.height * 0.5 };
+  expect(spot.x).toBeLessThan(drawer.x + drawer.width);
+  // A sideways slide starts the drag (an up-or-down one scrolls the palette), then the finger moves to the spot.
+  const start = centre((await plc.boundingBox())!);
+  await fingerDrag(page, start, spot, [{ x: start.x + 60, y: start.y }]);
+  await expect.poll(() => deviceCount(page)).toBe(20);
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await page.waitForTimeout(500);
   expect(await deviceCount(page)).toBe(20);
 });
