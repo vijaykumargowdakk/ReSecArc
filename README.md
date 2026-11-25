@@ -1283,7 +1283,7 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["261 unit tests"]
+    A1 --> A2["262 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
@@ -1410,7 +1410,7 @@ pie showData
 | `attack/paths.test.ts` | The office → RTU paths with and without the direct link, deny and allow rules, ranking, overrides, flows, firewall passes, a 1,000-device design |
 | `attack/attackFlow.test.ts` | The Attack Flow export against the official Attack Flow and STIX 2.1 schemas, references, ATT&CK labels |
 | `export/siteSvg.test.ts` | Icon serialisation, the static site renderer, escaping, unique ids, stubs, finding marks, shortening names by a measured or estimated width |
-| `export/drawio.test.ts` | Pages per site, edges ending on shapes, stub page links, the locked lanes layer, icon data, escaping |
+| `export/drawio.test.ts` | Pages per site, edges ending on shapes, straight flows pinned beside their links, stub page links, the locked lanes layer, icon data, escaping |
 | `export/report.test.ts` | Every site in the report, the office → RTU finding and path, escaping and the content security policy |
 
 | Browser test file | Covers |
@@ -1461,7 +1461,7 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 - **Level tabs change positions only.** Dragging a device in a level tab never changes its level or area; change those in the overview or the properties panel. Area frames in a level tab are drawn around their devices and cannot be moved or resized there.
 - **Lane buttons get small when zoomed far out.** The open-tab and stack buttons on a lane label stay at least 24 px on screen as the diagram is zoomed out, down to about 30 % zoom; further out they are as large as their lane allows, so they shrink again. The command palette has the same actions.
 - **Report names are measured in your fonts.** When the report is built in the browser, long device names are shortened to their measured width. Someone opening the report with different fonts may still see a name clipped at the edge of its box.
-- **draw.io draws flows over links.** draw.io routes each connection itself, so a protocol flow without bend points runs on top of its link instead of beside it; turn the *Protocol flows* layer off to see the links.
+- **draw.io keeps flows beside links only until you move a device.** The export pins each straight protocol flow's ends beside its link, as the canvas draws it. If you move a device in draw.io, the pinned ends move with the card, but draw.io doesn't recompute the offset, so a flow can end up over its link again.
 
 ---
 
