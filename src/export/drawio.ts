@@ -4,6 +4,7 @@
 import { kindLabel } from '../model/catalog';
 import { flowLabel, getProtocol } from '../model/protocols';
 import { LANE_HEIGHT, LANE_WIDTH, laneTop, levelLabel, NODE_HEIGHT, NODE_WIDTH, PURDUE_LANES } from '../model/purdue';
+import { FLOW_OFFSET } from '../model/routing';
 import type { Project } from '../model/schema';
 import { mergeEdges, stacksOf } from '../model/stacks';
 import { iconSvg } from './markup';
@@ -39,6 +40,14 @@ const geometry = (x: number, y: number, width: number, height: number) =>
 
 export const pageId = (index: number) => `page-${index + 1}`;
 
+/** Where a line from `p` (inside the card) in direction `d` crosses the card's edge. */
+function leaveCard(r: { x: number; y: number; w: number; h: number }, p: { x: number; y: number }, d: { x: number; y: number }) {
+  const tx = d.x > 0 ? (r.x + r.w - p.x) / d.x : d.x < 0 ? (r.x - p.x) / d.x : Infinity;
+  const ty = d.y > 0 ? (r.y + r.h - p.y) / d.y : d.y < 0 ? (r.y - p.y) / d.y : Infinity;
+  const t = Math.max(0, Math.min(tx, ty));
+  return { x: p.x + d.x * t, y: p.y + d.y * t };
+}
+
 export function projectToDrawio(project: Project): string {
   const zone = new Map(project.zones.map((z) => [z.id, z]));
   const pages = project.sites.map((site, index) => {
@@ -57,6 +66,37 @@ export function projectToDrawio(project: Project): string {
     const lead = (deviceId: string) => stackOf.get(deviceId)?.members[0].id ?? deviceId;
     // Project ids are prefixed by kind so none can clash with a layer, a lane or each other.
     const cellOf = (deviceId: string) => (onSite.has(deviceId) ? `x-${deviceId}` : `s-${deviceId}`);
+    // Where each device card and stub is, by cell id, to place flows beside their links.
+    const rects = new Map<string, { x: number; y: number; w: number; h: number }>();
+    for (const d of devices) rects.set(`x-${d.id}`, { x: d.position.x, y: d.position.y, w: NODE_WIDTH, h: NODE_HEIGHT });
+    for (const s of stubs.values()) rects.set(`s-${s.device.id}`, { x: s.x, y: s.y, w: 180, h: 40 });
+    /**
+     * draw.io routes a connection itself, so a straight flow would run on top of its link (issue #21).
+     * Pin its ends where the canvas draws it: the line between the two cards' centres, shifted
+     * FLOW_OFFSET to the left of its direction (as routeBetween does), cut where it leaves each card.
+     * The ends are given as fractions of each card, with perimeter snapping off.
+     */
+    const besideLink = (sourceCell: string, targetCell: string): Record<string, number> => {
+      const a = rects.get(sourceCell);
+      const b = rects.get(targetCell);
+      if (!a || !b) return {};
+      const ca = { x: a.x + a.w / 2, y: a.y + a.h / 2 };
+      const cb = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+      const len = Math.hypot(cb.x - ca.x, cb.y - ca.y);
+      if (len === 0) return {};
+      const shift = { x: (-(cb.y - ca.y) / len) * FLOW_OFFSET, y: ((cb.x - ca.x) / len) * FLOW_OFFSET };
+      const from = leaveCard(a, { x: ca.x + shift.x, y: ca.y + shift.y }, { x: cb.x - ca.x, y: cb.y - ca.y });
+      const to = leaveCard(b, { x: cb.x + shift.x, y: cb.y + shift.y }, { x: ca.x - cb.x, y: ca.y - cb.y });
+      const f = (n: number) => Math.round(n * 10000) / 10000;
+      return {
+        exitX: f((from.x - a.x) / a.w),
+        exitY: f((from.y - a.y) / a.h),
+        exitPerimeter: 0,
+        entryX: f((to.x - b.x) / b.w),
+        entryY: f((to.y - b.y) / b.h),
+        entryPerimeter: 0,
+      };
+    };
 
     const xs = [0, LANE_WIDTH, ...devices.map((d) => d.position.x), ...devices.map((d) => d.position.x + NODE_WIDTH)];
     for (const s of stubs.values()) xs.push(s.x + 180);
@@ -162,6 +202,8 @@ export function projectToDrawio(project: Project): string {
           fontColor: C.ink,
           labelBackgroundColor: '#ffffff',
           labelBorderColor: color,
+          // With bend points draw.io follows them; a straight flow is pinned beside its link.
+          ...(points ? {} : besideLink(cellOf(source), cellOf(target))),
         })}" edge="1" parent="flows" source="${attr(cellOf(source))}" target="${attr(cellOf(target))}"><mxGeometry relative="1" as="geometry">${
           points ? `<Array as="points">${points}</Array>` : ''
         }</mxGeometry></mxCell>`,
