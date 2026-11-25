@@ -1,5 +1,6 @@
 import { FolderOpen, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { fileTooLarge } from '../model/fileFormat';
 import { parseProject } from '../model/io';
 import { mergeSites, type MergeSummary } from '../model/merge';
 import type { Project } from '../model/schema';
@@ -76,6 +77,13 @@ export function MergeDialog({ onClose }: { onClose: () => void }) {
   const preview = useMemo(() => (source && chosen.length ? mergeSites(project, source.project, chosen).summary : null), [project, source, chosen]);
 
   const read = async (file: File) => {
+    // Checked before reading, as Open does (issue #60).
+    const tooLarge = fileTooLarge(file);
+    if (tooLarge) {
+      setSource(null);
+      setErrors([`Could not read ${file.name}:`, tooLarge]);
+      return;
+    }
     const result = parseProject(await file.text());
     if (!result.ok) {
       setSource(null);
