@@ -1287,7 +1287,7 @@ flowchart TB
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["90 browser tests in Chromium"]
+    B1 --> B2["92 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1419,7 +1419,7 @@ pie showData
 | `e2e/data.spec.ts` | Save and open, broken files, autosave restore, saved blocks kept after a reload, share links, IP warnings, revisions, CSV import |
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
-| `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour, the empty-site hint |
+| `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour (and that its card leaves the lane buttons clear), the empty-site hint |
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import, lane buttons kept usable when zoomed out |
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |

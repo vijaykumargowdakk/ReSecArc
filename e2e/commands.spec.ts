@@ -55,6 +55,27 @@ test('shows the tour once on a first visit', async ({ page }) => {
   await expect(page.locator('.tour__card')).toHaveCount(0);
 });
 
+for (const size of [{ width: 1440, height: 900 }, { width: 1280, height: 640 }]) {
+  test(`the tour card leaves the lane buttons clear at ${size.width} × ${size.height} (issue #52)`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await page.evaluate(() => localStorage.removeItem('conduitot:prefs'));
+    await page.reload();
+    await expect(page.getByRole('dialog', { name: 'Add devices' })).toBeVisible();
+    // Wait for the canvas to frame the plant and the card to settle beside it.
+    await page.waitForTimeout(800);
+    const covered = await page.locator('.lane__button').evaluateAll((els) =>
+      els
+        .filter((el) => {
+          const r = el.getBoundingClientRect();
+          const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return r.width > 0 && !(hit === el || el.contains(hit));
+        })
+        .map((el) => el.getAttribute('aria-label')),
+    );
+    expect(covered).toEqual([]);
+  });
+}
+
 test('explains what to do on an empty site', async ({ page }) => {
   await page.getByRole('button', { name: 'New', exact: true }).click();
   await page.getByRole('button', { name: /^Blank/ }).click();
