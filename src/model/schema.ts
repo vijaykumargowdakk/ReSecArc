@@ -79,7 +79,7 @@ export const deviceSchema = z.object({
   /** Free labels such as "patch-pending" or "line-3"; trimmed, without duplicates. */
   tags: z.array(z.string().min(1).max(60)).max(50),
   /** Values of the project's custom fields, keyed by field definition id. */
-  fields: z.record(z.string()),
+  fields: z.record(z.string(), z.string()),
   locked: z.boolean(),
   firewall: firewallConfigSchema.optional(),
   /** Where the device sits in its level's own tab; unset until it is arranged there. */
@@ -109,7 +109,7 @@ export const flowSchema = z.object({
   protocol: idSchema,
   /** `null` for layer-2 protocols. */
   port: portSchema.nullable(),
-  settings: z.record(z.union([z.boolean(), z.string(), z.number()])),
+  settings: z.record(z.string(), z.union([z.boolean(), z.string(), z.number()])),
   waypoints: waypointsSchema,
 });
 
