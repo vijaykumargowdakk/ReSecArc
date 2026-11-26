@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import pipeline from '../src/examples/templates/pipeline.json' with { type: 'json' };
 import { clearSelection, deviceCount, deviceNode, loadTemplate, openApp } from './helpers';
@@ -100,6 +100,17 @@ test('merges chosen sites from another project as one undo step', async ({ page 
   await expect(page.locator('.site-tab.is-active')).toContainText('Control centre');
   await page.keyboard.press('Control+z');
   await expect(page.locator('.site-tab__button')).toHaveCount(1);
+});
+
+test('the merge dialog refuses a file over the size limit (issue #60)', async ({ page }, testInfo) => {
+  await page.getByRole('button', { name: 'Merge sites from another project' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Merge sites from another project' });
+  // Playwright passes files over 50 MB from disk only.
+  const huge = testInfo.outputPath('huge.json');
+  await writeFile(huge, Buffer.alloc(50 * 1024 * 1024 + 1, 0x20));
+  await dialog.locator('input[type=file]').setInputFiles(huge);
+  await expect(dialog.getByRole('alert')).toContainText('huge.json is 50 MB, larger than the 50 MB a project file can be.');
+  expect(await deviceCount(page)).toBe(19);
 });
 
 test('a broken file is reported in the merge dialog', async ({ page }) => {

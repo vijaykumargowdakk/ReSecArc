@@ -2,7 +2,7 @@
 // wherever it is started from.
 import type { ReactFlowInstance } from '@xyflow/react';
 import { create } from 'zustand';
-import { parseProjectText, serializeProject } from '../model/fileFormat';
+import { fileTooLarge, parseProjectText, serializeProject } from '../model/fileFormat';
 import { tidyLayout } from '../model/layout';
 import { addNote, createNote } from '../model/notes';
 import { countRuleReferences, removeDevice } from '../model/ops';
@@ -24,6 +24,9 @@ export function chooseProjectFile(): void {
 
 /** Reads a project file and loads it, asking first if the current design has been edited. */
 export async function openProjectFile(file: File, onErrors: (errors: string[]) => void): Promise<void> {
+  // Checked before reading, so an oversized file never ties up the tab; the current design stays.
+  const tooLarge = fileTooLarge(file);
+  if (tooLarge) return onErrors([`Could not open ${file.name}:`, tooLarge]);
   const result = await parseProjectText(await file.text());
   if (!result.ok) {
     onErrors([`Could not open ${file.name}:`, ...result.errors]);

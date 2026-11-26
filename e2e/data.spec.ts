@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { clearSelection, deviceCount, deviceNode, loadTemplate, openApp } from './helpers';
 
@@ -22,6 +22,16 @@ test('saves a project file and opens it again', async ({ page }) => {
 test('rejects a broken file and keeps the current design', async ({ page }) => {
   await page.locator('input[type=file][accept*="json"]').setInputFiles({ name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"schemaVersion": 3') });
   await expect(page.getByRole('alert')).toContainText('Could not open broken.json');
+  expect(await deviceCount(page)).toBe(19);
+});
+
+test('refuses a file over the size limit and keeps the current design (issue #60)', async ({ page }, testInfo) => {
+  // One byte over 50 MB; the content doesn't matter, as the size is checked before the file is read.
+  // Playwright passes files over 50 MB from disk only.
+  const huge = testInfo.outputPath('huge.json');
+  await writeFile(huge, Buffer.alloc(50 * 1024 * 1024 + 1, 0x20));
+  await page.locator('input[type=file][accept*="json"]').setInputFiles(huge);
+  await expect(page.getByRole('alert')).toContainText('huge.json is 50 MB, larger than the 50 MB a project file can be.');
   expect(await deviceCount(page)).toBe(19);
 });
 

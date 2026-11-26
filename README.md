@@ -1214,6 +1214,7 @@ flowchart TB
 | Storage | `localStorage` keys `conduitot:autosave`, `conduitot:blocks`, `conduitot:theme` and `conduitot:prefs` (layers, side panels, folded sections, text size); the app's own files in Cache Storage (`conduitot-` plus the version); `sessionStorage` key `conduitot:resume` for a moment while the app reloads to update. All on your device only |
 | Untrusted input | Files, autosaves and share links all go through the same schema and reference validation before use |
 | Share link size | Decompression is capped at 8 MB |
+| Project file size | Open and Merge refuse files over 50 MB before reading them, with a clear message; the current design is left as it was |
 | Coordinates | Positions and sizes are limited to ±1,000,000, so layout code always finishes, even on crafted files |
 | Spreadsheets | CSV exports escape cells that would run as formulas |
 | Rendering | All text is rendered by React, which escapes it; no raw HTML is injected |
@@ -1283,11 +1284,11 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["262 unit tests"]
+    A1 --> A2["263 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["93 browser tests in Chromium"]
+    B1 --> B2["95 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1393,6 +1394,7 @@ pie showData
 | `ipam.test.ts` | Address parsing, network matching, warnings, IP plan export |
 | `revisions.test.ts` | Saving, restoring and comparing revisions |
 | `share.test.ts` | Share link round-trips and damaged links |
+| `fileFormat.test.ts` | The size limit on opened and merged project files |
 | `templates.test.ts` | Every template loads, round-trips, uses every protocol and has a clean IP plan |
 | `demo.test.ts` | The demo, loaded without the validator at startup, equals the validated file and is a fresh copy each time |
 | `icons.test.ts` | Every device kind has an icon |
@@ -1416,7 +1418,7 @@ pie showData
 | Browser test file | Covers |
 |-------------------|--------|
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
-| `e2e/data.spec.ts` | Save and open, broken files, autosave restore, saved blocks kept after a reload, share links, IP warnings, revisions, CSV import |
+| `e2e/data.spec.ts` | Save and open, broken files, files over the size limit, autosave restore, saved blocks kept after a reload, share links, IP warnings, revisions, CSV import |
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour (and that its card leaves the lane buttons clear), the empty-site hint |
@@ -1424,7 +1426,7 @@ pie showData
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |
-| `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), device names that fit their box when measured in the browser, printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file |
+| `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), device names that fit their box when measured in the browser, printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file, a merge file over the size limit |
 | `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
 | `e2e/offline.spec.ts` | Opening and editing with the network off, a new version offered and reopened with the work kept, the install requirements, installing from the command palette |
