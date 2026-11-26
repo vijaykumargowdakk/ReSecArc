@@ -8,6 +8,7 @@ import {
   getViewportForBounds,
   ReactFlow,
   useReactFlow,
+  useStoreApi,
   type Connection,
   type Edge,
   type EdgeChange,
@@ -330,8 +331,20 @@ export function Canvas() {
     [apply, select],
   );
 
+  // React Flow reports a selection change from an effect, with the selection as it was when that
+  // effect was scheduled. With React 19 that report can arrive after the canvas has already been
+  // given a newer selection (for example when the diagram opens with a link selected from the
+  // inventory), and taking it as-is flips the selection back and forth without end. So the selection
+  // is read from React Flow's current state instead: a late report then matches the selection
+  // already shown and changes nothing, while a click or a box selection is picked up as before.
+  const flowStore = useStoreApi<CanvasNode, CanvasEdge>();
   const onSelectionChange = useCallback(
-    ({ nodes: selNodes, edges: selEdges }: { nodes: Node[]; edges: Edge[] }) => {
+    () => {
+      const { nodeLookup, edgeLookup } = flowStore.getState();
+      const selNodes: Node[] = [];
+      const selEdges: Edge[] = [];
+      for (const n of nodeLookup.values()) if (n.selected) selNodes.push(n);
+      for (const e of edgeLookup.values()) if (e.selected) selEdges.push(e);
       select({
         devices: selNodes.filter((n) => n.type === 'device').flatMap((n) => deviceIdsOf(n as CanvasNode)),
         links: selEdges.filter((e) => e.type === 'link').map((e) => e.id),
@@ -340,7 +353,7 @@ export function Canvas() {
         notes: selNodes.filter((n) => n.type === 'note').map((n) => n.id),
       });
     },
-    [select],
+    [flowStore, select],
   );
 
   // Double-clicking a link or flow bends it at that point; the new bend can then be dragged.
