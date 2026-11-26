@@ -156,7 +156,7 @@ export const noteSchema = z.object({
 export const networkSchema = z.object({
   id: idSchema,
   name: z.string(),
-  /** IPv4 subnet in CIDR notation, e.g. `10.10.1.0/24`; checked in referenceErrors. */
+  /** IPv4 or IPv6 subnet in CIDR notation, e.g. `10.10.1.0/24` or `2001:db8:1::/64`; checked by `parseCidr` in ipam.ts. */
   cidr: z.string(),
   vlan: z.number().int().min(1).max(4094).nullable(),
   zoneId: idSchema.nullable(),

@@ -682,3 +682,16 @@ The README timeline gets `v0.5.2 Touch and polish`. The notes are checked agains
 **Decision:** The owner approved the v0.5.2 notes, and the version PR #63 was merged once green (merge commit `056b3c0`). The owner will tag and publish v0.5.1 and v0.5.2 later from their own clone. So that the approved notes survive the cloud session, they are kept in `docs/release-notes/` (`docs/RELEASING.md` otherwise says to keep notes outside the repository unless the owner wants them kept). The exact commands are under "Owner to-do" at the top of `PROJECT_STATUS.md`, with the other owner checks.
 **Why:** The owner wants to publish later and be handed the full list of their steps when they ask.
 **User input:** "I approve the notes and go ahead and merge it once the checks are green." "Can I do this publish step later? ... when I'm gonna ask for these steps ... you give everything that has to be done till now."
+
+## 2026-11-26 — IPv6 in the IP plan (#20)
+**Decision:**
+- **Format:** No file format change. Device addresses and network subnets were already free text, so `SCHEMA_VERSION` stays and older files open as before.
+- **One code path:** `src/model/ipam.ts` now parses an address into `{ family: 4 | 6, value: bigint }` and a subnet into `{ family, base, prefix }`, so IPv4 and IPv6 share every check: invalid, duplicate, outside every planned network, reserved address, zone mismatch, host bits set in a subnet, and overlapping subnets. An IPv6 address matches only IPv6 networks, and the reverse.
+- **Accepted forms:** `parseIpv6` takes `::` compression, any letter case and an IPv4 tail. It rejects zone ids (`%eth0`), which are link-local interface hints rather than plan addresses.
+- **Canonical form:** addresses are compared after formatting to RFC 5952, so differently written forms of one address count as a duplicate. The warning shows the canonical form.
+- **Reserved addresses:** for IPv6 this is the subnet-router anycast address (all host bits zero, RFC 4291), except in /127 and /128 (RFC 6164). IPv4 keeps network and broadcast, except in /31 and /32.
+- **Counts and sorting:** "usable addresses" is now an exact BigInt, so a /64 shows 18,446,744,073,709,551,615. The sort key is a BigInt that puts IPv4 first, then IPv6, then invalid text. CSV export uses `compareAddresses`.
+- **Suggestions:** "Add network" still suggests the next free IPv4 /24, ignoring IPv6 networks.
+- **Tests and bundle:** 6 new unit tests and 1 new browser test. The startup bundle grows 1.7 kB, to 569.3 kB of 575 kB.
+**Why:** Issue #20. The approach was posted on the issue before building.
+**User input:** The owner chose "Yes, add IPv6 (Recommended)": full IPv6 with the same checks in the table, CSV and report, stopping to ask if a file format change were needed. None was.

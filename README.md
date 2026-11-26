@@ -288,15 +288,15 @@ A table view of the same model, with tabs for devices, links (ports, VLANs, netw
 
 ### 4.6 IP and VLAN planning
 
-Define the IPv4 networks in use, with subnet, VLAN, zone and site. Every device address is matched to its network. The app warns about:
+Define the IPv4 and IPv6 networks in use, with subnet, VLAN, zone and site. Every device address is matched to its network. The app warns about:
 
 - duplicate addresses;
 - malformed addresses;
-- network or broadcast addresses;
+- network or broadcast addresses (for IPv6, the subnet-router anycast address);
 - addresses outside every planned network;
 - addresses whose network belongs to another zone.
 
-The **IP plan** tab lists every address in numeric order. See [section 14](#14-ip-and-vlan-planning) for the rules.
+The **IP plan** tab lists every address in numeric order, IPv4 first, then IPv6. See [section 14](#14-ip-and-vlan-planning) for the rules.
 
 ![IP plan table listing every address with its network, VLAN and zone](docs/images/ip-plan.png)
 
@@ -548,7 +548,7 @@ flowchart LR
 | `src/model/stacks.ts` | Which devices form a stack, merging their links and flows, moving a stack, Tidy with stacks; loaded on demand |
 | `src/model/catalog.ts` | Device types, kinds, default levels and palette groups |
 | `src/model/protocols.ts` | Protocol registry: roles, ports, settings, colours, labels |
-| `src/model/ipam.ts` | IPv4 parsing, subnet matching and address warnings |
+| `src/model/ipam.ts` | IPv4 and IPv6 parsing, subnet matching and address warnings |
 | `src/model/checks.ts` | Built-in IEC 62443 checks, company policy findings, firewall rule verdicts |
 | `src/model/policies.ts` | Company policy rules: editing, matching devices, one-line descriptions |
 | `src/model/attack/paths.ts` | Attack path finding over segments and firewall rules, ATT&CK step labels, canvas marks; loaded on demand |
@@ -929,18 +929,18 @@ flowchart TD
 
 ## 14. IP and VLAN planning
 
-Networks are IPv4 subnets in CIDR form, each optionally tied to a VLAN, a zone and a site. A network with no site applies to every site, which suits a WAN. A device may list several addresses, one per interface, separated by commas, semicolons or spaces.
+Networks are IPv4 or IPv6 subnets in CIDR form (`10.0.1.0/24`, `2001:db8:1::/64`), each optionally tied to a VLAN, a zone and a site. IPv6 addresses may use `::` compression, any letter case and an IPv4 tail (`::ffff:10.0.0.1`); they are compared in their canonical form (RFC 5952), so `2001:DB8:0::1` and `2001:db8::1` are the same address. An IPv6 address only matches IPv6 networks, and an IPv4 address only IPv4 networks. A device with both kinds of address simply lists both. A network with no site applies to every site, which suits a WAN. A device may list several addresses, one per interface, separated by commas, semicolons or spaces.
 
 ```mermaid
 flowchart TD
-    A["Each address of each device"] --> B{"Valid IPv4?"}
-    B -- "no" --> W1["⚠ not a valid IPv4 address"]
+    A["Each address of each device"] --> B{"Valid IPv4 or IPv6?"}
+    B -- "no" --> W1["⚠ not a valid IPv4 or IPv6 address"]
     B -- "yes" --> C["Find the most specific network<br/>on the device's site that contains it"]
     C --> D{"Found?"}
     D -- "no" --> E{"Any networks planned<br/>for this site?"}
     E -- "yes" --> W2["⚠ not in any planned network"]
     E -- "no" --> OK1["No warning<br/>(projects without an IP plan stay quiet)"]
-    D -- "yes" --> F{"Network or broadcast address?<br/>(prefix shorter than /31)"}
+    D -- "yes" --> F{"Network or broadcast address?<br/>IPv6: subnet-router anycast<br/>(not in /31, /32, /127, /128)"}
     F -- "yes" --> W3["⚠ reserved address"]
     F -- "no" --> G{"Network's zone differs<br/>from the device's zone?"}
     G -- "yes" --> W4["⚠ zone mismatch"]
@@ -1284,11 +1284,11 @@ flowchart TB
     PUSH["Push to main or pull request"] --> J1["Job: ci"]
     PUSH --> J2["Job: e2e"]
     J1 --> A1["Type check · Lint"]
-    A1 --> A2["263 unit tests"]
+    A1 --> A2["269 unit tests"]
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["95 browser tests in Chromium"]
+    B1 --> B2["96 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1391,7 +1391,7 @@ pie showData
 | `export.test.ts` | CSV and Markdown exports, formula escaping |
 | `merge.test.ts` | Merging sites: fresh ids, left-out connections and rules, zone, network and custom field matching, every template into every other |
 | `csvImport.test.ts` | Flow and firewall rule import |
-| `ipam.test.ts` | Address parsing, network matching, warnings, IP plan export |
+| `ipam.test.ts` | IPv4 and IPv6 address parsing, canonical IPv6 form, network matching, warnings, IP plan export |
 | `revisions.test.ts` | Saving, restoring and comparing revisions |
 | `share.test.ts` | Share link round-trips and damaged links |
 | `fileFormat.test.ts` | The size limit on opened and merged project files |
@@ -1418,7 +1418,7 @@ pie showData
 | Browser test file | Covers |
 |-------------------|--------|
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
-| `e2e/data.spec.ts` | Save and open, broken files, files over the size limit, autosave restore, saved blocks kept after a reload, share links, IP warnings, revisions, CSV import |
+| `e2e/data.spec.ts` | Save and open, broken files, files over the size limit, autosave restore, saved blocks kept after a reload, share links, IP warnings, an IPv6 network, revisions, CSV import |
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour (and that its card leaves the lane buttons clear), the empty-site hint |
@@ -1454,7 +1454,6 @@ The decisions behind each step are recorded in [decisions.md](decisions.md), and
 
 ## 25. Known limitations
 
-- **IPv4 only.** IPv6 addresses are reported as invalid.
 - **No live collaboration.** Two people editing the same design work on separate copies; revisions and change records help merge by hand.
 - **Share links are snapshots.** Edits after sharing are not synchronised, and very large designs make long links.
 - **Autosave is per browser.** Clearing site data removes it; save the project file to keep work.
