@@ -659,3 +659,21 @@ Also fixed:
 - **Checks:** `npm run ci` and all 94 browser tests pass, including the axe scans, the tablet project and the 1,000-device benchmark.
 **Why:** Issue #36. The owner chose it as the next item.
 **User input:** "Ask whatever permissions you want and then get it approved and go on working it." The owner picked "#36 React 19", and agreed that PRs may be merged once green ("Yes, merge when green").
+
+## 2026-11-26 — Prepare v0.5.2 "Touch and polish"
+**Decision:** Version 0.5.2, a patch release. Since v0.5.1 (`cba6f54`), `main` has fixes, touch support for the palette, dependency upgrades and README media, but no new modelling or analysis features.
+- **Touch:**
+  - finger drag from the palette (#17, PR #49);
+  - finger drag from the palette drawer below 900 px (#51, PR #58);
+  - lane buttons on tablets and when zoomed out (#18, #19, PR #46);
+  - the first-run tour card kept clear of the lane buttons (#52, PR #57).
+- **Output:**
+  - report device names measured rather than estimated (#40, PR #48);
+  - draw.io flows drawn beside their links (#21, PR #55).
+- **Safety:** project files over 50 MB refused before reading (#60, PR #61).
+- **Dependencies:** zod 4 (#53, PR #56), clearing the runtime advisory; React 19 (#36, PR #62); the dev-only minimatch advisories cleared (#59, PR #61).
+- **README:** an animated demo GIF (PR #47) and retaken screenshots (PR #54).
+
+The README timeline gets `v0.5.2 Touch and polish`. The notes are checked against `main` at `d98f6b3` and wait for the owner's approval. The owner tags and publishes from their own clone, v0.5.1 first.
+**Why:** The owner chose "Prepare v0.5.2" once the merged work made a release worthwhile.
+**User input:** "Prepare v0.5.2 (Recommended)", and "Yes, merge when green" for PRs. Tags and publishing stay with the owner.
