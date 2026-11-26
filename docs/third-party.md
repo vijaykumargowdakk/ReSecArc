@@ -4,7 +4,7 @@
 
 | Package | Version | Licence | Used for |
 |---------|---------|---------|----------|
-| react, react-dom | 18.3 | MIT | UI framework |
+| react, react-dom | 19.3 | MIT | UI framework |
 | @xyflow/react (React Flow) | 12.x | MIT | Canvas, nodes, edges, zoom and pan |
 | zustand | 5.x | MIT | Project state store |
 | zod | 4.x | MIT | Project file schema and validation |

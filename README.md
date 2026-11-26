@@ -1228,7 +1228,7 @@ Treat project files, exports and share links as sensitive: they can contain addr
 
 | Concern | Choice | Why |
 |---------|--------|-----|
-| UI | React 18 and TypeScript (strict) | Mature, typed, component-based |
+| UI | React 19 and TypeScript (strict) | Mature, typed, component-based |
 | Canvas | React Flow (`@xyflow/react` 12) | Built for node-and-edge editors: zoom, pan, selection, keyboard and accessibility support |
 | State | Zustand 5 | Small, explicit store that works naturally with pure update functions |
 | Validation | zod 4 | One schema gives both runtime validation and TypeScript types |
