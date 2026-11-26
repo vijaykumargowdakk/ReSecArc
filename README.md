@@ -1445,6 +1445,7 @@ timeline
     v0.4 Security and scale : Browser tests and a 1,000-device benchmark : Ports, bend points, tags and custom fields : Command palette, outline and keyboard connections : IEC 62443 checks and company policies : ATT&CK for ICS attack paths and Attack Flow export : Report, draw.io and site merge : Level tabs and stacks : Works offline and installs
     v0.5 Open source : AGPL-3.0 licence, with commercial licences : Contributor guide, code of conduct and security policy : Issue forms, labels and starter issues
     v0.5.1 Faster start : Startup bundle 571 kB to 499 kB : Validator loads only when there is something to check : Vite 8, Vitest 5 and ESLint 10
+    v0.5.2 Touch and polish : Drag devices from the palette with a finger : Lane buttons on tablets and when zoomed out : draw.io flows beside their links : 50 MB limit on opened files : React 19 and zod 4
 ```
 
 The decisions behind each step are recorded in [decisions.md](decisions.md), and the current state is in [PROJECT_STATUS.md](PROJECT_STATUS.md).
