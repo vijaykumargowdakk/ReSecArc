@@ -7,6 +7,23 @@
 - [`decisions.md`](decisions.md) for why things are the way they are
 - [`CLAUDE.md`](CLAUDE.md) for working rules
 
+## Owner to-do (waiting on the owner)
+When the owner asks "what do I have to run", give them this list, brought up to date.
+1. **Publish v0.5.1 and v0.5.2** from their own clone (cloud sessions can't push tags). The notes are approved and saved in `docs/release-notes/`. Both targets are merge commits on `main`: v0.5.1 → `cba6f54` (PR #45), v0.5.2 → `056b3c0` (PR #63).
+   ```bash
+   git switch main && git pull --ff-only origin main
+   git tag -a v0.5.1 cba6f54 -m "ReSecArc v0.5.1 - Faster start"
+   git tag -a v0.5.2 056b3c0 -m "ReSecArc v0.5.2 - Touch and polish"
+   git push origin v0.5.1 v0.5.2
+   gh release create v0.5.1 --verify-tag --latest=false --title "ReSecArc v0.5.1 — Faster start" --notes-file docs/release-notes/v0.5.1.md
+   gh release create v0.5.2 --verify-tag --latest --discussion-category "Announcements" --title "ReSecArc v0.5.2 — Touch and polish" --notes-file docs/release-notes/v0.5.2.md
+   gh release list
+   ```
+   Afterwards a session records it: decisions.md, this file, and the "Released so far" table in `docs/RELEASING.md`.
+2. **Check on the live site** (from issue #36): after one visit, go offline, reload, and open a saved project.
+3. **Check the draw.io export** opens correctly in app.diagrams.net (flows beside their links, #21).
+4. **Decide** #16 (toolbar fit) and #20 (IPv6); #37 (TypeScript 7) waits for typescript-eslint.
+
 ## Start here (next session)
 ReSecArc is a browser-based designer for OT network architectures. Users place devices on Purdue levels, draw network links and industrial protocol flows, define IEC 62443 zones, and edit firewall rules. M0–M17 are complete (v0.3). v0.4 is complete and released: M18–M27 are merged (M24 through PR #1, M25 through PR #2, M27 through PR #4, M26 through PR #5; M27 was built before M26). M28 (level tabs and stacks) is merged through PR #6. M29 (works offline) is merged through PR #7, which completes the v0.4 plan (M18–M29). `package.json` is 0.5.2: **v0.5.1 "Faster start" (tag on `cba6f54`) and v0.5.2 "Touch and polish" are prepared but not released yet**; the owner tags each merge commit and publishes the releases from their own clone, as cloud sessions can't push tags. Publish v0.5.1 first, then v0.5.2 as Latest. v0.5.0 was PR #24, merge commit `a0dccab`. **GitHub releases v0.1.0–v0.5.0 are published** (tags on `913d2e5`, `c9dfbcf`, `6d09e1b`, `3f2a285` (the PR #11 merge) and `a0dccab`, the PR #24 merge). **v0.5.0 "Open source" is released and marked Latest** (annotated tag `v0.5.0` on `a0dccab`, pushed and published by the owner's session on 2026-11-04; https://github.com/vijaykumargowdakk/ReSecArc/releases/tag/v0.5.0). **Every future release follows [`docs/RELEASING.md`](docs/RELEASING.md)** (version PR, notes approved by the owner, annotated tag on the merge commit, `gh release create`, then a record here). **No milestone is planned next; ask the owner what comes after v0.5.** Start each milestone on a new branch from `main`; push and open a PR, but merge only when the owner says so.
 
