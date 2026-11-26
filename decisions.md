@@ -677,3 +677,8 @@ Also fixed:
 The README timeline gets `v0.5.2 Touch and polish`. The notes are checked against `main` at `d98f6b3` and wait for the owner's approval. The owner tags and publishes from their own clone, v0.5.1 first.
 **Why:** The owner chose "Prepare v0.5.2" once the merged work made a release worthwhile.
 **User input:** "Prepare v0.5.2 (Recommended)", and "Yes, merge when green" for PRs. Tags and publishing stay with the owner.
+
+## 2026-11-26 — v0.5.2 merged; publishing left for later
+**Decision:** The owner approved the v0.5.2 notes, and the version PR #63 was merged once green (merge commit `056b3c0`). The owner will tag and publish v0.5.1 and v0.5.2 later from their own clone. So that the approved notes survive the cloud session, they are kept in `docs/release-notes/` (`docs/RELEASING.md` otherwise says to keep notes outside the repository unless the owner wants them kept). The exact commands are under "Owner to-do" at the top of `PROJECT_STATUS.md`, with the other owner checks.
+**Why:** The owner wants to publish later and be handed the full list of their steps when they ask.
+**User input:** "I approve the notes and go ahead and merge it once the checks are green." "Can I do this publish step later? ... when I'm gonna ask for these steps ... you give everything that has to be done till now."
