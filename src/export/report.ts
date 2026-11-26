@@ -260,7 +260,7 @@ export function projectToHtmlReport(project: Project, generatedAt = new Date(), 
         zoneName(n.network.zoneId),
         n.network.siteId ? (site.get(n.network.siteId) ?? '') : 'all sites',
         n.devices.length,
-        n.cidr ? n.usable : '',
+        n.cidr ? n.usable.toLocaleString('en') : '',
         [
           n.error ?? '',
           ...n.overlaps.map((o) => `overlaps ${o.name || o.cidr}`),

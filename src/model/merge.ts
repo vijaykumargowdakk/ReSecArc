@@ -1,7 +1,7 @@
 // Merges chosen sites from another project into this one. Everything copied gets a fresh id, so a
 // project can even be merged with a copy of itself. Zones, estate-wide networks and custom fields
 // are matched by name (CIDR for networks) so the merged sites share them instead of duplicating them.
-import { cidrContains, deviceAddresses, parseCidr, parseIpv4 } from './ipam';
+import { cidrContains, deviceAddresses, parseCidr, parseIp, type IpAddress } from './ipam';
 import { newId } from './ops';
 import type { Design, Device, FieldDef, Network, Project, RuleEndpoint, Zone } from './schema';
 
@@ -193,7 +193,7 @@ export function mergeSites(
     }
   }
   const copiedLinks = source.links.filter((l) => deviceMap.has(l.source) && deviceMap.has(l.target));
-  const ips = picked.flatMap((d) => deviceAddresses(d).map(parseIpv4)).filter((ip): ip is number => ip !== null);
+  const ips = picked.flatMap((d) => deviceAddresses(d).map(parseIp)).filter((ip): ip is IpAddress => ip !== null);
   for (const n of source.networks) {
     if (n.siteId !== null) continue;
     const cidr = parseCidr(n.cidr);

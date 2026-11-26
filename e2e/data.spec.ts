@@ -85,6 +85,22 @@ test('flags a duplicate IP address and lists it in the IP plan', async ({ page }
   await expect(row).toContainText('also used by Filtration HMI');
 });
 
+test('plans an IPv6 network and matches a device address to it (issue #20)', async ({ page }) => {
+  await clearSelection(page);
+  await page.getByRole('button', { name: 'Add network' }).click();
+  const subnet = page.getByLabel('Subnet (CIDR)').last();
+  await subnet.fill('2001:db8:50::/64');
+  await subnet.blur();
+  await expect(page.locator('.inspector').getByText('18,446,744,073,709,551,615 usable addresses')).toBeVisible();
+  await deviceNode(page, 'Filtration PLC').click();
+  const ip = page.getByLabel('IP address', { exact: true });
+  await ip.fill('2001:DB8:50::');
+  await expect(page.locator('.inspector .address-info .issues')).toContainText('2001:DB8:50:: is the subnet-router anycast address of');
+  await ip.fill('2001:db8:50::21');
+  await expect(page.locator('.inspector .address-info')).toContainText('2001:db8:50::21 in Network');
+  await expect(page.locator('.inspector .address-info .issues')).toHaveCount(0);
+});
+
 test('compares the design with a saved revision', async ({ page }) => {
   await clearSelection(page);
   await page.getByLabel('Revision name').first().fill('Baseline');

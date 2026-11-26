@@ -67,7 +67,7 @@ export function Inventory({
   const addresses = useMemo(() => (tab === 'addresses' ? addressRows(project, report) : []), [project, report, tab]);
 
   const devices = useMemo(() => {
-    const sortValue = (d: Device, key: SortKey): string | number => {
+    const sortValue = (d: Device, key: SortKey): string | number | bigint => {
       switch (key) {
       case 'name':
         return d.label.toLowerCase();

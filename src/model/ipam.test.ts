@@ -3,13 +3,16 @@ import { addressesToCsv, addressRows } from './csv';
 import { projectToMarkdown } from './exportDoc';
 import {
   addressReport,
-  addressSortKey,
   cidrContains,
+  compareAddresses,
   createNetwork,
   formatIpv4,
+  formatIpv6,
   networkSummaries,
   parseCidr,
+  parseIp,
   parseIpv4,
+  parseIpv6,
   suggestCidr,
   usableHosts,
 } from './ipam';
@@ -35,16 +38,100 @@ describe('IPv4 parsing', () => {
   it('checks containment and counts usable hosts', () => {
     const r = parseCidr('10.0.0.0/30');
     if (!r.ok) throw new Error();
-    expect(cidrContains(r.cidr, parseIpv4('10.0.0.3')!)).toBe(true);
-    expect(cidrContains(r.cidr, parseIpv4('10.0.0.4')!)).toBe(false);
-    expect(usableHosts(r.cidr)).toBe(2);
+    expect(cidrContains(r.cidr, parseIp('10.0.0.3')!)).toBe(true);
+    expect(cidrContains(r.cidr, parseIp('10.0.0.4')!)).toBe(false);
+    expect(usableHosts(r.cidr)).toBe(2n);
     const p2p = parseCidr('10.0.0.0/31');
-    expect(p2p.ok && usableHosts(p2p.cidr)).toBe(2);
+    expect(p2p.ok && usableHosts(p2p.cidr)).toBe(2n);
   });
 
-  it('sorts addresses numerically with invalid ones last', () => {
-    const sorted = ['10.0.0.10', 'oops', '10.0.0.9', '9.255.255.255'].sort((a, b) => addressSortKey(a) - addressSortKey(b));
-    expect(sorted).toEqual(['9.255.255.255', '10.0.0.9', '10.0.0.10', 'oops']);
+  it('sorts addresses numerically, IPv4 before IPv6, with invalid ones last', () => {
+    const sorted = ['10.0.0.10', 'oops', '2001:db8::1', '10.0.0.9', '::1', '9.255.255.255'].sort(compareAddresses);
+    expect(sorted).toEqual(['9.255.255.255', '10.0.0.9', '10.0.0.10', '::1', '2001:db8::1', 'oops']);
+  });
+});
+
+describe('IPv6 parsing (issue #20)', () => {
+  it('reads full, compressed, mixed-case and IPv4-tailed forms', () => {
+    expect(parseIpv6('2001:0db8:0000:0000:0000:0000:0000:0001')).toBe(0x20010db8000000000000000000000001n);
+    expect(parseIpv6('2001:DB8::1')).toBe(0x20010db8000000000000000000000001n);
+    expect(parseIpv6('::')).toBe(0n);
+    expect(parseIpv6('::1')).toBe(1n);
+    expect(parseIpv6('fe80::')).toBe(0xfe80n << 112n);
+    expect(parseIpv6('::ffff:10.0.0.1')).toBe(0xffff0a000001n);
+    expect(parseIpv6('64:ff9b::192.0.2.33')).toBe((0x64ff9bn << 96n) + 0xc0000221n);
+    expect(parseIpv6('1:2:3:4:5:6:10.0.0.1')).toBe(0x0001000200030004000500060a000001n);
+  });
+
+  it('rejects malformed addresses', () => {
+    for (const bad of ['', '1:2:3', '1::2::3', '12345::', ':1:2:3:4:5:6:7', '1:2:3:4:5:6:7:8:9', '1:2:3:4:5:6:7::8', 'g::1', '::ffff:10.0.0.256', '2001:db8::1%eth0', '10.0.0.1'])
+      expect(parseIpv6(bad), bad).toBeNull();
+  });
+
+  it('writes the canonical form of RFC 5952', () => {
+    const canon = (t: string) => formatIpv6(parseIpv6(t)!);
+    expect(canon('2001:0DB8:0000:0000:0000:0000:0000:0001')).toBe('2001:db8::1');
+    expect(canon('2001:db8:0:1:0:0:0:1')).toBe('2001:db8:0:1::1');
+    expect(canon('2001:db8:0:0:1:0:0:1')).toBe('2001:db8::1:0:0:1');
+    expect(canon('2001:db8:1:2:3:4:5:6')).toBe('2001:db8:1:2:3:4:5:6');
+    expect(canon('2001:db8:0:1:2:3:4:5')).toBe('2001:db8:0:1:2:3:4:5');
+    expect(canon('::')).toBe('::');
+    expect(canon('0:0:0:0:0:0:0:1')).toBe('::1');
+  });
+
+  it('parses IPv6 subnets and counts their addresses exactly', () => {
+    const r = parseCidr('2001:db8:1::/64');
+    if (!r.ok) throw new Error();
+    expect(r.cidr).toEqual({ family: 6, base: 0x20010db8000100000000000000000000n, prefix: 64 });
+    expect(usableHosts(r.cidr)).toBe(2n ** 64n - 1n);
+    expect(cidrContains(r.cidr, parseIp('2001:db8:1::ff')!)).toBe(true);
+    expect(cidrContains(r.cidr, parseIp('2001:db8:2::1')!)).toBe(false);
+    expect(cidrContains(r.cidr, parseIp('10.0.0.1')!)).toBe(false);
+    expect(parseCidr('2001:db8:1::1/64')).toEqual({ ok: false, error: 'host bits are set; did you mean 2001:db8:1::/64?' });
+    expect(parseCidr('2001:db8::/129')).toEqual({ ok: false, error: 'the prefix length must be 0 to 128' });
+    expect(parseCidr('10.0.0.0/64')).toEqual({ ok: false, error: 'the prefix length must be 0 to 32' });
+    const p2p = parseCidr('2001:db8::/127');
+    expect(p2p.ok && usableHosts(p2p.cidr)).toBe(2n);
+  });
+
+  it('applies the IPv4 checks to IPv6 addresses', () => {
+    let p = plant();
+    p = { ...p, networks: [...p.networks, { ...createNetwork('v6', '2001:db8:50::/64', 'v6'), siteId: 'site-main', zoneId: 'zc' }] };
+    const add = (id: string, ip: string, zoneId: string | null) => {
+      p = addDevice(p, { ...createDevice('plc', { x: 0, y: 700 }, { siteId: 'site-main', id }), label: id, zoneId });
+      p = updateDevice(p, id, { asset: { ...p.devices.find((d) => d.id === id)!.asset, ip } });
+    };
+    add('a', '2001:db8:50::10', 'zc');
+    add('b', '2001:DB8:50:0::10', 'zc');
+    add('c', '2001:db8:50::', 'zc');
+    add('d', '2001:db8:99::1', 'zc');
+    add('e', '2001:db8:50::20', 'zo');
+    add('f', '2001:db8:::1', null);
+    add('dual', '10.50.2.30, 2001:db8:50::30', 'zc');
+    const report = addressReport(p);
+    const kinds = (id: string) => (report.issues.get(id) ?? []).map((i) => i.kind);
+    expect(kinds('a')).toEqual(['duplicate']);
+    expect(report.issues.get('a')![0].message).toBe('2001:db8:50::10 is also used by b');
+    expect(kinds('c')).toEqual(['reserved']);
+    expect(report.issues.get('c')![0].message).toBe('2001:db8:50:: is the subnet-router anycast address of v6');
+    expect(kinds('d')).toEqual(['unplanned']);
+    expect(kinds('e')).toEqual(['zone']);
+    expect(kinds('f')).toEqual(['invalid']);
+    expect(report.issues.get('f')![0].message).toBe('"2001:db8:::1" is not a valid IPv4 or IPv6 address');
+    expect(kinds('dual')).toEqual([]);
+    expect(report.addresses.get('dual')!.map((a) => a.network?.id)).toEqual(['ctl', 'v6']);
+    const v6 = networkSummaries(p).find((s) => s.network.id === 'v6')!;
+    expect(v6.devices.map((d) => d.id)).toEqual(['a', 'b', 'c', 'e', 'dual']);
+    expect(v6.overlaps).toEqual([]);
+    expect(addressesToCsv(p)).toContain('2001:db8:50::30,dual,Main site,v6,2001:db8:50::/64,,Control,');
+  });
+
+  it('finds overlapping IPv6 subnets and still suggests an IPv4 /24', () => {
+    const p = { ...plant(), networks: [...plant().networks, createNetwork('wide6', '2001:db8::/32', 'wide6'), createNetwork('narrow6', '2001:db8:7::/48', 'narrow6')] };
+    const byId = new Map(networkSummaries(p).map((s) => [s.network.id, s]));
+    expect(byId.get('wide6')!.overlaps.map((n) => n.id)).toEqual(['narrow6']);
+    expect(byId.get('ctl')!.overlaps).toEqual([]);
+    expect(suggestCidr(p)).toBe('10.50.3.0/24');
   });
 });
 
@@ -109,7 +196,7 @@ describe('network summaries', () => {
     );
     const byId = new Map(networkSummaries(p).map((s) => [s.network.id, s]));
     expect(byId.get('ctl')!.devices.map((d) => d.id).sort()).toEqual(['fw', 'plc1', 'plc2', 'plc6']);
-    expect(byId.get('ctl')!.usable).toBe(254);
+    expect(byId.get('ctl')!.usable).toBe(254n);
     expect(byId.get('bad')!.error).toMatch(/host bits/);
     expect(byId.get('ctl')!.overlaps.map((n) => n.id)).toEqual(['wide']);
     expect(byId.get('ctl')!.vlanClashes.map((n) => n.id)).toEqual(['wide']);

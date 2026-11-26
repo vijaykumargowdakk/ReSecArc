@@ -1,15 +1,26 @@
-// IPv4 address planning: parsing, subnet membership, and consistency warnings between device
+// IPv4 and IPv6 address planning: parsing, subnet membership, and consistency warnings between device
 // addresses, the project's networks and their zones. Warnings never block saving; they are hints.
 import { newId } from './ops';
 import type { Device, Network, Project } from './schema';
 
+export type IpFamily = 4 | 6;
+
+/** An IPv4 or IPv6 address as an unsigned integer (32 or 128 bits). */
+export interface IpAddress {
+  family: IpFamily;
+  value: bigint;
+}
+
 export interface Cidr {
-  /** Network address as an unsigned 32-bit integer. */
-  base: number;
+  family: IpFamily;
+  /** Network address as an unsigned integer. */
+  base: bigint;
   prefix: number;
 }
 
+const BITS: Record<IpFamily, number> = { 4: 32, 6: 128 };
 const OCTET = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+const HEXTET = /^[0-9a-f]{1,4}$/i;
 
 export function parseIpv4(text: string): number | null {
   const parts = text.trim().split('.');
@@ -21,30 +32,93 @@ export function formatIpv4(n: number): string {
   return [24, 16, 8, 0].map((shift) => Math.floor(n / 2 ** shift) % 256).join('.');
 }
 
-const sizeOf = (prefix: number) => 2 ** (32 - prefix);
+/** Parses an IPv6 address: `::` compression, any letter case, and an IPv4 tail (`::ffff:10.0.0.1`). */
+export function parseIpv6(text: string): bigint | null {
+  let t = text.trim();
+  if (!t.includes(':') || /[^0-9a-f:.]/i.test(t)) return null;
+  // An IPv4 tail stands for the last two groups.
+  let tail: number[] = [];
+  const lastColon = t.lastIndexOf(':');
+  if (t.slice(lastColon + 1).includes('.')) {
+    const v4 = parseIpv4(t.slice(lastColon + 1));
+    if (v4 === null) return null;
+    tail = [Math.floor(v4 / 65536), v4 % 65536];
+    // Keep a `::` just before the tail; drop a single separating colon.
+    t = t.slice(0, lastColon + 1);
+    if (!t.endsWith('::')) t = t.slice(0, -1);
+  }
+  const halves = t.split('::');
+  if (halves.length > 2) return null;
+  const groups = (h: string) => (h === '' ? [] : h.split(':'));
+  const head = groups(halves[0]);
+  const rest = halves.length === 2 ? groups(halves[1]) : [];
+  if (![...head, ...rest].every((g) => HEXTET.test(g))) return null;
+  const given = head.length + rest.length + tail.length;
+  if (halves.length === 1 ? given !== 8 : given > 7) return null;
+  const words = [...head.map((g) => parseInt(g, 16)), ...Array(8 - given).fill(0), ...rest.map((g) => parseInt(g, 16)), ...tail];
+  return words.reduce((n: bigint, w: number) => (n << 16n) | BigInt(w), 0n);
+}
+
+/** Formats an IPv6 address in the canonical form of RFC 5952: lower case, longest zero run as `::`. */
+export function formatIpv6(value: bigint): string {
+  const words = Array.from({ length: 8 }, (_, i) => Number((value >> BigInt(112 - 16 * i)) & 0xffffn));
+  let best = { at: -1, len: 1 };
+  for (let i = 0; i < 8; ) {
+    if (words[i] !== 0) { i++; continue; }
+    let j = i;
+    while (j < 8 && words[j] === 0) j++;
+    if (j - i > best.len) best = { at: i, len: j - i };
+    i = j;
+  }
+  const hex = (ws: number[]) => ws.map((w) => w.toString(16)).join(':');
+  return best.at < 0 ? hex(words) : `${hex(words.slice(0, best.at))}::${hex(words.slice(best.at + best.len))}`;
+}
+
+/** Parses an IPv4 or IPv6 address; null when it is neither. */
+export function parseIp(text: string): IpAddress | null {
+  const v4 = parseIpv4(text);
+  if (v4 !== null) return { family: 4, value: BigInt(v4) };
+  const v6 = parseIpv6(text);
+  return v6 === null ? null : { family: 6, value: v6 };
+}
+
+export function formatIp(ip: IpAddress): string {
+  return ip.family === 4 ? formatIpv4(Number(ip.value)) : formatIpv6(ip.value);
+}
+
+const sizeOf = (family: IpFamily, prefix: number) => 1n << BigInt(BITS[family] - prefix);
 
 export type CidrResult = { ok: true; cidr: Cidr } | { ok: false; error: string };
 
-/** Parses `a.b.c.d/n`. Host bits must be zero, so typos such as 10.0.0.5/24 are caught. */
+/** Parses `a.b.c.d/n` or `2001:db8::/n`. Host bits must be zero, so typos such as 10.0.0.5/24 are caught. */
 export function parseCidr(text: string): CidrResult {
-  const match = /^\s*([\d.]+)\s*\/\s*(\d{1,2})\s*$/.exec(text);
-  if (!match) return { ok: false, error: 'use the form 10.0.1.0/24' };
-  const ip = parseIpv4(match[1]);
+  const match = /^\s*([0-9a-f.:]+)\s*\/\s*(\d{1,3})\s*$/i.exec(text);
+  if (!match) return { ok: false, error: 'use the form 10.0.1.0/24 or 2001:db8:1::/64' };
+  const ip = parseIp(match[1]);
   const prefix = Number(match[2]);
-  if (ip === null) return { ok: false, error: `"${match[1]}" is not an IPv4 address` };
-  if (prefix > 32) return { ok: false, error: 'the prefix length must be 0 to 32' };
-  const base = ip - (ip % sizeOf(prefix));
-  if (base !== ip) return { ok: false, error: `host bits are set; did you mean ${formatIpv4(base)}/${prefix}?` };
-  return { ok: true, cidr: { base, prefix } };
+  if (ip === null) return { ok: false, error: `"${match[1]}" is not an IPv4 or IPv6 address` };
+  const bits = BITS[ip.family];
+  if (prefix > bits) return { ok: false, error: `the prefix length must be 0 to ${bits}` };
+  const base = ip.value - (ip.value % sizeOf(ip.family, prefix));
+  if (base !== ip.value) return { ok: false, error: `host bits are set; did you mean ${formatIp({ family: ip.family, value: base })}/${prefix}?` };
+  return { ok: true, cidr: { family: ip.family, base, prefix } };
 }
 
-export function cidrContains(cidr: Cidr, ip: number): boolean {
-  return ip >= cidr.base && ip < cidr.base + sizeOf(cidr.prefix);
+export function cidrContains(cidr: Cidr, ip: IpAddress): boolean {
+  return ip.family === cidr.family && ip.value >= cidr.base && ip.value < cidr.base + sizeOf(cidr.family, cidr.prefix);
 }
 
-/** Addresses usable by hosts: everything but the network and broadcast address, except in /31 and /32. */
-export function usableHosts(cidr: Cidr): number {
-  return cidr.prefix >= 31 ? sizeOf(cidr.prefix) : sizeOf(cidr.prefix) - 2;
+/** The prefix length from which a subnet has no reserved address: /31 for IPv4 (RFC 3021), /127 for IPv6 (RFC 6164). */
+const noReserved = (c: Cidr) => c.prefix >= BITS[c.family] - 1;
+
+/**
+ * Addresses usable by hosts. IPv4 leaves out the network and broadcast address, IPv6 the
+ * subnet-router anycast address (all host bits zero), except in the smallest subnets.
+ */
+export function usableHosts(cidr: Cidr): bigint {
+  const size = sizeOf(cidr.family, cidr.prefix);
+  if (noReserved(cidr)) return size;
+  return cidr.family === 4 ? size - 2n : size - 1n;
 }
 
 /** A device may list several addresses (one per interface), separated by commas, semicolons or spaces. */
@@ -68,7 +142,7 @@ function parsedNetworks(project: Pick<Project, 'networks'>): ParsedNetwork[] {
 }
 
 /** The most specific network on the device's site that contains `ip`. */
-function networkFor(networks: ParsedNetwork[], siteId: string, ip: number): ParsedNetwork | null {
+function networkFor(networks: ParsedNetwork[], siteId: string, ip: IpAddress): ParsedNetwork | null {
   let best: ParsedNetwork | null = null;
   for (const n of networks) {
     if (onSite(n.network, siteId) && cidrContains(n.cidr, ip) && (!best || n.cidr.prefix > best.cidr.prefix)) best = n;
@@ -78,8 +152,8 @@ function networkFor(networks: ParsedNetwork[], siteId: string, ip: number): Pars
 
 export interface AddressInfo {
   address: string;
-  /** null when the text is not a valid IPv4 address. */
-  ip: number | null;
+  /** null when the text is not a valid IPv4 or IPv6 address. */
+  ip: IpAddress | null;
   network: Network | null;
 }
 
@@ -114,23 +188,20 @@ export function addressReport(project: Project): AddressReport {
   for (const d of project.devices) {
     const infos: AddressInfo[] = [];
     for (const address of deviceAddresses(d)) {
-      const ip = parseIpv4(address);
+      const ip = parseIp(address);
       if (ip === null) {
         infos.push({ address, ip, network: null });
-        warn(d.id, { kind: 'invalid', address, message: `"${address}" is not a valid IPv4 address` });
+        warn(d.id, { kind: 'invalid', address, message: `"${address}" is not a valid IPv4 or IPv6 address` });
         continue;
       }
       const match = networkFor(networks, d.siteId, ip);
       infos.push({ address, ip, network: match?.network ?? null });
       if (match) {
         const { network, cidr } = match;
-        const broadcast = cidr.base + sizeOf(cidr.prefix) - 1;
-        if (cidr.prefix < 31 && (ip === cidr.base || ip === broadcast)) {
-          warn(d.id, {
-            kind: 'reserved',
-            address,
-            message: `${address} is the ${ip === cidr.base ? 'network' : 'broadcast'} address of ${network.name || network.cidr}`,
-          });
+        const broadcast = cidr.family === 4 ? cidr.base + sizeOf(4, cidr.prefix) - 1n : null;
+        if (!noReserved(cidr) && (ip.value === cidr.base || ip.value === broadcast)) {
+          const what = ip.value !== cidr.base ? 'broadcast' : cidr.family === 4 ? 'network' : 'subnet-router anycast';
+          warn(d.id, { kind: 'reserved', address, message: `${address} is the ${what} address of ${network.name || network.cidr}` });
         }
         if (network.zoneId && d.zoneId && network.zoneId !== d.zoneId) {
           warn(d.id, {
@@ -143,7 +214,7 @@ export function addressReport(project: Project): AddressReport {
         warn(d.id, { kind: 'unplanned', address, message: `${address} is not in any network planned for this site` });
       }
       const scope = match && match.network.siteId === null ? `net:${match.network.id}` : `site:${d.siteId}`;
-      const key = `${scope}|${ip}`;
+      const key = `${scope}|${formatIp(ip)}`;
       owners.set(key, [...(owners.get(key) ?? []), d]);
     }
     addresses.set(d.id, infos);
@@ -152,7 +223,7 @@ export function addressReport(project: Project): AddressReport {
   for (const [key, devices] of owners) {
     const unique = [...new Set(devices)];
     if (unique.length < 2) continue;
-    const address = formatIpv4(Number(key.split('|')[1]));
+    const address = key.slice(key.indexOf('|') + 1);
     for (const d of unique) {
       const others = unique.filter((o) => o !== d).map((o) => o.label);
       warn(d.id, { kind: 'duplicate', address, message: `${address} is also used by ${others.join(', ')}` });
@@ -167,7 +238,7 @@ export interface NetworkSummary {
   error: string | null;
   /** Devices with at least one address in this network. */
   devices: Device[];
-  usable: number;
+  usable: bigint;
   /** Other networks on an overlapping site whose ranges overlap this one. */
   overlaps: Network[];
   /** Other networks on an overlapping site with the same VLAN id but a different subnet. */
@@ -190,7 +261,7 @@ export function networkSummaries(project: Project, report: AddressReport = addre
     const overlaps = cidr
       ? others.filter((o) => {
           const c = range(o.id);
-          return c !== null && (cidrContains(cidr, c.base) || cidrContains(c, cidr.base));
+          return c !== null && (cidrContains(cidr, { family: c.family, value: c.base }) || cidrContains(c, { family: cidr.family, value: cidr.base }));
         })
       : [];
     const vlanClashes = network.vlan === null ? [] : others.filter((o) => o.vlan === network.vlan && o.cidr.trim() !== network.cidr.trim());
@@ -199,7 +270,7 @@ export function networkSummaries(project: Project, report: AddressReport = addre
       cidr,
       error: result.ok ? null : result.error,
       devices,
-      usable: cidr ? usableHosts(cidr) : 0,
+      usable: cidr ? usableHosts(cidr) : 0n,
       overlaps,
       vlanClashes,
     };
@@ -246,9 +317,18 @@ export function parseVlans(text: string): number[] | null {
   return out.size > 200 ? null : [...out].sort((a, b) => a - b);
 }
 
-/** Sort key for addresses: numeric for valid IPv4, after all valid ones otherwise. */
-export function addressSortKey(address: string): number {
-  return parseIpv4(address) ?? Number.MAX_SAFE_INTEGER;
+/** Sort key for addresses: IPv4 in numeric order, then IPv6, then anything that is not an address. */
+export function addressSortKey(address: string): bigint {
+  const ip = parseIp(address);
+  if (!ip) return 1n << 129n;
+  return ip.family === 4 ? ip.value : (1n << 32n) + ip.value;
+}
+
+/** Compares two addresses in the order of addressSortKey. */
+export function compareAddresses(a: string, b: string): number {
+  const x = addressSortKey(a);
+  const y = addressSortKey(b);
+  return x < y ? -1 : x > y ? 1 : 0;
 }
 
 export function createNetwork(name: string, cidr: string, id = newId('net')): Network {
@@ -267,11 +347,12 @@ export function removeNetwork(project: Project, id: string): Project {
   return { ...project, networks: project.networks.filter((n) => n.id !== id) };
 }
 
-/** Suggests the next free /24 after the highest planned network, for the "add network" button. */
+/** Suggests the next free IPv4 /24 after the highest planned IPv4 network, for the "add network" button. */
 export function suggestCidr(project: Pick<Project, 'networks'>): string {
-  const bases = parsedNetworks(project).map((n) => n.cidr.base + sizeOf(n.cidr.prefix));
-  if (bases.length === 0) return '10.0.1.0/24';
-  const next = Math.max(...bases);
-  const aligned = Math.ceil(next / 256) * 256;
+  const ends = parsedNetworks(project)
+    .filter((n) => n.cidr.family === 4)
+    .map((n) => Number(n.cidr.base + sizeOf(4, n.cidr.prefix)));
+  if (ends.length === 0) return '10.0.1.0/24';
+  const aligned = Math.ceil(Math.max(...ends) / 256) * 256;
   return aligned < 2 ** 32 ? `${formatIpv4(aligned)}/24` : '10.0.1.0/24';
 }

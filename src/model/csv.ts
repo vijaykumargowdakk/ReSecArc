@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import { DEVICE_CATALOG, kindLabel } from './catalog';
 import { isValidDate, parseTags } from './fields';
 import { addDevice, createDevice, emptyAsset } from './ops';
-import { addressReport, addressSortKey, type AddressReport } from './ipam';
+import { addressReport, compareAddresses, type AddressReport } from './ipam';
 import { flowLabel, getProtocol } from './protocols';
 import { laneTop, levelLabel, NODE_WIDTH, PURDUE_LANES } from './purdue';
 import { deviceTypeSchema, type Device, type DeviceType, type Project, type PurdueLevel, type RuleEndpoint } from './schema';
@@ -123,7 +123,7 @@ export function addressRows(project: Project, report: AddressReport = addressRep
         warnings: (report.issues.get(d.id) ?? []).filter((i) => i.address === a.address).map((i) => i.message),
       })),
     )
-    .sort((a, b) => addressSortKey(a.address) - addressSortKey(b.address) || a.device.localeCompare(b.device));
+    .sort((a, b) => compareAddresses(a.address, b.address) || a.device.localeCompare(b.device));
 }
 
 export const LINK_COLUMNS = ['source', 'source port', 'target', 'target port', 'medium', 'vlans', 'network'] as const;

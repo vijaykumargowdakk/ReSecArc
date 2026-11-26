@@ -36,7 +36,7 @@ export function NetworksSection() {
       }
     >
       {summaries.length === 0 && (
-        <p className="empty">No networks yet. Add the IPv4 subnets in use to see which network and VLAN each device address belongs to.</p>
+        <p className="empty">No networks yet. Add the IPv4 or IPv6 subnets in use to see which network and VLAN each device address belongs to.</p>
       )}
       <ul className="network-list">
         {summaries.map(({ network: n, error, devices, usable, overlaps, vlanClashes }) => {
@@ -84,7 +84,7 @@ export function NetworksSection() {
               </div>
               {!error && (
                 <p className="muted network__usage">
-                  {devices.length} device{devices.length === 1 ? '' : 's'} · {usable.toLocaleString()} usable address{usable === 1 ? '' : 'es'}
+                  {devices.length} device{devices.length === 1 ? '' : 's'} · {usable.toLocaleString()} usable address{usable === 1n ? '' : 'es'}
                 </p>
               )}
               <IssueList issues={issues} />
