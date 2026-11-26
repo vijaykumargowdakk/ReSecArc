@@ -695,3 +695,16 @@ The README timeline gets `v0.5.2 Touch and polish`. The notes are checked agains
 - **Tests and bundle:** 6 new unit tests and 1 new browser test. The startup bundle grows 1.7 kB, to 569.3 kB of 575 kB.
 **Why:** Issue #20. The approach was posted on the issue before building.
 **User input:** The owner chose "Yes, add IPv6 (Recommended)": full IPv6 with the same checks in the table, CSV and report, stopping to ask if a file format change were needed. None was.
+
+## 2026-11-26 — The toolbar fits at 1280 px with a More menu (#16)
+**Decision:**
+- **More menu:** snap to grid, the edit history and the theme and text size move into a new **More** menu (`src/ui/MoreMenu.tsx`). Snap to grid is a toggle row showing On/Off. Edit history and Theme and text size are sections that open inside the menu (the existing `HistoryMenu` and `DisplayMenu`, restyled as inline sections). The "Show the edit history…" command opens More at the history.
+- **Connection type stays on the toolbar.** The owner chose this when asked, because it is used on every connection and its active mode must stay visible. Below 1920 px its buttons read **Link** and **Flow**, keeping "Network link" and "Protocol flow" as their accessible names, which satisfies WCAG 2.5.3.
+- **Breakpoints:**
+  - The project name, the "Connect as" label and the Ctrl K hint now need 1920 px. They used to appear from 1601 px, where the brand was cut and "Connect as" wrapped.
+  - Up to 1440 px the toolbar gap and button padding are a little smaller.
+  - Below 1280 px the button words are hidden visually as before, and the brand name is hidden, since the logo alone reads better than "R…".
+- **Result:** from 1280 px up, the toolbar shows ReSecArc, Find, Link, Flow, Security, New, Open, Save, Export and More on one 48 px row without overflow. This was checked at 1280, 1366, 1440, 1600, 1700, 1919 and 1920 px, and a browser test checks it at 1280 px.
+- **Canvas bar:** Tidy and View keep their icon-only form below 1600 px. Showing their words squeezed the site tab to "M" at 1366 px. The canvas bar's own crowding is filed as #66.
+**Why:** Issue #16.
+**User input:** The owner chose "More menu (Recommended)". Asked again about the connection type, they chose "Keep it visible, shorter (Recommended)".

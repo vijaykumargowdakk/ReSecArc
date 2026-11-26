@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { openApp } from './helpers';
 
 test.beforeEach(async ({ page }) => openApp(page));
@@ -75,9 +75,17 @@ test('a panel edge resizes the panel by dragging', async ({ page }) => {
   await expect.poll(width).toBe(start + 60);
 });
 
+/** The theme and text size live in the More menu since issue #16. */
+async function openDisplay(page: Page) {
+  const more = page.locator('.more-menu');
+  if (!(await more.evaluate((el: HTMLDetailsElement) => el.open))) await more.locator('> summary').click();
+  const display = page.locator('.display-menu');
+  if (!(await display.evaluate((el: HTMLDetailsElement) => el.open))) await display.locator('summary').click();
+}
+
 test('the text size setting scales the interface, not the canvas, and is remembered', async ({ page }) => {
   await page.getByRole('group', { name: 'Edit' }).waitFor();
-  await page.locator('.display-menu summary').click();
+  await openDisplay(page);
   await page.getByRole('radio', { name: 'Larger (130%)' }).check();
   const zoom = (selector: string) => page.locator(selector).first().evaluate((el) => getComputedStyle(el).zoom);
   await expect.poll(() => zoom('.toolbar')).toBe('1.3');
@@ -85,14 +93,49 @@ test('the text size setting scales the interface, not the canvas, and is remembe
 
   await page.reload();
   await expect.poll(() => zoom('.inspector')).toBe('1.3');
-  await page.locator('.display-menu summary').click();
+  await openDisplay(page);
   await expect(page.getByRole('radio', { name: 'Larger (130%)' })).toBeChecked();
   await page.getByRole('radio', { name: 'Default (100%)' }).check();
   await expect.poll(() => zoom('.toolbar')).toBe('1');
 });
 
 test('the theme is chosen from the Display menu', async ({ page }) => {
-  await page.locator('.display-menu summary').click();
+  await openDisplay(page);
   await page.getByRole('radio', { name: 'Dark' }).check();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
+
+test('at 1280 px the toolbar fits on one row with every label (issue #16)', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const toolbar = page.getByRole('banner');
+  for (const name of ['Find', 'Link', 'Flow', 'Security', 'New', 'Open', 'Save', 'Export', 'More']) {
+    await expect(toolbar.getByText(name, { exact: true }).first(), name).toBeVisible();
+  }
+  await expect(toolbar.getByText('ReSecArc', { exact: true })).toBeVisible();
+  const fit = await toolbar.evaluate((el) => {
+    const name = el.querySelector('.brand__name')!;
+    return { overflow: el.scrollWidth - el.clientWidth, height: el.getBoundingClientRect().height, nameCut: name.scrollWidth > name.clientWidth };
+  });
+  expect(fit).toEqual({ overflow: 0, height: expect.any(Number), nameCut: false });
+  expect(fit.height).toBeLessThan(60);
+  // The connection buttons keep their full names for screen readers.
+  await expect(toolbar.getByRole('button', { name: 'Network link' })).toHaveAttribute('aria-pressed', 'true');
+
+  // Snap to grid, the edit history and the display settings are in the More menu.
+  await toolbar.locator('.more-menu > summary').click();
+  const snap = toolbar.getByRole('button', { name: 'Snap to grid' });
+  const pressed = await snap.getAttribute('aria-pressed');
+  await snap.click();
+  await expect(snap).toHaveAttribute('aria-pressed', pressed === 'true' ? 'false' : 'true');
+  await toolbar.getByText('Edit history', { exact: true }).click();
+  await expect(page.getByRole('list', { name: 'Edit history, newest first' })).toBeVisible();
+  await toolbar.locator('.display-menu summary').click();
+  await expect(page.getByRole('radio', { name: 'High contrast' })).toBeVisible();
+});
+
+test('the edit history command opens the More menu at the history (issue #16)', async ({ page }) => {
+  await page.getByRole('button', { name: 'Command palette' }).click();
+  await page.getByRole('combobox', { name: 'Command' }).fill('edit history');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('list', { name: 'Edit history, newest first' })).toBeVisible();
 });

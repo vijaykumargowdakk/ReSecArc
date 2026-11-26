@@ -1,4 +1,4 @@
-import { Cable, CircleHelp, Command, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Grid3x3, Redo2, Search, ShieldAlert, Undo2, Workflow } from 'lucide-react';
+import { Cable, CircleHelp, Command, Download, FileOutput, FilePlus2, PanelLeft, PanelRight, FolderOpen, Redo2, Search, ShieldAlert, Undo2, Workflow } from 'lucide-react';
 import { lazy, Suspense, useRef, useState, type ReactElement } from 'react';
 import { PROTOCOLS } from '../model/protocols';
 import { useAutosaveStatus } from '../store/autosave';
@@ -6,8 +6,7 @@ import { useFindings } from '../store/derived';
 import { usePrefs } from '../store/prefs';
 import { useSecurity } from '../store/security';
 import { chooseProjectFile, openProjectFile, PROJECT_FILE_INPUT_ID, saveProjectFile } from './actions';
-import { DisplayMenu } from './DisplayMenu';
-import { HistoryMenu } from './HistoryMenu';
+import { MoreMenu } from './MoreMenu';
 import { NO_SELECTION, useProject, type ConnectMode } from '../store/useProject';
 
 const ExportMenuItems = lazy(() => import('./ExportMenuItems').then((m) => ({ default: m.ExportMenuItems })));
@@ -45,8 +44,6 @@ export function Toolbar({
   const canRedo = useProject((s) => s.history.future.length > 0);
   const undo = useProject((s) => s.undo);
   const redo = useProject((s) => s.redo);
-  const snapToGrid = useProject((s) => s.snapToGrid);
-  const toggleSnap = useProject((s) => s.toggleSnap);
   const autosave = useAutosaveStatus();
   const findings = useFindings();
   const securityOpen = useSecurity((s) => s.open);
@@ -65,9 +62,10 @@ export function Toolbar({
   // The menu's items, and the export code behind them, load the first time it opens.
   const [exportLoaded, setExportLoaded] = useState(false);
 
-  const modes: { value: ConnectMode; label: string; icon: ReactElement }[] = [
-    { value: 'link', label: 'Network link', icon: <Cable size={16} /> },
-    { value: 'flow', label: 'Protocol flow', icon: <Workflow size={16} /> },
+  // Below 1920 px the buttons show the short word; the accessible name stays the full one (issue #16).
+  const modes: { value: ConnectMode; label: string; short: string; icon: ReactElement }[] = [
+    { value: 'link', label: 'Network link', short: 'Link', icon: <Cable size={16} /> },
+    { value: 'flow', label: 'Protocol flow', short: 'Flow', icon: <Workflow size={16} /> },
   ];
 
   return (
@@ -105,17 +103,6 @@ export function Toolbar({
         <button type="button" className="button icon-only" onClick={redo} disabled={!canRedo} title="Redo (Ctrl+Shift+Z)" aria-label="Redo">
           <Redo2 size={16} />
         </button>
-        <button
-          type="button"
-          className={`segment icon-only${snapToGrid ? ' is-active' : ''}`}
-          aria-pressed={snapToGrid}
-          onClick={toggleSnap}
-          title="Snap to grid"
-          aria-label="Snap to grid"
-        >
-          <Grid3x3 size={16} />
-        </button>
-        <HistoryMenu />
       </div>
 
       <div className="toolbar__group" role="group" aria-label="Connection type">
@@ -127,9 +114,12 @@ export function Toolbar({
             className={`segment${connectMode === m.value ? ' is-active' : ''}`}
             aria-pressed={connectMode === m.value}
             onClick={() => setConnectMode(m.value)}
+            aria-label={m.label}
+            title={`Draw new connections as ${m.label.toLowerCase()}s`}
           >
             {m.icon}
-            {m.label}
+            <span className="label-full">{m.label}</span>
+            <span className="label-short">{m.short}</span>
           </button>
         ))}
         <select
@@ -186,7 +176,7 @@ export function Toolbar({
             </Suspense>
           )}
         </details>
-        <DisplayMenu />
+        <MoreMenu />
         <button type="button" className="button icon-only" onClick={onHelp} aria-label="Keyboard shortcuts and help" title="Keyboard shortcuts (?)">
           <CircleHelp size={16} />
         </button>

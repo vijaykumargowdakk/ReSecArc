@@ -2936,14 +2936,63 @@ textarea {
   color: var(--ink-faint);
 }
 
-@media (max-width: 1600px) {
+/* Connection buttons: the full words on wide screens, the short ones below 1920 px (issue #16). */
+.label-short {
+  display: none;
+}
+
+/* The project name, the "Connect as" label, the Find shortcut and the long connection words need a
+   full HD width; below it they give way so every button keeps its word. */
+@media (max-width: 1919px) {
   .brand__project,
   .toolbar__label,
-  .search-trigger kbd {
+  .search-trigger kbd,
+  .label-full {
     display: none;
   }
 
-  /* Button words hidden visually but kept in the accessible name, so the brand keeps its room. */
+  .label-short {
+    display: inline;
+  }
+
+  .toolbar {
+    gap: 12px;
+  }
+}
+
+/* The canvas bar shares its row with the site tabs, so below 1600 px Tidy and View stay icon-only
+   (their words remain in the accessible name) and the tabs keep their room. */
+@media (max-width: 1600px) {
+  .canvas-bar .toolbar-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+/* Up to 1440 px the toolbar is a little tighter, so the brand name keeps its room at 1280 px. */
+@media (max-width: 1440px) {
+  .toolbar {
+    gap: 10px;
+  }
+
+  .toolbar .button:not(.icon-only),
+  .toolbar .segment {
+    padding: 6px 8px;
+  }
+}
+
+/* Below 1280 px there is no room for every word: they are hidden visually but kept in the
+   accessible name. From 1280 px up the toolbar fits with every label (issue #16). */
+@media (max-width: 1279px) {
+  /* The logo alone reads better than a name cut to its first letter. */
+  .brand__name {
+    display: none;
+  }
+
   .toolbar-text {
     position: absolute;
     width: 1px;
@@ -3324,6 +3373,73 @@ textarea {
   border: 1px solid var(--line-strong);
   border-radius: 4px;
   color: var(--ink-soft);
+}
+
+/* More menu (issue #16): snap to grid, then the edit history and display settings as inline sections. */
+.more-menu summary.button {
+  gap: 4px;
+}
+
+.more-menu__items {
+  min-width: 260px;
+}
+
+.menu__items .more-menu__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 5px;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.menu__items .more-menu__row:hover,
+.menu__items .more-menu__row:focus-visible {
+  background: var(--panel-alt);
+}
+
+.more-menu__state {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.menu__items .more-menu__row[aria-pressed='true'] .more-menu__state {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.more-menu__items .menu {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.more-menu__items .menu[open] > summary .display-menu__mark,
+.more-menu__items .menu[open] > summary svg {
+  color: var(--accent);
+}
+
+/* The history and display sections open inside the More menu rather than as menus of their own. */
+.more-menu__items .menu__items {
+  position: static;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.more-menu .history-menu__items {
+  max-height: 45vh;
+}
+
+/* The section's own summary already says "Edit history". */
+.more-menu .history-menu__title {
+  display: none;
 }
 
 /* Edit history menu */

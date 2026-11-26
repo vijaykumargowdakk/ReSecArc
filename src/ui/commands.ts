@@ -19,6 +19,15 @@ import { startKeyboardConnect } from './canvas/useKeyboardConnect';
 import { PANEL_SHORTCUTS, PANEL_TITLES } from './PanelChrome';
 import type { CanvasNode } from './canvas/nodes';
 
+/** Opens the More menu and its edit history section (issue #16), and moves focus to the history. */
+function openEditHistory() {
+  document.querySelector<HTMLDetailsElement>('.more-menu')?.setAttribute('open', '');
+  const history = document.querySelector<HTMLDetailsElement>('.history-menu');
+  if (!history) return;
+  history.open = true;
+  history.querySelector<HTMLElement>('summary')?.focus();
+}
+
 export interface Command {
   id: string;
   group: string;
@@ -83,7 +92,7 @@ export function buildCommands(ctx: CommandContext, rf: ReactFlowInstance<CanvasN
 
   add('Edit', 'undo', 'Undo', () => useProject.getState().undo(), { shortcut: 'Ctrl+Z', enabled: history.past.length > 0 });
   add('Edit', 'redo', 'Redo', () => useProject.getState().redo(), { shortcut: 'Ctrl+Shift+Z', enabled: history.future.length > 0 });
-  add('Edit', 'history', 'Show the edit history…', () => document.querySelector<HTMLElement>('.history-menu summary')?.click(), { keywords: 'undo steps' });
+  add('Edit', 'history', 'Show the edit history…', openEditHistory, { keywords: 'undo steps' });
   add('Edit', 'select-all', 'Select every device on this site', () => useProject.getState().selectAll(), { shortcut: 'Ctrl+A', enabled: diagram });
   add('Edit', 'duplicate', 'Duplicate the selected devices', () => useProject.getState().duplicate(), { shortcut: 'Ctrl+D', enabled: selection.devices.length > 0 });
   add('Edit', 'note', 'Add a text note', () => addNoteInView(rf), { enabled: diagram, keywords: 'annotation comment' });
