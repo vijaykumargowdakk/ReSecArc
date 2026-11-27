@@ -17,6 +17,9 @@ export async function openApp(page: Page, { theme = 'light', path = '/' }: { the
   }, theme);
   await page.goto(path);
   await expect(page.locator('.react-flow__node-device').first()).toBeVisible();
+  // The canvas frames the design with a short animation; a test that measures positions before it
+  // ends can miss its target (see the #17 tablet test). Every test starts from a still canvas.
+  await canvasSettled(page);
 }
 
 export const deviceNode = (page: Page, label: string): Locator => page.locator('.react-flow__node-device', { hasText: label }).first();
