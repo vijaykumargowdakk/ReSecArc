@@ -19,6 +19,7 @@ import { usePrefs } from './store/prefs';
 import type { CommandContext, ViewName } from './ui/commands';
 import { PALETTE_DROP_EVENT } from './ui/touchDrag';
 import { useShortcuts } from './ui/useShortcuts';
+import { useMenuDismiss } from './ui/useMenuDismiss';
 
 // Views and dialogs that are not needed on first paint load on demand.
 const Inventory = lazy(() => import('./ui/Inventory').then((m) => ({ default: m.Inventory })));
@@ -87,6 +88,7 @@ export function App() {
   const panels = usePrefs((s) => s.panels);
   const levelTabs = useProject((s) => s.levelTabs.length > 0);
   useShortcuts({ onSearch: openSearch, onHelp: openHelp, onCommands: openCommands });
+  useMenuDismiss();
   const commandContext = useMemo<CommandContext>(
     () => ({
       view,
