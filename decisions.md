@@ -708,3 +708,8 @@ The README timeline gets `v0.5.2 Touch and polish`. The notes are checked agains
 - **Canvas bar:** Tidy and View keep their icon-only form below 1600 px. Showing their words squeezed the site tab to "M" at 1366 px. The canvas bar's own crowding is filed as #66.
 **Why:** Issue #16.
 **User input:** The owner chose "More menu (Recommended)". Asked again about the connection type, they chose "Keep it visible, shorter (Recommended)".
+
+## 2026-11-27 — Standing rule: resume automatically after usage-limit pauses
+**Decision:** CLAUDE.md "Working rules" now includes the owner's auto-resume rule. At the start of multi-step work, a session schedules a one-shot resume at now + 5 h 30 min, plus a backup 2 hours later. The messages are self-contained. Work in progress is pushed before long steps. A resume reads notifications, checks git and continues without asking again. The resume tasks are deleted when the work is done. This replaces the recurring every-2-hours resume tasks used so far.
+**Why:** The owner often hits the usage limit overnight. The limit resets about 5 hours after it starts, so work should carry on without them typing "continue".
+**User input:** "STANDING RULE: auto-resume after usage-limit pauses (apply for the rest of this session, without me asking again) ... If the repo has a CLAUDE.md, add this rule there under 'Working rules'."

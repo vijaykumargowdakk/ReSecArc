@@ -20,5 +20,12 @@ For session continuity (including other Claude Code sessions/agents working on t
 - **Verify before trusting.** Don't assume external data, AI output, or copied code is correct. Check it.
 - **No placeholder data in production paths.** If something is simulated/demo, label it clearly.
 - **Releases:** follow **docs/RELEASING.md** for every release. In short: a version PR that raises `package.json` and adds the version to the README timeline (section 24); release notes checked against the code and approved by the owner; an annotated tag on the merge commit on `main`; `gh release create`; then a record in decisions.md and PROJECT_STATUS.md. When a version's milestones are all merged, offer a release. Never move or delete a pushed tag.
+- **Auto-resume after usage-limit pauses (owner's standing rule):** the owner may run out of their usage limit while work is running, often overnight; the limit resets about 5 hours after it starts. So that work continues without them typing "continue":
+  1. At the start of any multi-step task, and again whenever the plan changes a lot, schedule a one-shot message back into this session at now + 5 h 30 min (the reset plus a 30-minute buffer), plus a backup 2 hours after that (`send_later` or `create_trigger` with `run_once_at` in cloud sessions; `CronCreate` or `ScheduleWakeup` locally).
+  2. Write each message so it stands on its own: the repo and branch, what is done, the exact remaining steps, and "if this is already finished, or another turn is already handling it, do nothing and reply with one short line".
+  3. Before long steps, commit and push work in progress to the feature branch, so a fresh container can pick it up.
+  4. When a resume message arrives: read pending notifications, check `git status` and `git log`, and continue where the work stopped. Don't ask the owner to confirm anything they already approved.
+  5. When the task is completely done, delete the remaining resume tasks.
+  Tell the owner in one line which resume times were scheduled, in UTC and IST.
 
 The PostToolUse hooks in `.claude/settings.json` regenerate FILEMAP.md and mark edits for an end-of-turn review hook. Don't hand-edit FILEMAP.md.
