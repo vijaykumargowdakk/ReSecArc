@@ -99,3 +99,33 @@ test('lane buttons stay at least 24 px on screen when zoomed out, as long as the
   await page.getByRole('combobox', { name: 'Command' }).fill('Open L3');
   await expect(page.getByRole('option', { name: /Open L3 Site operations in its own tab/ })).toBeVisible();
 });
+
+test('a crowded canvas bar keeps the current site tab and offers one Filter menu (issue #66)', async ({ page }) => {
+  const bar = page.locator('.canvas-bar');
+  // At 1440 px and up the filters are separate chips.
+  await expect(bar.locator('.filter-chips summary', { hasText: 'Zone' })).toBeVisible();
+  await expect(bar.locator('.filter-all')).toBeHidden();
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  for (const name of ['Northern pumping station with a long name', 'Second site']) {
+    await page.getByRole('button', { name: 'Add site' }).click();
+    await page.getByLabel('Site name').fill(name);
+    await page.keyboard.press('Enter');
+  }
+  const fit = await bar.evaluate((el) => {
+    const tab = el.querySelector('.site-tab.is-active')!.getBoundingClientRect();
+    const list = el.querySelector('.site-tabs__list')!.getBoundingClientRect();
+    return { overflow: el.scrollWidth - el.clientWidth, shown: tab.width > 60 && tab.left >= list.left - 1 && tab.right <= list.right + 1 };
+  });
+  expect(fit).toEqual({ overflow: 0, shown: true });
+  await expect(bar.locator('.site-tab.is-active')).toContainText('Second site');
+
+  // Below 1440 px the chips give way to one Filter menu with a section per kind.
+  await expect(bar.locator('.filter-chips summary', { hasText: 'Zone' })).toBeHidden();
+  const menu = bar.locator('.filter-all');
+  await menu.locator('summary').click();
+  await page.getByRole('group', { name: 'Level' }).getByRole('checkbox', { name: 'L2' }).check();
+  await expect(menu.locator('summary .filter__count')).toHaveText('1');
+  await page.keyboard.press('Escape');
+  await expect(menu.locator('summary')).toBeFocused();
+});

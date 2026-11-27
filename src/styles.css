@@ -768,6 +768,8 @@ dialog {
   display: flex;
   align-items: flex-end;
   gap: 2px;
+  /* SiteTabs sets a minimum width in code: the current site's tab plus the add and merge buttons
+     (issue #66); the other tabs scroll inside the list. */
   min-width: 0;
 }
 
@@ -810,6 +812,20 @@ dialog {
   white-space: nowrap;
   cursor: pointer;
   color: var(--ink-soft);
+}
+
+.site-tab__name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The current site's tab stays in view inside the scrolling list (issue #66). */
+.site-tab.is-active {
+  position: sticky;
+  left: 0;
+  right: 0;
+  z-index: 1;
 }
 
 .site-tab.is-active > .site-tab__button {
@@ -870,6 +886,50 @@ dialog {
 
 .filter {
   position: relative;
+}
+
+.filter-chips {
+  display: contents;
+}
+
+/* The single Filter menu replaces the chips below 1440 px (issue #66). */
+.filter-all {
+  display: none;
+}
+
+.filter-all__menu {
+  min-width: 220px;
+  max-height: 60vh;
+}
+
+.filter-all__menu fieldset {
+  margin: 0;
+  padding: 0 0 6px;
+  border: none;
+}
+
+.filter-all__menu fieldset + fieldset {
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+.filter-all__menu legend {
+  padding: 0 6px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 1439px) {
+  .filter-chips {
+    display: none;
+  }
+
+  .filter-all {
+    display: block;
+  }
 }
 
 .filter summary,

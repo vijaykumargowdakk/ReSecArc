@@ -732,3 +732,13 @@ The README timeline gets `v0.5.2 Touch and polish`. The notes are checked agains
 Also fixed: a flaky tablet browser test ("a palette item dragged with a finger lands on the level it is dropped on", #17), which failed about half the time locally on `main`. The cause was in the test: it measured the L2 lane while the canvas was still animating its first framing. The lane then moved 60–150 px, so the finger either missed it or travelled more down than sideways, which the palette correctly treats as a scroll. The test now waits for the canvas to settle (`canvasSettled`) and passed 10 of 10 runs. Since other tests also measure positions right after opening (bend points, a locked device), `openApp` in `e2e/helpers.ts` now waits for the canvas to settle too, so every test starts from a still canvas. The browser suite takes about 0.3 s longer per test (2.6 → 2.9 min locally).
 **Why:** Found in the find-and-fix audit with an axe scan of the open More menu. The existing scans never opened the history list.
 **User input:** The owner chose "Yes, find and fix".
+
+## 2026-11-27 — The canvas bar keeps the current site tab; one Filter menu below 1440 px (#66)
+**Decision:**
+- **Site tabs:** the current site's tab is never squeezed out. `SiteTabs` sets the tab list's minimum width to the active tab's width, and the nav's minimum to that plus the add and merge buttons; the other tabs scroll inside the list. The active tab is sticky, so it stays in view while the list scrolls. Site names are cut at 120 px with an ellipsis.
+- **Filters:** below 1440 px the Zone, Type, Level, Protocol (and Tag) chips are replaced by one **Filter** menu with a section (fieldset) per kind and a total count. At 1440 px and up the chips are shown as before.
+- **View switch:** below 1280 px the Diagram, Inventory and Outline buttons show only their icons, with tooltips. Their names stay for screen readers, as with the toolbar words.
+- **Result:** no overflow at 1000, 1100, 1180 (the tablet width), 1280, 1366, 1440 and 1600 px, and the current tab is shown at every width. Before, the tab vanished at 1280 px and the bar overflowed by 28 px at 1100 px. A browser test checks this at 1280 px with three sites and a long site name, plus the Filter menu.
+- **Bundle:** startup is 572.0 kB of 575 kB (+1.3 kB). The next feature that needs startup code must move something out first, or ask the owner.
+**Why:** Issue #66, found while fixing #16.
+**User input:** Asked in the Needs You inbox to choose between a minimum width for the active tab (a), one Filter menu (b) or a wrapping bar (c), the owner answered "Do the thing that you recommend to be done". The recommendation was (a) with (b), since (a) alone would push the chips off the bar at 1280 px.

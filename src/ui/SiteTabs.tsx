@@ -1,5 +1,5 @@
 import { Combine, Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { newId } from '../model/ops';
 import { addSite, canRemoveSite, removeSite, renameSite } from '../model/structure';
 import { useProject } from '../store/useProject';
@@ -11,6 +11,21 @@ export function SiteTabs({ onMerge }: { onMerge: () => void }) {
   const setActiveSite = useProject((s) => s.setActiveSite);
   const apply = useProject((s) => s.apply);
   const [editing, setEditing] = useState<string | null>(null);
+  const nav = useRef<HTMLElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+
+  // On a crowded canvas bar the tabs may shrink, but never below the current site's tab (pinned in
+  // view inside the scrolling list) plus the add and merge buttons (issue #66).
+  useLayoutEffect(() => {
+    const el = list.current;
+    const bar = nav.current;
+    if (!el || !bar) return;
+    const active = el.querySelector<HTMLElement>('.site-tab.is-active')?.offsetWidth ?? 0;
+    el.style.minWidth = active ? `${active}px` : '';
+    const buttons = [...bar.children].filter((c) => c !== el).reduce((w, c) => w + (c as HTMLElement).offsetWidth, 0);
+    const gap = parseFloat(getComputedStyle(bar).columnGap) || 0;
+    bar.style.minWidth = `${active + buttons + gap * (bar.children.length - 1)}px`;
+  });
 
   const counts = new Map<string, number>();
   for (const d of project.devices) counts.set(d.siteId, (counts.get(d.siteId) ?? 0) + 1);
@@ -23,9 +38,9 @@ export function SiteTabs({ onMerge }: { onMerge: () => void }) {
   };
 
   return (
-    <nav className="site-tabs" aria-label="Sites">
+    <nav className="site-tabs" aria-label="Sites" ref={nav}>
       {/* Only the tabs scroll, so adding and merging sites stay in reach however many there are. */}
-      <div className="site-tabs__list">
+      <div className="site-tabs__list" ref={list}>
         {project.sites.map((site) => {
           const active = site.id === activeSiteId;
           return (
@@ -55,7 +70,7 @@ export function SiteTabs({ onMerge }: { onMerge: () => void }) {
                   onDoubleClick={() => setEditing(site.id)}
                   title="Double-click to rename"
                 >
-                  {site.name}
+                  <span className="site-tab__name">{site.name}</span>
                   <span className="site-tab__count">{counts.get(site.id) ?? 0}</span>
                 </button>
               )}
