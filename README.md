@@ -249,7 +249,7 @@ flowchart TB
 - **Level tabs:** each lane label has a button that opens that Purdue level in a tab of its own, beside the **Overview** tab (the command palette can do it too). The tab shows only that level, grouped by area, in rows of up to six that wrap, so a level with many devices stays readable. Devices keep a separate position in their level tab: arranging a level never moves anything in the overview. Links to devices on other levels end at stubs, above the level for higher levels and below it for lower ones; clicking a stub opens the other device's level. Tidy in a level tab lays the level out as that grid again. The palette and properties panel work as usual, and a device added in a level tab joins that level. Notes stay in the overview. Level tabs are not saved in the file and close when you switch site.
 - **Stacks:** the second button on a lane label stacks similar devices on that level in the overview: devices of the same type and kind, area and zone, that are not locked, are drawn as one card with more cards behind it and a **×N** badge. Their links and flows merge into one with a count, and their security finding counts add up. Clicking a stack selects all its devices for bulk editing, and double-clicking it opens the level tab, where every device is drawn. Stacking is saved per site and level in the project file, so share links, the report and the draw.io export show the same stacks; Tidy in the overview gives each stack one place.
 - **Search** (Ctrl + K or /): finds devices on every site by name, kind, IP address, vendor, model, notes, tags or custom field values.
-- **Filters:** by zone, device type, level, protocol or tag. Items that do not match are dimmed, not hidden, so the layout stays readable.
+- **Filters:** by zone, device type, level, protocol or tag. Items that do not match are dimmed, not hidden, so the layout stays readable. From 1440 px wide each kind is its own chip in the canvas bar; on narrower screens they share one **Filter** menu with a section per kind. On a crowded bar the current site's tab always stays in view, and the other tabs scroll.
 - **Merge sites from another project:** the button beside the site tabs (or the command palette) reads another ReSecArc file and copies the sites you tick into this design, as one undo step. Everything copied gets a new id, so a file can even be merged with a copy of itself. Zones and custom fields are matched by name, and networks that span every site by subnet; anything without a match is added, and a site whose name is taken is added as "Name (2)". Links and flows to sites you did not tick are left out, and so are firewall rules that name a device on those sites, so no rule is ever widened. The dialog says what will be added and left out before you merge. Company policies, switched-off checks and revisions of the other file are not merged.
 
 ![The multi-site pipeline template in the dark theme, with stubs for devices on the control centre site](docs/images/dark-multisite.png)
@@ -1289,7 +1289,7 @@ flowchart TB
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["99 browser tests in Chromium"]
+    B1 --> B2["100 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1423,7 +1423,7 @@ pie showData
 | `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, the More menu with its sections, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour (and that its card leaves the lane buttons clear), the empty-site hint |
-| `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import, lane buttons kept usable when zoomed out |
+| `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import, lane buttons kept usable when zoomed out, a crowded canvas bar keeping the current site tab and its Filter menu |
 | `e2e/outline.spec.ts` | Outline keyboard navigation, Enter to properties, L / F and Delete from the outline, keyboard-only canvas connections, Esc to cancel |
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |

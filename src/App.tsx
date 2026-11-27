@@ -267,14 +267,14 @@ export function App() {
           <section className="canvas-column" aria-label={VIEW_NAMES[view]}>
             <div className="canvas-bar">
               <div className="segmented view-switch" role="tablist" aria-label="View">
-                <button type="button" role="tab" aria-selected={view === 'diagram'} className={view === 'diagram' ? 'is-active' : ''} onClick={() => setView('diagram')}>
-                  <Network size={15} /> Diagram
+                <button type="button" role="tab" aria-selected={view === 'diagram'} className={view === 'diagram' ? 'is-active' : ''} onClick={() => setView('diagram')} title="Diagram">
+                  <Network size={15} /> <span className="toolbar-text">Diagram</span>
                 </button>
-                <button type="button" role="tab" aria-selected={view === 'inventory'} className={view === 'inventory' ? 'is-active' : ''} onClick={() => setView('inventory')}>
-                  <Table2 size={15} /> Inventory
+                <button type="button" role="tab" aria-selected={view === 'inventory'} className={view === 'inventory' ? 'is-active' : ''} onClick={() => setView('inventory')} title="Inventory">
+                  <Table2 size={15} /> <span className="toolbar-text">Inventory</span>
                 </button>
-                <button type="button" role="tab" aria-selected={view === 'outline'} className={view === 'outline' ? 'is-active' : ''} onClick={() => setView('outline')}>
-                  <ListTree size={15} /> Outline
+                <button type="button" role="tab" aria-selected={view === 'outline'} className={view === 'outline' ? 'is-active' : ''} onClick={() => setView('outline')} title="Outline">
+                  <ListTree size={15} /> <span className="toolbar-text">Outline</span>
                 </button>
               </div>
               {view === 'diagram' && <SiteTabs onMerge={() => setMerging(true)} />}
