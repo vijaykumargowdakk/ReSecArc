@@ -139,3 +139,36 @@ test('the edit history command opens the More menu at the history (issue #16)', 
   await page.keyboard.press('Enter');
   await expect(page.getByRole('list', { name: 'Edit history, newest first' })).toBeVisible();
 });
+
+test('menus close on Escape, returning focus, and on a click outside (issue #69)', async ({ page }) => {
+  const isOpen = (sel: string) => page.locator(sel).first().evaluate((el: HTMLDetailsElement) => el.open);
+  for (const sel of ['.export-menu', '.more-menu', '.layers-menu']) {
+    const summary = page.locator(sel).first().locator('> summary');
+    await summary.click();
+    expect(await isOpen(sel), sel).toBe(true);
+    await page.keyboard.press('Escape');
+    expect(await isOpen(sel), sel).toBe(false);
+    await expect(summary).toBeFocused();
+    await summary.click();
+    await page.locator('.react-flow__pane').click({ position: { x: 20, y: 300 } });
+    expect(await isOpen(sel), sel).toBe(false);
+  }
+
+  // Inside More, Escape closes the open section first, then More; clicks inside keep it open.
+  await page.locator('.more-menu > summary').click();
+  await page.locator('.history-menu summary').click();
+  await page.getByRole('list', { name: 'Edit history, newest first' }).waitFor();
+  expect(await isOpen('.more-menu')).toBe(true);
+  await page.keyboard.press('Escape');
+  expect(await isOpen('.history-menu')).toBe(false);
+  expect(await isOpen('.more-menu')).toBe(true);
+  await page.keyboard.press('Escape');
+  expect(await isOpen('.more-menu')).toBe(false);
+
+  // An Escape that closes a menu leaves the selection alone.
+  await page.locator('.react-flow__node-device').first().click();
+  await expect(page.locator('.react-flow__node-device.selected')).toHaveCount(1);
+  await page.locator('.export-menu > summary').click();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.react-flow__node-device.selected')).toHaveCount(1);
+});

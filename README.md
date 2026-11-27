@@ -1161,7 +1161,8 @@ flowchart LR
   - add devices from the palette with Enter;
   - connect them on the canvas with L (link) or F (flow), or with "Link to…" or "Flow to…" in the properties panel;
   - move the selection with the arrow keys;
-  - press `?` to list every shortcut.
+  - press `?` to list every shortcut;
+  - close any open menu (Export, More, View, the filters) with Escape, which returns focus to its button, or by clicking outside it.
 - **Outline view:** the third view lists the design as a tree that follows the WAI-ARIA tree pattern (one Tab stop, arrow keys inside):
   - Up and Down move; Right opens an item or goes to its first child; Left closes it or goes to its parent; Home and End jump to the ends; typing a letter jumps to the next item starting with it;
   - Enter shows the item in the properties panel and moves focus there; Space selects it without moving focus;
@@ -1288,7 +1289,7 @@ flowchart TB
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["98 browser tests in Chromium"]
+    B1 --> B2["99 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1427,7 +1428,7 @@ pie showData
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |
 | `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), device names that fit their box when measured in the browser, printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file, a merge file over the size limit |
-| `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the More menu, the toolbar fitting at 1280 px with every label |
+| `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the More menu, the toolbar fitting at 1280 px with every label, menus closing on Escape and on a click outside |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
 | `e2e/offline.spec.ts` | Opening and editing with the network off, a new version offered and reopened with the work kept, the install requirements, installing from the command palette |
 | `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, dragging a palette item onto a level with a finger (also from the palette drawer below 900 px), a vertical swipe that only scrolls, the long-press menu, the canvas controls never covering a lane button, an axe scan |

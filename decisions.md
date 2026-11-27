@@ -713,3 +713,16 @@ The README timeline gets `v0.5.2 Touch and polish`. The notes are checked agains
 **Decision:** CLAUDE.md "Working rules" now includes the owner's auto-resume rule. At the start of multi-step work, a session schedules a one-shot resume at now + 5 h 30 min, plus a backup 2 hours later. The messages are self-contained. Work in progress is pushed before long steps. A resume reads notifications, checks git and continues without asking again. The resume tasks are deleted when the work is done. This replaces the recurring every-2-hours resume tasks used so far.
 **Why:** The owner often hits the usage limit overnight. The limit resets about 5 hours after it starts, so work should carry on without them typing "continue".
 **User input:** "STANDING RULE: auto-resume after usage-limit pauses (apply for the rest of this session, without me asking again) ... If the repo has a CLAUDE.md, add this rule there under 'Working rules'."
+
+## 2026-11-27 — Menus close on Escape and on a click outside (#69)
+**Decision:**
+- **The gap:** found in the find-and-fix audit. The `<details>` menus (Export, More with its two sections, View/layers and the filter chips) stayed open after Escape and after a click elsewhere.
+- **The fix:** `src/ui/useMenuDismiss.ts`, used once in `App`, handles every `details.menu` and `details.filter`:
+  - Escape closes the innermost open menu (the one holding focus, else the innermost) and returns focus to its summary.
+  - That Escape is stopped, so it doesn't also clear the selection or reach other handlers.
+  - A pointer press outside an open top-level menu closes it, and presses inside keep it open.
+  - Sections inside More (Edit history, Theme and text size) aren't closed by a press elsewhere in More. The first version did that, and the shrinking history moved the next section before the click landed; the #16 toolbar test caught it. They close with Escape or with More.
+- **Test:** a browser test covers the three toolbar/canvas menus, More's nested sections and the selection being kept. It fails without the hook.
+- **Rest of the audit:** using the app on the dev build (properties, IPv6 address, inventory and IP plan, outline, Security and attack paths, More, Display, Export and share, New, help) showed no console errors or warnings.
+**Why:** WAI-ARIA disclosure and menu patterns. Keyboard users expect Escape to close a menu, and an open menu shouldn't cover the work after a click elsewhere.
+**User input:** The owner chose "Yes, find and fix": file issues for what is found, fix the clear ones and merge each when green.
