@@ -214,7 +214,7 @@ flowchart TB
 
 | Area | What it is for |
 |------|----------------|
-| **Toolbar** | File commands, undo and redo, how new connections are drawn, export and share, the Display menu (theme and text size), help |
+| **Toolbar** | Find, undo and redo, how new connections are drawn (Link or Flow, and the protocol), Security, file commands, export and share, the **More** menu (snap to grid, edit history, theme and text size), help. From 1280 px wide every button keeps its word on one row |
 | **Palette** (left) | Drag a device type or a specific kind onto a lane, or click to add it. Also holds the text note tool and your saved blocks |
 | **Canvas** (centre) | The diagram for the open site: lanes, areas, devices, links, flows, notes and stubs for devices on other sites |
 | **Inventory** (centre, second view) | Sortable, editable tables of devices, flows, firewall rules and the IP plan |
@@ -261,12 +261,12 @@ flowchart TB
 ### 4.3 Editing
 
 - Undo and redo (100 steps; rapid edits to the same field merge into one step).
-- **Edit history:** the clock button lists recent steps by name ("Added device HMI", "Moved 3 devices", "Filtration PLC: firmware: — → V4.2") and jumps back or forward to any of them.
+- **Edit history:** **More → Edit history** lists recent steps by name ("Added device HMI", "Moved 3 devices", "Filtration PLC: firmware: — → V4.2") and jumps back or forward to any of them.
 - **Command palette** (Ctrl + Shift + P or Alt + P): run any action by typing part of its name, such as "export csv", "dark" or "tidy".
 - Copy, paste, duplicate, select all, and box selection with Shift + drag.
 - **Connect from the keyboard:** with a device focused or selected, press L for a link or F for a flow, move the highlight to another device with the arrow keys, and press Enter (Esc cancels). See [section 19](#19-themes-and-accessibility).
 - Bulk editing of zone, criticality and site, plus align and distribute.
-- Snap to grid, a right-click (or long-press) menu on devices, and **Tidy layout** for a whole site or, in a level tab, for that level; a second click on the button, now **Undo tidy**, puts the previous layout back.
+- Snap to grid (in the **More** menu), a right-click (or long-press) menu on devices, and **Tidy layout** for a whole site or, in a level tab, for that level; a second click on the button, now **Undo tidy**, puts the previous layout back.
 - **Bend points:** double-click a link or flow to bend it, drag the handle to move it, and double-click the handle to remove it; **Straighten** in the properties panel removes them all.
 - **Lock** devices, notes and areas so they cannot be dragged; Tidy, align and distribute leave them in place.
 - **View menu:** show or hide network links, protocol flows, flow labels, port names, notes and area frames. The choice is remembered in the browser.
@@ -1181,7 +1181,7 @@ stateDiagram-v2
 - **Screen readers:** each device has a descriptive name ("Filtration PLC, Modular PLC, level 1, zone Control, high criticality"). A live region announces adds, deletes, undo, redo and layout changes.
 - **Not by colour alone:** protocols differ by dash pattern and label, criticality is a lettered badge, and comparison tags read "New" or "Changed".
 - **Motion:** animations are switched off when the system asks for reduced motion.
-- **Text size:** the **Aa** (Display) menu in the toolbar sets the interface text to 100, 115, 130 or 150 %. It scales the toolbar, panels, tables and dialogs as a whole, so nothing inside them is cut off, and the panels widen with it; the diagram keeps its own zoom. At larger sizes the toolbar wraps onto a second row. The choice is remembered in this browser.
+- **Text size:** **More → Theme and text size** in the toolbar sets the interface text to 100, 115, 130 or 150 %. It scales the toolbar, panels, tables and dialogs as a whole, so nothing inside them is cut off, and the panels widen with it; the diagram keeps its own zoom. At larger sizes the toolbar wraps onto a second row. The choice is remembered in this browser.
 - **Touch screens and tablets:** on a touch screen every button, menu item, field and checkbox row is at least 44 × 44 px (WCAG 2.5.5), connection handles and the grab area of links are larger, the toolbar wraps instead of running off the screen, and a device moves only once it is clearly dragged. **Long-press a device** for the menu a right-click opens elsewhere. Tap a palette item to add it, or **slide it sideways with a finger** and drop it on the level you want; sliding up or down still scrolls the palette.
 - **Small screens:** below 900 px wide the palette and properties panel become slide-over drawers.
 - **Audited:** Lighthouse accessibility score 100.
@@ -1288,7 +1288,7 @@ flowchart TB
     A2 --> A3["Production build"]
     A3 --> A4["Startup bundle within budget"]
     J2 --> B1["Build and serve with vite preview"]
-    B1 --> B2["96 browser tests in Chromium"]
+    B1 --> B2["98 browser tests in Chromium"]
     B2 --> B3["axe accessibility scans<br/>light, dark, high contrast"]
     B3 --> B4["1,000-device benchmark"]
     A4 --> OK(["Green"])
@@ -1427,7 +1427,7 @@ pie showData
 | `e2e/security.spec.ts` | The office → RTU finding, red links and badges, choosing a finding, company policies, switching a check off, hiding the layer, attack path chips, highlight and Attack Flow export, entry point changes |
 | `e2e/perf.spec.ts` | The 1,000-device benchmark and complete export of large sites; its own `perf` project, which starts after the `chromium` and `tablet` projects pass, so it has the CPU to itself |
 | `e2e/report.spec.ts` | The full report (every site, an axe scan, no scripts), device names that fit their box when measured in the browser, printing it, the draw.io file parsed as XML, merging sites and undoing it, a broken merge file, a merge file over the size limit |
-| `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the Display menu |
+| `e2e/panels.spec.ts` | Folding the side panels by button and shortcut, folded sections, resizing by keyboard and drag, all kept after a reload; text size and theme in the More menu, the toolbar fitting at 1280 px with every label |
 | `e2e/levels.spec.ts` | Editing a 15-sensor level in its own tab without moving the overview, the ×15 stack with merged links kept after a reload, levels and stacks from the command palette, stacks in the report and draw.io |
 | `e2e/offline.spec.ts` | Opening and editing with the network off, a new version offered and reopened with the work kept, the install requirements, installing from the command palette |
 | `e2e/tablet.spec.ts` | Runs as a 1180 × 820 touch-screen tablet: 44 px targets, nothing off screen, tap to add and select, dragging a palette item onto a level with a finger (also from the palette drawer below 900 px), a vertical swipe that only scrolls, the long-press menu, the canvas controls never covering a lane button, an axe scan |

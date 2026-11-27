@@ -31,6 +31,8 @@ test('jumps back several steps from the edit history', async ({ page }) => {
   await page.getByLabel('Firmware').fill('V4.2');
   expect(await deviceCount(page)).toBe(21);
 
+  await page.getByRole('group', { name: 'Edit' }).waitFor();
+  await page.locator('.more-menu > summary').click();
   await page.locator('.history-menu summary').click();
   const steps = page.getByRole('list', { name: 'Edit history, newest first' }).getByRole('button');
   await expect(steps.first()).toContainText('Filtration PLC: firmware: — → V4.2');

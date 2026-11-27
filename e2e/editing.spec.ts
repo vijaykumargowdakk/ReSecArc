@@ -86,7 +86,9 @@ test('a second click on Tidy puts the previous layout back', async ({ page }) =>
   // An edit after tidying ends the offer, so the button tidies again instead of undoing that edit.
   await page.getByRole('button', { name: 'Tidy layout' }).click();
   await expect.poll(positions).toEqual(tidied);
+  await page.locator('.more-menu > summary').click();
   await page.getByRole('button', { name: 'Snap to grid' }).click(); // not an edit: the offer stays
+  await page.locator('.more-menu > summary').click();
   await expect(page.getByRole('button', { name: 'Undo tidy' })).toBeVisible();
   await page.getByRole('button', { name: 'Text note' }).click();
   await expect(page.getByRole('button', { name: 'Tidy layout' })).toBeVisible();
