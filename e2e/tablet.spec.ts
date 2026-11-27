@@ -79,6 +79,9 @@ const centre = (box: { x: number; y: number; width: number; height: number }) =>
 test('a palette item dragged with a finger lands on the level it is dropped on (issue #17)', async ({ page }) => {
   const plc = page.locator('.palette__item', { hasText: /^PLC$/ });
   const lane = page.locator('.react-flow__node-lane').filter({ has: page.locator('.lane__level', { hasText: /^L2$/ }) });
+  // The canvas frames the plant with an animation after it opens; measured before it settles, the lane
+  // can still move 60–150 px, and the finger then misses it or travels mostly downwards (a scroll).
+  await canvasSettled(page);
   const laneBox = (await lane.boundingBox())!;
   const before = await page.locator('.react-flow__node-device').evaluateAll((els) => els.map((el) => el.getAttribute('data-id')));
   // An empty spot in the L2 lane, right of its label.

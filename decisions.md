@@ -726,3 +726,9 @@ The README timeline gets `v0.5.2 Touch and polish`. The notes are checked agains
 - **Rest of the audit:** using the app on the dev build (properties, IPv6 address, inventory and IP plan, outline, Security and attack paths, More, Display, Export and share, New, help) showed no console errors or warnings.
 **Why:** WAI-ARIA disclosure and menu patterns. Keyboard users expect Escape to close a menu, and an open menu shouldn't cover the work after a click elsewhere.
 **User input:** The owner chose "Yes, find and fix": file issues for what is found, fix the clear ones and merge each when green.
+
+## 2026-11-27 — Edit history "(now)" contrast (#71)
+**Decision:** On the highlighted current step of the edit history, the "(now)" label now takes the step's own text colour, at normal weight, instead of the muted grey. axe had reported color-contrast (WCAG 1.4.3, serious) for it in the light and dark themes. The a11y browser tests now also scan the More menu with Edit history and Theme and text size open, in all three themes. The device IP field's placeholder now also gives an IPv6 example (`e.g. 10.0.0.10 or 2001:db8::10`), following #20.
+Also fixed: a flaky tablet browser test ("a palette item dragged with a finger lands on the level it is dropped on", #17), which failed about half the time locally on `main`. The cause was in the test: it measured the L2 lane while the canvas was still animating its first framing. The lane then moved 60–150 px, so the finger either missed it or travelled more down than sideways, which the palette correctly treats as a scroll. The test now waits for the canvas to settle (`canvasSettled`), as other tests do, and passed 10 of 10 runs.
+**Why:** Found in the find-and-fix audit with an axe scan of the open More menu. The existing scans never opened the history list.
+**User input:** The owner chose "Yes, find and fix".

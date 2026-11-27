@@ -54,7 +54,7 @@ const ASSET_FIELDS: { key: Exclude<keyof Asset, 'notes'>; label: string; placeho
   { key: 'model', label: 'Model', placeholder: 'Model or part number' },
   { key: 'firmware', label: 'Firmware', placeholder: 'Version' },
   { key: 'serial', label: 'Serial number', placeholder: '' },
-  { key: 'ip', label: 'IP address', placeholder: 'e.g. 10.0.0.10' },
+  { key: 'ip', label: 'IP address', placeholder: 'e.g. 10.0.0.10 or 2001:db8::10' },
 ];
 
 function useDeviceLabel() {
