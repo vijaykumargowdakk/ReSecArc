@@ -1420,7 +1420,7 @@ pie showData
 |-------------------|--------|
 | `e2e/editing.spec.ts` | Palette, undo and redo, connecting from the panel, renaming, sites and stubs, search, notes, tidy layout |
 | `e2e/data.spec.ts` | Save and open, broken files, files over the size limit, autosave restore, saved blocks kept after a reload, share links, IP warnings, an IPv6 network, revisions, CSV import |
-| `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
+| `e2e/a11y.spec.ts` | axe scans of the diagram, panels, inventory, outline, the More menu with its sections, a pending keyboard connection, dialogs, comparison and the Security panel in each theme |
 | `e2e/fields.spec.ts` | Defining custom fields, tagging one or many devices, filtering by tag, CSV export |
 | `e2e/commands.spec.ts` | Command palette, edit history jumps, the first-run tour (and that its card leaves the lane buttons clear), the empty-site hint |
 | `e2e/canvas.spec.ts` | Port names, link interfaces and warnings, bend points, the View menu, locking, links CSV import, lane buttons kept usable when zoomed out |

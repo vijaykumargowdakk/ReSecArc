@@ -3476,6 +3476,12 @@ textarea {
   background: var(--accent-soft);
 }
 
+/* On the highlighted step the muted grey is too faint for WCAG 1.4.3 (issue #71). */
+.history-menu ol button[aria-current='step'] .muted {
+  color: inherit;
+  font-weight: 400;
+}
+
 .history-menu ol button.is-undone {
   color: var(--ink-faint);
 }

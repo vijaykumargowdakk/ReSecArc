@@ -34,6 +34,14 @@ for (const theme of THEMES) {
       await expectNoViolations(page, 'link properties');
       await page.locator('summary', { hasText: 'View' }).click();
       await expectNoViolations(page, 'view menu');
+      await page.keyboard.press('Escape');
+      // The More menu with both of its sections open (issues #16, #71).
+      await page.locator('.more-menu > summary').click();
+      await page.locator('.history-menu summary').click();
+      await page.locator('.display-menu summary').click();
+      await page.getByRole('list', { name: 'Edit history, newest first' }).waitFor();
+      await page.getByRole('radio', { name: 'Larger (130%)' }).waitFor();
+      await expectNoViolations(page, 'More menu');
     });
 
     test('dialogs have no violations', async ({ page }) => {
